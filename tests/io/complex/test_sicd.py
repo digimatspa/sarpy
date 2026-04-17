@@ -1,7 +1,10 @@
 import os
 import json
 import tempfile
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 import numpy as np
 import pytest
 
@@ -17,6 +20,11 @@ try:
     from lxml import etree
 except ImportError:
     etree = None
+
+try:
+    from tempfile import TemporaryDirectory
+except ImportError:
+    from backports.tempfile import TemporaryDirectory
 
 
 complex_file_types = {}
@@ -57,14 +65,14 @@ class TestSICDWriting(unittest.TestCase):
                                         'not valid versus schema {}'.format(fil, the_schema))
 
             with self.subTest(msg='Test conversion (recreation) of the sicd file {}'.format(fil)):
-                with tempfile.TemporaryDirectory() as tmpdirname:
+                with TemporaryDirectory() as tmpdirname:
                     conversion_utility(reader, tmpdirname)
                     new_filename = os.path.join(tmpdirname, os.listdir(tmpdirname)[0])
                     with SICDReader(new_filename) as reader2:
                         self.assertEqual(os.stat(new_filename).st_size, reader2.nitf_details.nitf_header.FL)
 
             with self.subTest(msg='Test writing a single row of the sicd file {}'.format(fil)):
-                with tempfile.TemporaryDirectory() as tmpdirname:
+                with TemporaryDirectory() as tmpdirname:
                     conversion_utility(reader, tmpdirname, row_limits=(0, 1))
 
 class DummySICDMeta:

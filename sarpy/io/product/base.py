@@ -1,7 +1,15 @@
 """
 Base common features for product readers
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import zip
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -19,11 +27,11 @@ from sarpy.io.complex.sicd_elements.SICD import SICDType
 
 class SIDDTypeReader(BaseReader):
     def __init__(self,
-                 data_segment: Union[None, DataSegment, Sequence[DataSegment]],
-                 sidd_meta: Union[None, SIDDType3, SIDDType2, SIDDType1, Sequence[SIDDType1], Sequence[SIDDType2], Sequence[SIDDType3]],
-                 sicd_meta: Union[None, SICDType, Sequence[SICDType]],
-                 close_segments: bool = True,
-                 delete_files: Union[None, str, Sequence[str]] = None):
+                 data_segment,
+                 sidd_meta,
+                 sicd_meta,
+                 close_segments = True,
+                 delete_files = None):
         """
 
         Parameters
@@ -71,7 +79,7 @@ class SIDDTypeReader(BaseReader):
         BaseReader.__init__(
             self, data_segment, reader_type='SIDD', close_segments=close_segments, delete_files=delete_files)
 
-    def _check_sizes(self) -> None:
+    def _check_sizes(self):
         data_sizes = self.get_data_size_as_tuple()
         sidds = self.get_sidds_as_tuple()
         if len(data_sizes) != len(sidds):
@@ -91,7 +99,7 @@ class SIDDTypeReader(BaseReader):
             raise ValueError(msg)
 
     @property
-    def sidd_meta(self) -> Union[None, SIDDType1, SIDDType2, SIDDType3, Tuple[SIDDType1, ...], Tuple[SIDDType2, ...], Tuple[SIDDType3, ...]]:
+    def sidd_meta(self):
         """
         None|SIDDType1|SIDDType2|SIDDType3|Tuple[SIDDType1, ...]|Tuple[SIDDType2, ...]|Tuple[SIDDType3, ...]: the sidd meta_data collection.
         """
@@ -99,14 +107,14 @@ class SIDDTypeReader(BaseReader):
         return self._sidd_meta
 
     @property
-    def sicd_meta(self) -> Optional[Tuple[SICDType, ...]]:
+    def sicd_meta(self):
         """
         None|Tuple[SICDType, ...]: the sicd meta_data collection.
         """
 
         return self._sicd_meta
 
-    def get_sidds_as_tuple(self) -> Union[None, Tuple[SIDDType1, ...], Tuple[SIDDType2, ...], Tuple[SIDDType3, ...]]:
+    def get_sidds_as_tuple(self):
         """
         Get the sidd collection as a tuple - for simplicity and consistency of use.
 

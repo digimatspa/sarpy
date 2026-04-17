@@ -1,7 +1,15 @@
 """
 The DownstreamReprocessingType definition.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -117,7 +125,7 @@ class ProcessingEventType(Serializable):
         if '_xml_ns_key' in kwargs:
             self._xml_ns_key = kwargs['_xml_ns_key']
         # use naive datetime because numpy warns about parsing timezone aware
-        now = numpy.datetime64(datetime.datetime.now(tz=datetime.timezone.utc).replace(tzinfo=None))
+        now = numpy.datetime64(datetime.datetime.utcnow())
         self.ApplicationName = ApplicationName
         self.AppliedDateTime = now if AppliedDateTime is None else AppliedDateTime
         self.InterpolationMethod = InterpolationMethod

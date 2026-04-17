@@ -1,3 +1,11 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
+from builtins import dict
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = 'UNCLASSIFIED'
 __author__ = "Thomas McCullough"
 
@@ -39,7 +47,7 @@ urn_mapping = {
 _SIDD_SPECIFICATION_IDENTIFIER = 'SIDD Volume 1 Design & Implementation Description Document'
 
 
-def get_specification_identifier() -> str:
+def get_specification_identifier():
     """
     Get the SIDD specification identifier string.
 
@@ -51,7 +59,7 @@ def get_specification_identifier() -> str:
     return _SIDD_SPECIFICATION_IDENTIFIER
 
 
-def check_urn(urn_string: str) -> str:
+def check_urn(urn_string):
     """
     Checks that the urn string follows the correct pattern.
 
@@ -69,7 +77,7 @@ def check_urn(urn_string: str) -> str:
         This raises an exception for a poorly formed or unmapped SIDD urn.
     """
 
-    if not isinstance(urn_string, str):
+    if not isinstance(urn_string, string_types):
         raise TypeError(
             'Expected a urn input of string type, got type {}'.format(type(urn_string)))
 
@@ -85,7 +93,7 @@ def check_urn(urn_string: str) -> str:
     return urn_string
 
 
-def get_urn_details(urn_string: str) -> Dict[str, str]:
+def get_urn_details(urn_string):
     """
     Gets the associated details for the given SIDD urn, or raise an exception for
     poorly formatted or unrecognized urn.
@@ -108,7 +116,7 @@ def get_urn_details(urn_string: str) -> Dict[str, str]:
     return out
 
 
-def get_schema_path(the_urn: str) -> Optional[str]:
+def get_schema_path(the_urn):
     """
     Gets the path to the proper schema file for the given SIDD urn.
 
@@ -125,7 +133,7 @@ def get_schema_path(the_urn: str) -> Optional[str]:
     return result.get('schema', None)
 
 
-def get_versions() -> List[str]:
+def get_versions():
     """
     Gets a list of recognized SIDD urn.
 
@@ -137,7 +145,7 @@ def get_versions() -> List[str]:
     return list(sorted(urn_mapping.keys()))
 
 
-def validate_xml_ns(xml_ns: Dict[str, str], ns_key: str = 'default') -> bool:
+def validate_xml_ns(xml_ns, ns_key = 'default'):
     """
     Validate the parsed SIDD xml namespace dictionary. This is expected to
     accompany the use of :func:`sarpy.io.general.utils.parse_xml_from_string`.
@@ -179,20 +187,20 @@ def validate_xml_ns(xml_ns: Dict[str, str], ns_key: str = 'default') -> bool:
     for expected_key, (expected_prefix, _) in expected_ns.items():
         if expected_key not in xml_ns:
             for actual_ns in xml_ns.values():
-                if isinstance(actual_ns, str) and actual_ns.lower().startswith(expected_prefix):
+                if isinstance(actual_ns, string_types) and actual_ns.lower().startswith(expected_prefix):
                     ns_to_add[expected_key] = actual_ns
                     break
     xml_ns.update(ns_to_add)
 
     valid = True
     for key, (_, required) in expected_ns.items():
-        if key in xml_ns and xml_ns[key] != details[f'{key}_urn']:
+        if key in xml_ns and xml_ns[key] != details['{}_urn'.format(key)]:
             valid = False
             logger.error(
                 'SIDD: SIDD {} `{}` namespace urn is expected to be "{}", but we got "{}".\n\t'
                 'Differences in standard may lead to deserialization and/or '
-                'validation errors.'.format(sidd_urn, key, details[f'{key}_urn'], xml_ns[key]))
+                'validation errors.'.format(sidd_urn, key, details['{}_urn'.format(key)], xml_ns[key]))
         if required and key not in xml_ns:
             valid = False
-            logger.error(f'SIDD: No `{key}` namespace defined.')
+            logger.error('SIDD: No `{}` namespace defined.'.format(key))
     return valid

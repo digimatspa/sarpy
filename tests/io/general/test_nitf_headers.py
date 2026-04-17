@@ -2,7 +2,10 @@ import os
 import time
 import logging
 import json
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 from sarpy.io.general.nitf import NITFDetails
 from sarpy.io.general.nitf_elements.image import ImageSegmentHeader

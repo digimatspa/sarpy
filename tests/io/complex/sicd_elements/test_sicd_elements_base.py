@@ -96,7 +96,7 @@ def test_base_serializable_cp_array_descriptor(cp_array_descriptor):
 
 
 def test_base_serializable_cp_array_descriptor_setter(cp_array):
-    class TestClass:
+    class TestClass(object):
         # Define the property using the descriptor
         coords = base.SerializableCPArrayDescriptor(
             name="ValidData",
@@ -144,7 +144,12 @@ def test_serializable_cp_array(cp_array, cp_array_string, this_doc):
 
     # to_node checks
     this_node = cp_array.to_node(doc=this_doc, tag="ValidData", ns_key="test")
-    assert len(this_node.findall("test:Vertex")) == 4
+    print(this_node)
+    this_node = cp_array.to_node(doc=this_doc, tag="ValidData", ns_key="test")
+    count = sum(1 for child in this_node if child.tag.endswith('Vertex'))
+    assert count == 4
+
+    assert this_node[0].tag.startswith('test:'), "Namespace prefix not found"
 
     this_node = cp_array.to_node(doc=this_doc, tag="ValidData")
     assert len(this_node.findall("Vertex")) == 4

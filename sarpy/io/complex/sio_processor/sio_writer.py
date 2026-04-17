@@ -1,3 +1,11 @@
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
+from builtins import open
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Tex Peterson"
 # Written on: 2025-10
@@ -5,7 +13,12 @@ __author__ = "Tex Peterson"
 
 import numpy
 import os
-from pathlib import Path
+
+try:
+    from pathlib import Path
+except ImportError:
+    from pathlib2 import Path
+
 import sys
 
 from sarpy.io.complex.sicd_elements.SICD import SICDType
@@ -64,11 +77,11 @@ class SIOWriter(object):
     
     def __init__(
             self,
-            param_filename:              str|Path, 
-            param_image_data:            numpy.array, 
-            param_sicdmeta:              SICDType|None = None,
-            param_start_indices:         list          = [0, 0],
-            param_include_sicd_metadata: bool          = True
+            param_filename, 
+            param_image_data, 
+            param_sicdmeta = None,
+            param_start_indices          = [0, 0],
+            param_include_sicd_metadata          = True
     ):
         """
         Parameters:
@@ -99,7 +112,7 @@ class SIOWriter(object):
         """
         # Parse inputs
         self._filename               = param_filename
-        if isinstance(self._filename, str):
+        if isinstance(self._filename, string_types):
             self._filename = Path(self._filename)
             if os.path.dirname(self._filename) == '':
                 self._filename = Path.cwd() / self._filename
@@ -147,22 +160,22 @@ class SIOWriter(object):
         """
         Private function: Given the numpy data type from the _image_data, set the data type code and size.
         """
-        match self._image_data.dtype.name:
-            case 'uint8':
-                self._data_type_code = 1
-                self._data_size      = 1
-            case 'int16':
-                self._data_type_code = 2
-                self._data_size      = 2
-            case 'float32':
-                self._data_type_code = 3
-                self._data_size      = 4
-            case 'complex64':
-                self._data_type_code = 13
-                self._data_size      = 8
-            case _ : #Default if other cases don't match
-                raise TypeError('Writer only recognizes floats, complex and signed or unsigned integers')
-                
+        name = self._image_data.dtype.name
+        if name == 'uint8':
+            self._data_type_code = 1
+            self._data_size = 1
+        elif name == 'int16':
+            self._data_type_code = 2
+            self._data_size = 2
+        elif name == 'float32':
+            self._data_type_code = 3
+            self._data_size = 4
+        elif name == 'complex64':
+            self._data_type_code = 13
+            self._data_size = 8
+        else:
+            raise TypeError('Writer only recognizes floats, complex and signed or unsigned integers')
+                        
     def write(self):
         """
         Write _image_data and meta data to the file indicated by _filename

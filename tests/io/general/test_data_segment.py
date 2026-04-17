@@ -1,4 +1,7 @@
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 import numpy
 
@@ -7,6 +10,7 @@ from sarpy.io.general.data_segment import NumpyArraySegment, SubsetSegment, \
     BandAggregateSegment, BlockAggregateSegment, FileReadDataSegment
 from io import BytesIO
 
+from builtins import Ellipsis
 
 class TestNumpyArraySegment(unittest.TestCase):
     def test_basic_read(self):
@@ -49,7 +53,7 @@ class TestNumpyArraySegment(unittest.TestCase):
             self.assertTrue(numpy.all(complex_data[subscript] == test_data))
 
         with self.subTest(msg='read subscript with ellipsis'):
-            subscript = (..., slice(1, 3, 1))
+            subscript = (Ellipsis, slice(1, 3, 1))
             test_data = data_segment.read(subscript)
             self.assertTrue(numpy.all(complex_data[subscript] == test_data))
 
@@ -407,7 +411,7 @@ class TestFileReadSegment(unittest.TestCase):
             self.assertTrue(numpy.all(complex_data[subscript] == test_data))
 
         with self.subTest(msg='read subscript with ellipsis'):
-            subscript = (..., slice(1, 3, 1))
+            subscript = (Ellipsis, slice(1, 3, 1))
             test_data = data_segment.read(subscript)
             self.assertTrue(numpy.all(complex_data[subscript] == test_data))
 

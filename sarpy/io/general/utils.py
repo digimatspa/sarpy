@@ -1,7 +1,16 @@
 """
 Common functionality for converting metadata
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import int
+from builtins import open
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -25,7 +34,7 @@ except ImportError:
 ###########
 # general file type checks
 
-def is_file_like(the_input: Any) -> bool:
+def is_file_like(the_input):
     """
     Verify whether the provided input appear to provide a "file-like object". This
     term is used ubiquitously, but not all usages are identical. In this case, we
@@ -50,7 +59,7 @@ def is_file_like(the_input: Any) -> bool:
     return out
 
 
-def is_real_file(the_input: BinaryIO) -> bool:
+def is_real_file(the_input):
     """
     Determine if the file-like object is associated with an actual file.
     This is mainly to consider suitability for establishment of a numpy.memmap.
@@ -74,14 +83,14 @@ def is_real_file(the_input: BinaryIO) -> bool:
         return False
 
 
-def _fetch_initial_bytes(file_name: Union[str, BinaryIO], size: int) -> Optional[bytes]:
+def _fetch_initial_bytes(file_name, size):
     header = b''
     if is_file_like(file_name):
         current_location = file_name.tell()
         file_name.seek(0, os.SEEK_SET)
         header = file_name.read(size)
         file_name.seek(current_location, os.SEEK_SET)
-    elif isinstance(file_name, str):
+    elif isinstance(file_name, string_types):
         if not os.path.isfile(file_name):
             return None
 
@@ -94,8 +103,8 @@ def _fetch_initial_bytes(file_name: Union[str, BinaryIO], size: int) -> Optional
 
 
 def is_nitf(
-        file_name: Union[str, BinaryIO],
-        return_version=False) -> Union[bool, Tuple[bool, Optional[str]]]:
+        file_name,
+        return_version=False):
     """
     Test whether the given input is a NITF 2.0 or 2.1 file.
 
@@ -134,8 +143,8 @@ def is_nitf(
 
 
 def is_tiff(
-        file_name: Union[str, BinaryIO],
-        return_details=False) -> Union[bool, Tuple[bool, Optional[str], Optional[int]]]:
+        file_name,
+        return_details=False):
     """
     Test whether the given input is a tiff or big_tiff file.
 
@@ -178,7 +187,7 @@ def is_tiff(
     return (False, None, None) if return_details else False
 
 
-def is_hdf5(file_name: Union[str, BinaryIO]) -> bool:
+def is_hdf5(file_name):
     """
     Test whether the given input is a hdf5 file.
 
@@ -203,7 +212,7 @@ def is_hdf5(file_name: Union[str, BinaryIO]) -> bool:
 
 ###########
 
-def parse_timestring(str_in: str, precision: str = 'us') -> numpy.datetime64:
+def parse_timestring(str_in, precision = 'us'):
     """
     Parse (naively) a timestring to numpy.datetime64 of the given precision.
 
@@ -224,9 +233,9 @@ def parse_timestring(str_in: str, precision: str = 'us') -> numpy.datetime64:
 
 
 def get_seconds(
-        dt1: numpy.datetime64,
-        dt2: numpy.datetime64,
-        precision: str = 'us') -> float:
+        dt1,
+        dt2,
+        precision = 'us'):
     """
     The number of seconds between two numpy.datetime64 elements.
 
@@ -260,7 +269,7 @@ def get_seconds(
     return float((tdt1.astype('int64') - tdt2.astype('int64'))*scale)
 
 
-def calculate_md5(the_path: str, chunk_size: int = 1024*1024) -> str:
+def calculate_md5(the_path, chunk_size = 1024*1024):
     """
     Calculate the md5 checksum of a given file defined by a path.
 
@@ -321,7 +330,7 @@ class MemMap(object):
         offset = offset - self._offset_shift
         length = length + self._offset_shift
         # establish the mem map
-        if isinstance(file_obj, str):
+        if isinstance(file_obj, string_types):
             self._file_obj = open(file_obj, 'rb')
         else:
             self._file_obj = file_obj

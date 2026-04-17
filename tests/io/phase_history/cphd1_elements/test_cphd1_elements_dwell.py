@@ -28,6 +28,6 @@ def test_dwell_dwelltype():
     ]
     assert dwell_type.NumDwellTimes == expected_num_dwells
 
-    dwell_type.DwellTimes.clear()
+    del dwell_type.DwellTimes[:]
     assert dwell_type.NumDwellTimes == 0
 

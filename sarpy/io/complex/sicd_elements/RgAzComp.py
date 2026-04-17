@@ -1,7 +1,15 @@
 """
 The RgAzCompType definition.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -44,8 +52,8 @@ class RgAzCompType(Serializable):
 
     def __init__(
             self,
-            AzSF: float = None,
-            KazPoly: Union[Poly1DType, numpy.ndarray, list, tuple] = None,
+            AzSF = None,
+            KazPoly = None,
             **kwargs):
         """
 

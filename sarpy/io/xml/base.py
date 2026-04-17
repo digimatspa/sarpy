@@ -1,7 +1,18 @@
 """
 This module contains the base objects for use in base xml/serializable functionality.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import open
+from builtins import dict
+from builtins import int
+#from builtins import str
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -34,7 +45,7 @@ DEFAULT_STRICT = False
 # dom helper functions
 
 
-def get_node_value(nod: ElementTree.Element) -> Optional[str]:
+def get_node_value(nod):
     """
     Extracts and returns the stripped text value from an ElementTree Element.
     Returns None if the text is None or only whitespace.
@@ -54,9 +65,9 @@ def get_node_value(nod: ElementTree.Element) -> Optional[str]:
 
 
 def create_new_node(
-        doc: ElementTree.ElementTree,
-        tag: str,
-        parent: Optional[ElementTree.Element] = None) -> ElementTree.Element:
+        doc,
+        tag,
+        parent = None):
     """
     XML ElementTree node creation helper function.
 
@@ -86,10 +97,10 @@ def create_new_node(
 
 
 def create_text_node(
-        doc: ElementTree.ElementTree,
-        tag: str,
-        value: str,
-        parent: Optional[ElementTree.Element] = None) -> ElementTree.Element:
+        doc,
+        tag,
+        value,
+        parent = None):
     """
     XML ElementTree text node creation helper function
 
@@ -116,10 +127,10 @@ def create_text_node(
 
 
 def find_first_child(
-        node  : ElementTree.Element,
-        tag   : str,
-        xml_ns: Optional[Dict[str, str]] = None,
-        ns_key: Optional[str]            = None) -> ElementTree.Element:
+        node,
+        tag,
+        xml_ns = None,
+        ns_key            = None):
     """
     Finds the first child node
 
@@ -144,10 +155,10 @@ def find_first_child(
 
 
 def find_children(
-        node  : ElementTree.Element,
-        tag   : str,
-        xml_ns: Optional[Dict[str, str]] = None,
-        ns_key: Optional[str]            = None):
+        node,
+        tag,
+        xml_ns = None,
+        ns_key            = None):
     """
     Finds the collection of children nodes
 
@@ -162,7 +173,7 @@ def find_children(
     if xml_ns is None:
         return node.findall(tag)
     elif ns_key is None:
-        return node.findall('default:{}'.format(tag), xml_ns)
+        return node.findall('{}'.format(tag), xml_ns)
     else:
         return node.findall('{}:{}'.format(ns_key, tag), xml_ns)
 
@@ -195,7 +206,7 @@ def parse_xml_from_string(xml_string):
         namespace_match = re.match(r'\{.*\}', root_node.tag)
         if namespace_match is None:
             raise ValueError('Trouble finding the default namespace for tag {}'.format(root_node.tag))
-        xml_ns['default'] = namespace_match[0][1:-1]
+        xml_ns['default'] = namespace_match.group(0)[1:-1]  # invece di namespace_match[0][1:-1]
     return root_node, xml_ns
 
 
@@ -213,7 +224,7 @@ def parse_xml_from_file(xml_file_path):
     xml_ns: Dict[str, str]
     """
 
-    with open(xml_file_path, 'rb') as fi:
+    with open(str(xml_file_path), 'rb') as fi:
         xml_bytes = fi.read()
     return parse_xml_from_string(xml_bytes)
 
@@ -323,7 +334,7 @@ def parse_str(value, name, instance):
 
     if value is None:
         return None
-    if isinstance(value, str):
+    if isinstance(value, string_types):
         return value
     elif isinstance(value, ElementTree.Element):
         node_value = get_node_value(value)
@@ -382,7 +393,7 @@ def parse_bool(value, name, instance):
     elif isinstance(value, ElementTree.Element):
         # from XML deserialization
         return parse_string(get_node_value(value))
-    elif isinstance(value, str):
+    elif isinstance(value, string_types):
         return parse_string(value)
     else:
         raise ValueError('Boolean field {} of class {} cannot assign from type {}.'.format(
@@ -427,7 +438,7 @@ def parse_int(value, name, instance):
     elif isinstance(value, ElementTree.Element):
         # from XML deserialization
         return parse_int(get_node_value(value), name, instance)
-    elif isinstance(value, str):
+    elif isinstance(value, string_types):
         try:
             return int(value)
         except ValueError as e:
@@ -600,7 +611,7 @@ def parse_datetime(value, name, instance, units='us'):
         return None
     if isinstance(value, numpy.datetime64):
         return value
-    elif isinstance(value, str):
+    elif isinstance(value, string_types):
         # handle Z timezone identifier explicitly - any timezone identifier is deprecated
         if value[-1] == 'Z':
             return numpy.datetime64(value[:-1], units)
@@ -950,7 +961,7 @@ class Serializable(object):
         """
 
         entry = self._numeric_format.get(attribute, None)
-        if isinstance(entry, str):
+        if isinstance(entry, string_types):
             fmt_str = '{0:' + entry + '}'
             return fmt_str.format
         elif callable(entry):
@@ -1285,7 +1296,7 @@ class Serializable(object):
                 val.to_node(doc, ns_key=the_xml_ns_key, parent=node, check_validity=check_validity, strict=strict)
             elif isinstance(val, bool):  # this must come before int, where it would evaluate as true
                 create_text_node(doc, prim_tag, 'true' if val else 'false', parent=node)
-            elif isinstance(val, str):
+            elif isinstance(val, string_types):
                 create_text_node(doc, prim_tag, val, parent=node)
             elif isinstance(val, int):
                 create_text_node(doc, prim_tag, format_function(val), parent=node)
@@ -1445,7 +1456,7 @@ class Serializable(object):
                 return val.to_json_list(check_validity=check_validity, strict=strict)
             elif isinstance(val, ParametersCollection):
                 return val.to_dict()
-            elif isinstance(val, int) or isinstance(val, str) or isinstance(val, float):
+            elif isinstance(val, int) or isinstance(val, string_types) or isinstance(val, float):
                 return val
             elif isinstance(val, numpy.datetime64):
                 out2 = str(val)
@@ -1543,7 +1554,7 @@ class Serializable(object):
 
         if urn is None:
             pass
-        elif isinstance(urn, str):
+        elif isinstance(urn, string_types):
             node.attrib['xmlns'] = urn
         elif isinstance(urn, dict):
             for key in urn:
@@ -1634,14 +1645,14 @@ class SerializableArray(object):
         self._array = None
         if name is None:
             raise ValueError('The name parameter is required.')
-        if not isinstance(name, str):
+        if not isinstance(name, string_types):
             raise TypeError(
                 'The name parameter is required to be an instance of str, got {}'.format(type(name)))
         self._name = name
 
         if child_tag is None:
             raise ValueError('The child_tag parameter is required.')
-        if not isinstance(child_tag, str):
+        if not isinstance(child_tag, string_types):
             raise TypeError(
                 'The child_tag parameter is required to be an instance of str, got {}'.format(type(child_tag)))
         self._child_tag = child_tag
@@ -1858,14 +1869,14 @@ class ParametersCollection(object):
         self._xml_ns_key = _xml_ns_key
         if name is None:
             raise ValueError('The name parameter is required.')
-        if not isinstance(name, str):
+        if not isinstance(name, string_types):
             raise TypeError(
                 'The name parameter is required to be an instance of str, got {}'.format(type(name)))
         self._name = name
 
         if child_tag is None:
             raise ValueError('The child_tag parameter is required.')
-        if not isinstance(child_tag, str):
+        if not isinstance(child_tag, string_types):
             raise TypeError(
                 'The child_tag parameter is required to be an instance of str, got {}'.format(type(child_tag)))
         self._child_tag = child_tag
@@ -1882,9 +1893,9 @@ class ParametersCollection(object):
         raise KeyError('Dictionary does not contain key {}'.format(key))
 
     def __setitem__(self, name, value):
-        if not isinstance(name, str):
+        if not isinstance(name, string_types):
             raise ValueError('Parameter name must be of type str, got {}'.format(type(name)))
-        if not isinstance(value, str):
+        if not isinstance(value, string_types):
             raise ValueError('Parameter name must be of type str, got {}'.format(type(value)))
 
         if self._dict is None:
@@ -1911,7 +1922,7 @@ class ParametersCollection(object):
             return None  # nothing to be done
         for name in self._dict:
             value = self._dict[name]
-            if not isinstance(value, str):
+            if not isinstance(value, string_types):
                 value = str(value)
             if ns_key is None:
                 node = create_text_node(doc, self._child_tag, value, parent=parent)

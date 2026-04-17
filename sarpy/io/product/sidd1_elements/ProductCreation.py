@@ -1,7 +1,15 @@
 """
 The ProductCreationType definition for version 1.0.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -295,7 +303,7 @@ class ProductCreationType(Serializable):
         from sarpy.__about__ import __title__, __version__
 
         # use naive datetime because numpy warns about parsing timezone aware
-        now = numpy.datetime64(datetime.datetime.now(tz=datetime.timezone.utc).replace(tzinfo=None))
+        now = numpy.datetime64(datetime.datetime.utcnow())
         proc_info = ProcessorInformationType(
             Application='{} {}'.format(__title__, __version__),
             ProcessingDateTime=now,

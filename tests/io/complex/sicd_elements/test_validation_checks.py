@@ -10,9 +10,12 @@
 # 6. Test when Grid.Row.DeltaKCOAPoly and PFA.STDeskew.STDSPhasePoly are present and agree (should return True).
 # 7. Use mocks for the required attributes and methods.
 
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 import numpy as np
-from unittest.mock import MagicMock
+#from unittest.mock import MagicMock
 
 from sarpy.io.complex.sicd_elements.validation_checks import _pfa_check_stdeskew
 

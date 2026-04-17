@@ -1,7 +1,14 @@
 """
 The module contains methods for computing a coherent change detection from registered images
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from future import standard_library
+standard_library.install_aliases()
 from typing import Union, Tuple
 
 import numpy
@@ -12,9 +19,9 @@ __author__ = ('Thomas Mccullough',  'Wade Schwartzkopf', 'Mike Dowell')
 
 
 def mem(
-        reference_image: numpy.ndarray,
-        match_image: numpy.ndarray,
-        corr_window_size: Union[int, Tuple[int, int]]) -> Tuple[numpy.ndarray, numpy.ndarray]:
+        reference_image,
+        match_image,
+        corr_window_size):
     """
     Performs coherent change detection, following the equation as described in
     Jakowatz, et al., "Spotlight-mode Synthetic Aperture radar: A Signal

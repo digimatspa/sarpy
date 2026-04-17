@@ -2,14 +2,29 @@
 Remove the existing spectral taper window from a sicd-type, if necessary,
 then apply a new spectral taper window.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 __classification__ = "UNCLASSIFIED"
 __author__ = "Valkyrie Systems Corporation"
 
 import copy
 
 import numpy as np
-import scipy.fft
+import scipy
+if scipy.__version__ < '1.4':
+    # noinspection PyUnresolvedReferences
+    from scipy.fftpack import fft, ifft, fftshift, ifftshift, next_fast_len, fftfreq
+else:
+    # noinspection PyUnresolvedReferences
+    from scipy.fft import fft, ifft, fftshift, ifftshift, next_fast_len, fftfreq
 import scipy.interpolate as spi
 
 from sarpy.io.complex.sicd_elements.Grid import WgtTypeType
@@ -17,7 +32,7 @@ from sarpy.processing.sicd.normalize_sicd import apply_skew_poly
 import sarpy.processing.sicd.windows as windows
 
 
-class Taper:
+class Taper(object):
     """
     This is a helper class that wraps various window function in a common interface.
 
@@ -75,7 +90,7 @@ class Taper:
                              }
         self.default_size = default_size
         self.window_type = window.upper()
-        self.window_pars = {**self.default_pars.get(self.window_type, {}), **pars}
+        self.window_pars = dict(list(self.default_pars.get(self.window_type, {}).items()) + list(pars.items()))
         self.window_vals = self._make_sym_1d_window(self.default_size)
 
     def _make_sym_1d_window(self, window_size=None):
@@ -105,7 +120,7 @@ class Taper:
             wgts = windows.kaiser(window_size, beta=beta, sym=True)
 
         else:
-            raise ValueError(f'Window type "{self.window_type}" is not supported.')
+            raise ValueError('Window type "{}" is not supported.'.format(self.window_type))
 
         return wgts
 
@@ -159,7 +174,7 @@ def apply_spectral_taper(sicd_reader, taper):
     """
     taper = "UNIFORM" if taper is None else taper
 
-    if isinstance(taper, str):
+    if isinstance(taper, string_types):
         taper = Taper(taper)
 
     cdata = sicd_reader[:, :]
@@ -263,8 +278,8 @@ def _get_sicd_wgt_funct(mdata, axis, desired_size=513):
         if window_name.upper() == 'UNIFORM':
             wgts = np.ones(desired_size)
         else:
-            raise ValueError(f'SICD/Grid/{axis}/WgtFunct is not part of the SICD metadata, but there appears '
-                             f'to be a window of type "{window_name}" applied to the {axis} axis spectrum.')
+            raise ValueError('SICD/Grid/{}/WgtFunct is not part of the SICD metadata, but there appears '
+                             'to be a window of type "{}" applied to the {} axis spectrum.'.format(axis, window_name, axis))
 
     return wgts
 
@@ -290,19 +305,19 @@ def _fft_window_ifft(cdata, mdata, axis, window_vals):
     # find a good FFT size which creates some additional zero pad.
     axis_size = cdata.shape[axis_index]
     wrap_around_pad = int(min(200 * osf, 0.1 * axis_size))
-    good_fft_size = scipy.fft.next_fast_len(axis_size + wrap_around_pad)
+    good_fft_size = next_fast_len(axis_size + wrap_around_pad)
 
     # Forward transform without FFTSHIFT so the DC bin is at index=0
     if axis_mdata.Sgn == -1:
-        cdata_fft = scipy.fft.fft(cdata, n=good_fft_size, axis=axis_index)
+        cdata_fft = fft(cdata, n=good_fft_size, axis=axis_index)
     else:
-        cdata_fft = scipy.fft.ifft(cdata, n=good_fft_size, axis=axis_index)
+        cdata_fft = ifft(cdata, n=good_fft_size, axis=axis_index)
 
     # Interpolate the taper to cover the spectral support bandwidth and extend the
     # taper window's end points into the over sample region of the spectrum.
     f = spi.interp1d(np.linspace(-ipr_bw / 2, ipr_bw / 2, len(window_vals)), window_vals, kind='cubic',
                      bounds_error=False, fill_value=(window_vals[0], window_vals[-1]))
-    padded_taper = f(scipy.fft.fftfreq(good_fft_size, axis_mdata.SS))
+    padded_taper = f(fftfreq(good_fft_size, axis_mdata.SS))
 
     # Apply the taper to the spectrum.
     taper_2d = padded_taper[:, np.newaxis] if axis == 'Row' else padded_taper[np.newaxis, :]
@@ -311,8 +326,8 @@ def _fft_window_ifft(cdata, mdata, axis, window_vals):
     # Inverse transform without FFTSHIFT and trim back to the original image size.
     nrows, ncols = cdata.shape
     if axis_mdata.Sgn == -1:
-        cdata = scipy.fft.ifft(cdata_fft, n=good_fft_size, axis=axis_index)[:nrows, :ncols]
+        cdata = ifft(cdata_fft, n=good_fft_size, axis=axis_index)[:nrows, :ncols]
     else:
-        cdata = scipy.fft.fft(cdata_fft, n=good_fft_size, axis=axis_index)[:nrows, :ncols]
+        cdata = fft(cdata_fft, n=good_fft_size, axis=axis_index)[:nrows, :ncols]
 
     return cdata

@@ -1,6 +1,9 @@
 import os  # adding stuff for cross platform
 import sys
-import pathlib
+try:
+    import pathlib
+except ImportError:
+    import pathlib2 as pathlib
 
 import pytest
 

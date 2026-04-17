@@ -1,7 +1,16 @@
 """
 This module provides tools for creating kmz products for a CPHD type element.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+#from builtins import str
+from builtins import zip
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Valkyrie Systems Corporation"
 
@@ -174,7 +183,7 @@ def cphd_create_kmz_view(reader, output_directory, file_stem="view"):
         channel_names = [chan.Identifier for chan in reader.cphd_meta.Data.Channels]
         channel_index = channel_names.index(channel_name)
         pvp_array = reader.read_pvp_array(channel_index)
-        logger.info(f"Adding channel '{channel_name}' to kmz.")
+        logger.info("Adding channel '{}' to kmz.".format(channel_name))
 
         if "SIGNAL" in pvp_array.dtype.names:
             signal = pvp_array["SIGNAL"]
@@ -208,17 +217,17 @@ def cphd_create_kmz_view(reader, output_directory, file_stem="view"):
         folder = kmz_doc.add_container(
             par=root,
             the_type="Folder",
-            name=f"Channel {channel_name}",
-            description=f"Channel {channel_name}",
+            name="Channel {}".format(channel_name),
+            description="Channel {}".format(channel_name),
             when=whens[0],
         )
         arp_coords = kmz_utils.ecef_to_kml_coord(arp_pos)
         placemark = kmz_doc.add_container(
             par=folder,
             name=channel_name,
-            description=f"aperture position for channel {channel_name}",
+            description="aperture position for channel {}".format(channel_name),
             styleUrl="#arp",
-            **time_args,
+            **time_args
         )
         kmz_doc.add_gx_track(
             arp_coords,
@@ -233,9 +242,9 @@ def cphd_create_kmz_view(reader, output_directory, file_stem="view"):
         placemark = kmz_doc.add_container(
             par=folder,
             name="SRP",
-            description=f"stabilization reference point for channel {channel_name}",
+            description="stabilization reference point for channel {}".format(channel_name),
             styleUrl="#srp",
-            **time_args,
+            **time_args
         )
         kmz_doc.add_gx_track(
             srp_coords,
@@ -254,13 +263,13 @@ def cphd_create_kmz_view(reader, output_directory, file_stem="view"):
             placemark = kmz_doc.add_container(
                 par=folder,
                 name="ImageArea",
-                description=f"ImageArea for channel {channel_name}",
+                description="ImageArea for channel {}".format(channel_name),
                 styleUrl="#channelimagearea",
             )
             kmz_doc.add_polygon(
                 " ".join(ia_coords),
                 par=placemark,
-                name=f"ImageArea for channel {channel_name}",
+                name="ImageArea for channel {}".format(channel_name),
                 altitudeMode="absolute",
             )
 
@@ -270,19 +279,19 @@ def cphd_create_kmz_view(reader, output_directory, file_stem="view"):
             the_type="Folder",
             par=folder,
             name="Antenna",
-            description=f"Antenna Aiming for channel {channel_name}",
+            description="Antenna Aiming for channel {}".format(channel_name),
         )
         boresight_folder = kmz_doc.add_container(
             the_type="Folder",
             par=antenna_folder,
             name="Boresights",
-            description=f"Boresights for channel {channel_name}",
+            description="Boresights for channel {}".format(channel_name),
         )
         footprint_folder = kmz_doc.add_container(
             the_type="Folder",
             par=antenna_folder,
             name="-3dB Footprints",
-            description=f"Beam Footprints for channel {channel_name}",
+            description="Beam Footprints for channel {}".format(channel_name),
         )
 
         footprint_labels = {
@@ -297,15 +306,15 @@ def cphd_create_kmz_view(reader, output_directory, file_stem="view"):
                 reader.cphd_meta.Antenna,
                 pvp_array,
                 txrcv=txrcv,
-                apc_id=getattr(chan_params.Antenna, f"{txrcv}APCId"),
-                antpat_id=getattr(chan_params.Antenna, f"{txrcv}APATId"),
+                apc_id=getattr(chan_params.Antenna, "{}APCId".format(txrcv)),
+                antpat_id=getattr(chan_params.Antenna, "{}APATId".format(txrcv)),
             )
             if not aiming:
                 break
 
             for boresight_type in ("mechanical", "electrical"):
                 visibility = txrcv == "Rcv"  # only display Rcv by default
-                name = f"{txrcv} {boresight_type} boresight"
+                name = "{} {} boresight".format(txrcv, boresight_type)
 
                 on_earth_ecf = np.asarray(
                     [
@@ -320,8 +329,8 @@ def cphd_create_kmz_view(reader, output_directory, file_stem="view"):
                 placemark = kmz_doc.add_container(
                     par=boresight_folder,
                     name=name,
-                    description=f"{name} for channel {channel_name}<br><br>Highlighted edge indicates start time",
-                    styleUrl=f"#{boresight_type}_boresight",
+                    description="{} for channel {}<br><br>Highlighted edge indicates start time".format(name, channel_name),
+                    styleUrl="#{}_boresight".format(boresight_type),
                     visibility=visibility,
                 )
                 boresight_coords = kmz_utils.ecef_to_kml_coord(on_earth_ecf)
@@ -339,7 +348,7 @@ def cphd_create_kmz_view(reader, output_directory, file_stem="view"):
                 contour_level=-3,
             )
             for when, this_footprint in footprints[txrcv].items():
-                name = f"{txrcv} beam footprint @ {when}"
+                name = "{} beam footprint @ {}".format(txrcv, when)
                 timestamp = (
                     str(
                         collection_start
@@ -350,8 +359,8 @@ def cphd_create_kmz_view(reader, output_directory, file_stem="view"):
                 placemark = kmz_doc.add_container(
                     par=footprint_folder,
                     name=name,
-                    description=f"{name} for channel {channel_name}",
-                    styleUrl=f"#{txrcv.lower()}_beam_footprint",
+                    description="{} for channel {}".format(name, channel_name),
+                    styleUrl="#{}_beam_footprint".format(txrcv.lower()),
                     visibility=True,
                     when=timestamp,
                 )
@@ -374,7 +383,7 @@ def cphd_create_kmz_view(reader, output_directory, file_stem="view"):
         )
 
         def _in_scene_plane(x):
-            return np.squeeze(np.atleast_2d(x) @ np.stack((uiax, uiay), axis=-1))
+            return np.squeeze(np.dot(np.atleast_2d(x), np.stack((uiax, uiay), axis=-1)))
 
         valid_toa_points = {}
         for when, index in footprint_labels.items():
@@ -498,16 +507,16 @@ def cphd_create_kmz_view(reader, output_directory, file_stem="view"):
                 par=folder,
                 the_type="Folder",
                 name="TOA extents",
-                description=f"TOA extents for channel {channel_name}",
+                description="TOA extents for channel {}".format(channel_name),
             )
             for when, toa_points in valid_toa_points.items():
                 for label, ecf_points in toa_points.items():
-                    name = f"{label} @ {when}"
+                    name = "{} @ {}".format(label, when)
                     placemark = kmz_doc.add_container(
                         par=toa_folder,
                         name=name,
-                        description=f"{name} for channel {channel_name}",
-                        styleUrl=f"#{label[:-1].lower()}",
+                        description="{} for channel {}".format(name, channel_name),
+                        styleUrl="#{}".format(label[:-1].lower()),
                     )
                     kmz_doc.add_line_string(
                         coords=" ".join(kmz_utils.ecef_to_kml_coord(ecf_points)),
@@ -516,7 +525,7 @@ def cphd_create_kmz_view(reader, output_directory, file_stem="view"):
                         extrude=True,
                     )
 
-    kmz_file = os.path.join(output_directory, f"{file_stem}_cphd.kmz")
+    kmz_file = os.path.join(output_directory, "{}_cphd.kmz".format(file_stem))
     with prepare_kmz_file(kmz_file, name=reader.file_name) as kmz_doc:
         root = kmz_doc.add_container(
             the_type="Folder", name=reader.cphd_meta.CollectionID.CoreName
@@ -527,8 +536,9 @@ def cphd_create_kmz_view(reader, output_directory, file_stem="view"):
 
 
 def _apply_homogeneous_transform(x, t, is_position=True):
-    homogeneous_coord = np.ones if is_position else np.zeros
-    return (t @ np.vstack([x, homogeneous_coord((1, x.shape[1]))]))[:-1, ...]
+    homogeneous_func = np.ones if is_position else np.zeros
+    stacked = np.vstack([x, homogeneous_func((1, x.shape[1]))])
+    return np.dot(t, stacked)[:-1, ...]
 
 
 def _geom_to_toa(ecef_point, tx_apc_pos, rcv_apc_pos, scp):
@@ -595,7 +605,10 @@ def _xy_to_kml_coord(scenecoords_node, xy):
     return kmz_utils.ecef_to_kml_coord(xy_ecf)
 
 
-def antenna_aiming(antenna_node, pvp_array, *, txrcv, apc_id, antpat_id):
+def antenna_aiming(antenna_node, pvp_array, **_3to2kwargs):
+    antpat_id = _3to2kwargs['antpat_id']; del _3to2kwargs['antpat_id']
+    apc_id = _3to2kwargs['apc_id']; del _3to2kwargs['apc_id']
+    txrcv = _3to2kwargs['txrcv']; del _3to2kwargs['txrcv']
     """Compile antenna aiming metadata"""
     if antenna_node is None:
         return {}
@@ -604,11 +617,11 @@ def antenna_aiming(antenna_node, pvp_array, *, txrcv, apc_id, antpat_id):
     acfs = {acf.Identifier: acf for acf in antenna_node.AntCoordFrame}
     patterns = {antpat.Identifier: antpat for antpat in antenna_node.AntPattern}
 
-    positions = pvp_array[f"{txrcv}Pos"]
-    times = pvp_array[f"{txrcv}Time"]
-    if {f"{txrcv}AC{d}" for d in "XY"}.issubset(pvp_array.dtype.names):
-        uacx = pvp_array[f"{txrcv}ACX"]
-        uacy = pvp_array[f"{txrcv}ACY"]
+    positions = pvp_array["{}Pos".format(txrcv)]
+    times = pvp_array["{}Time".format(txrcv)]
+    if {"{}AC{}".format(txrcv, d) for d in "XY"}.issubset(pvp_array.dtype.names):
+        uacx = pvp_array["{}ACX".format(txrcv)]
+        uacy = pvp_array["{}ACY".format(txrcv)]
     else:
         acf_id = apcs[apc_id].ACFId
         uacx = acfs[acf_id].XAxisPoly(times)
@@ -628,8 +641,8 @@ def antenna_aiming(antenna_node, pvp_array, *, txrcv, apc_id, antpat_id):
         "mechanical": uacz,
     }
 
-    if f"{txrcv}EB" in pvp_array.dtype.names:
-        ebpvp = pvp_array[f"{txrcv}EB"]
+    if "{}EB".format(txrcv) in pvp_array.dtype.names:
+        ebpvp = pvp_array["{}EB".format(txrcv)]
         eb_dcx = ebpvp[:, 0]
         eb_dcy = ebpvp[:, 1]
     else:

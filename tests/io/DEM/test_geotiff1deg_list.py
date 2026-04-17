@@ -5,13 +5,21 @@ temporary, DEM files on-the-fly, so there is no need to provide any actual DEM f
 
 """
 import logging
-import pathlib
+try:
+    import pathlib
+except ImportError:
+    import pathlib2 as pathlib
 import re
 import tempfile
 
 import pytest
 
 from sarpy.io.DEM.geotiff1deg import GeoTIFF1DegList
+
+try:
+    from tempfile import TemporaryDirectory
+except ImportError:
+    from backports.tempfile import TemporaryDirectory
 
 # SW corner (degrees) of valid DEM pixels
 MIN_LAT = -3
@@ -39,7 +47,7 @@ def infer_filename_format(root_dir_path):
     tiff_filenames = [str(f) for f in root_dir_path.glob("**/*DEM.tif")]
 
     if len(tiff_filenames) == 0:
-        raise FileNotFoundError(f"Could not find any TIFF files in ({str(root_dir_path)}).")
+        raise FileNotFoundError("Could not find any TIFF files in ({}).".format(str(root_dir_path)))
 
     for tiff_filename in tiff_filenames:
         munged_filename = tiff_filename
@@ -47,7 +55,7 @@ def infer_filename_format(root_dir_path):
             munged_filename = re.sub(munge['regex'], munge['fmt_str'], munged_filename)
 
         if munged_filename == tiff_filename:
-            raise ValueError(f"Could not find a Lat/Lon substring in filename ({tiff_filename}).")
+            raise ValueError("Could not find a Lat/Lon substring in filename ({}).".format(tiff_filename))
 
         if munged_filename not in filename_formats:
             filename_formats.append(munged_filename)
@@ -72,7 +80,7 @@ def dem_file_path():
     """
     ver_choice = ('01', '02')
 
-    with tempfile.TemporaryDirectory() as temp_dir:
+    with TemporaryDirectory() as temp_dir:
         temp_path = pathlib.Path(temp_dir)
 
         for lat in range(MIN_LAT, MAX_LAT):
@@ -82,8 +90,8 @@ def dem_file_path():
                 ew = 'w' if lon < 0 else 'e'
 
                 # Make files that span the prime meridian and the equator
-                stem = f"tdt_{ns}{abs(lat):02}{ew}{abs(lon):03}_{ver_choice[0]}"
-                filename = temp_path / f"{stem}" / "DEM" / f"{stem.upper()}_DEM.tif"
+                stem = "tdt_{}{:02}{}{:03}_{}".format(ns, abs(lat), ew, abs(lon), ver_choice[0])
+                filename = temp_path / "{}".format(stem) / "DEM" / "{}_DEM.tif".format(stem.upper())
                 filename.parent.mkdir(parents=True, exist_ok=True)
                 filename.touch()
 
@@ -92,8 +100,8 @@ def dem_file_path():
                 lon2 = (lon2 + 180) % 360 - 180
                 ew = 'w' if lon2 < 0 else 'e'
 
-                stem = f"tdt_{ns}{abs(lat):02}{ew}{abs(lon2):03}_{ver_choice[1]}"
-                filename = temp_path / f"{stem}" / "DEM" / f"{stem.upper()}_DEM.tif"
+                stem = "tdt_{}{:02}{}{:03}_{}".format(ns, abs(lat), ew, abs(lon2), ver_choice[1])
+                filename = temp_path / "{}".format(stem) / "DEM" / "{}_DEM.tif".format(stem.upper())
                 filename.parent.mkdir(parents=True, exist_ok=True)
                 filename.touch()
 

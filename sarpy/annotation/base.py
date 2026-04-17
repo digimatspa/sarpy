@@ -1,7 +1,17 @@
 """
 Base annotation types for general use - based on the geojson implementation
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import int
+from builtins import open
+#from builtins import str
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -31,7 +41,7 @@ class GeometryProperties(Jsonable):
 
         if uid is None:
             uid = str(uuid4())
-        if not isinstance(uid, str):
+        if not isinstance(uid, string_types):
             raise TypeError('uid must be a string, got {}'.format(type(uid)))
         self._uid = uid
 
@@ -56,7 +66,7 @@ class GeometryProperties(Jsonable):
 
     @name.setter
     def name(self, value):
-        if value is None or isinstance(value, str):
+        if value is None or isinstance(value, string_types):
             self._name = value
         else:
             raise TypeError('Got unexpected type of {} for name'.format(type(value)))
@@ -71,7 +81,7 @@ class GeometryProperties(Jsonable):
 
     @color.setter
     def color(self, value):
-        if value is None or isinstance(value, str):
+        if value is None or isinstance(value, string_types):
             self._color = value
         else:
             raise TypeError('Got unexpected type of {} for color'.format(type(value)))
@@ -172,10 +182,10 @@ class AnnotationProperties(Jsonable):
 
     @name.setter
     def name(self, value):
-        if value is None or isinstance(value, str):
+        if value is None or isinstance(value, string_types):
             self._name = value
         else:
-            raise TypeError(f'Got unexpected value of type {type(value)} for name')
+            raise TypeError('Got unexpected value of type {} for name'.format(type(value)))
 
     @property
     def description(self):
@@ -186,10 +196,10 @@ class AnnotationProperties(Jsonable):
 
     @description.setter
     def description(self, value):
-        if value is None or isinstance(value, str):
+        if value is None or isinstance(value, string_types):
             self._description = value
         else:
-            raise TypeError(f'Got unexpected value of type {type(value)} for description')
+            raise TypeError('Got unexpected value of type {} for description'.format(type(value)))
 
     @property
     def directory(self):
@@ -204,8 +214,8 @@ class AnnotationProperties(Jsonable):
             self._directory = None
             return
 
-        if not isinstance(value, str):
-            raise TypeError(f'Got unexpected value of type {type(value)} for directory')
+        if not isinstance(value, string_types):
+            raise TypeError('Got unexpected value of type {} for directory'.format(type(value)))
 
         parts = [entry.strip() for entry in value.split('/')]
         self._directory = '/'.join([entry for entry in parts if entry != ''])
@@ -225,7 +235,7 @@ class AnnotationProperties(Jsonable):
             self._geometry_properties = []
             return
         if not isinstance(value, list):
-            raise TypeError(f'Got unexpected value of type {type(value)} for geometry properties')
+            raise TypeError('Got unexpected value of type {} for geometry properties'.format(type(value)))
 
         self._geometry_properties = []
         for entry in value:
@@ -249,7 +259,7 @@ class AnnotationProperties(Jsonable):
             entry = GeometryProperties.from_dict(entry)
 
         if not isinstance(entry, GeometryProperties):
-            raise TypeError(f'Got unexpected value of type {type(entry)} for geometry properties')
+            raise TypeError('Got unexpected value of type {} for geometry properties'.format(type(entry)))
 
         self.geometry_properties.append(entry)
 
@@ -292,7 +302,7 @@ class AnnotationProperties(Jsonable):
         """
         if isinstance(item, int):
             return self._geometry_properties[item], item
-        elif isinstance(item, str):
+        elif isinstance(item, string_types):
             for index, entry in enumerate(self.geometry_properties):
                 if entry.uid == item:
                     return entry, index
@@ -311,7 +321,7 @@ class AnnotationProperties(Jsonable):
         if value is None or isinstance(value, Jsonable):
             self._parameters = value
         else:
-            raise TypeError(f'Got unexpected value of type {type(value)} for parameters')
+            raise TypeError('Got unexpected value of type {} for parameters'.format(type(value)))
 
     @classmethod
     def from_dict(cls, the_json):
@@ -725,7 +735,7 @@ class AnnotationCollection(FeatureCollection):
         if self._features is None:
             raise StopIteration
 
-        if isinstance(item, str):
+        if isinstance(item, string_types):
             index = self._feature_dict[item]
             return self._features[index]
         return self._features[item]
@@ -769,7 +779,7 @@ class FileAnnotationCollection(Jsonable):
 
         if image_file_name is None:
             self._image_file_name = None
-        elif isinstance(image_file_name, str):
+        elif isinstance(image_file_name, string_types):
             self._image_file_name = os.path.split(image_file_name)[1]
         else:
             raise TypeError('image_file_name must be a None or a string')
@@ -946,6 +956,9 @@ class FileAnnotationCollection(Jsonable):
             parent_dict['annotations'] = self.annotations.to_dict()
         return parent_dict
 
-    def to_file(self, file_name):
-        with open(file_name, 'w') as fi:
-            json.dump(self.to_dict(), fi, indent=1)
+
+    def to_file(self, filename):
+        import codecs
+        import json
+        with codecs.open(filename, 'w', encoding='utf-8') as fi:
+            json.dump(self.to_dict(), fi, indent=1, ensure_ascii=False)

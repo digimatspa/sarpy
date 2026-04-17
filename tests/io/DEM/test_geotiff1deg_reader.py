@@ -21,7 +21,10 @@ If real DEM files and/or real Geoid files are not available then tests that requ
 import json
 import logging
 import os
-import pathlib
+try:
+    import pathlib
+except ImportError:
+    import pathlib2 as pathlib
 import re
 import tempfile
 
@@ -30,6 +33,12 @@ from PIL import Image
 import pytest
 
 from sarpy.io.DEM.geotiff1deg import GeoTIFF1DegInterpolator
+
+
+try:
+    from tempfile import TemporaryDirectory
+except ImportError:
+    from backports.tempfile import TemporaryDirectory
 
 SRC_FILE_PATH = pathlib.Path(__file__).parent
 parent_path = os.environ.get('SARPY_TEST_PATH', None)
@@ -63,7 +72,7 @@ def lat_lon_to_dummy_height(lat, lon):
 def lat_lon_from_filename(filename):
     m = re.search('(N|S)([0-8][0-9])(E|W)((0[0-9][0-9])|(1[0-7][0-9])|180)', filename.upper())
     if m is None:
-        raise ValueError(f"Could not find a Lat/Lon substring in filename ({filename}).")
+        raise ValueError("Could not find a Lat/Lon substring in filename ({}).".format(filename))
 
     lat_sgn = 1 if m.group(1) == 'N' else -1
     lat_abs = int(m.group(2))
@@ -83,7 +92,7 @@ def infer_filename_format(root_dir_path):
     tiff_filenames = [str(f) for f in root_dir_path.glob("**/*DEM.tif")]
 
     if len(tiff_filenames) == 0:
-        raise FileNotFoundError(f"Could not find any TIFF files in ({str(root_dir_path)}).")
+        raise FileNotFoundError("Could not find any TIFF files in ({}).".format(str(root_dir_path)))
 
     for tiff_filename in tiff_filenames:
         munged_filename = tiff_filename
@@ -91,7 +100,7 @@ def infer_filename_format(root_dir_path):
             munged_filename = re.sub(munge['regex'], munge['fmt_str'], munged_filename)
 
         if munged_filename == tiff_filename:
-            raise ValueError(f"Could not find a Lat/Lon substring in filename ({tiff_filename}).")
+            raise ValueError("Could not find a Lat/Lon substring in filename ({}).".format(tiff_filename))
 
         if munged_filename not in filename_formats:
             filename_formats.append(munged_filename)
@@ -127,7 +136,7 @@ def dummy_pil_image_open(filename, ref_surface):
     im = Image.fromarray(heights.astype(np.float64))
     im.tag = {256: (NUM_LONS_DUMMY,),             # ImageWidth
               257: (NUM_LATS_DUMMY,),             # ImageLength
-              34737: (f"Dummy: {ref_surface}",)}  # GeoAsciiParamsTag
+              34737: ("Dummy: {}".format(ref_surface),)}  # GeoAsciiParamsTag
 
     return im
 
@@ -137,7 +146,7 @@ def dummy_dem_file_path_high_res():
     dataset = 'high_res'
     filename_format = ["tdt_{ns}{abslat:02}{ew}{abslon:03}_{ver:2s}", "DEM",
                        "TDT_{NS}{abslat:02}{EW}{abslon:03}_{ver:2s}_DEM.tif"]
-    with tempfile.TemporaryDirectory() as temp_dir:
+    with TemporaryDirectory() as temp_dir:
         root_path = pathlib.Path(temp_dir) / dataset
         dummy_dem_file_path(root_path, filename_format)
         yield root_path
@@ -148,7 +157,7 @@ def dummy_dem_file_path_low_res():
     dataset = 'low_res'
     filename_format = ["TDM1_DEM__30_{NS:1s}{abslat:02}{EW:1s}{abslon:03}_V{ver:2s}_C", "DEM",
                        "TDM1_DEM__30_{NS:1s}{abslat:02}{EW:1s}{abslon:03}_DEM.tif"]
-    with tempfile.TemporaryDirectory() as temp_dir:
+    with TemporaryDirectory() as temp_dir:
         root_path = pathlib.Path(temp_dir) / dataset
         dummy_dem_file_path(root_path, filename_format)
         yield root_path
@@ -158,6 +167,7 @@ def dummy_dem_file_path(root_path, filename_format):
     """
     Create a directory of empty files that satisfy the DEM naming convention.
     """
+    from sarpy.io.DEM.geotiff1deg import format_map_compat
     min_lat = -1
     max_lat = +2
     min_lon = -1
@@ -173,7 +183,7 @@ def dummy_dem_file_path(root_path, filename_format):
                 pars = {"abslat": int(abs(np.floor(lat))), "abslon": int(abs(np.floor(xlon))),
                         "ns": 's' if lat < 0 else 'n', "ew": 'w' if xlon < 0 else 'e',
                         "NS": 'S' if lat < 0 else 'N', "EW": 'W' if xlon < 0 else 'E', "ver": ver}
-                filename = root_path / os.path.join(*filename_format).format_map(pars)
+                filename = root_path / format_map_compat(os.path.join(*filename_format),pars)
                 filename.parent.mkdir(parents=True, exist_ok=True)
                 filename.touch()
 
@@ -270,8 +280,8 @@ def test_get_min_max_native_dummy(dummy_dem_file_path_high_res, monkeypatch):
     sw_lon = -1
     ne_lon = 2
 
-    lat_ss = 1 / (NUM_LATS_DUMMY - 1)
-    lon_ss = 1 / (NUM_LONS_DUMMY - 1)
+    lat_ss = 1.0 / (NUM_LATS_DUMMY - 1)
+    lon_ss = 1.0 / (NUM_LONS_DUMMY - 1)
 
     def assert_result_good(pars, box):
         def lt_or_close(lower, upper):

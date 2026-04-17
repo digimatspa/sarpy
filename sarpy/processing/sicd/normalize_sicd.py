@@ -1,7 +1,17 @@
 """
 Methods for transforming SICD data to a common state.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from builtins import int
+from builtins import round
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -33,13 +43,13 @@ logger = logging.getLogger(__name__)
 # helper functions
 
 def apply_skew_poly(
-        input_data: numpy.ndarray,
-        delta_kcoa_poly: numpy.ndarray,
-        row_array: numpy.ndarray,
-        col_array: numpy.ndarray,
-        fft_sgn: int,
-        dimension: int,
-        forward: bool = False) -> numpy.ndarray:
+        input_data,
+        delta_kcoa_poly,
+        row_array,
+        col_array,
+        fft_sgn,
+        dimension,
+        forward = False):
     """
     Performs the skew operation on the complex array, according to the provided
     delta kcoa polynomial.
@@ -78,10 +88,10 @@ def apply_skew_poly(
 
 
 def determine_weight_array(
-        input_data_shape: Tuple[int, ...],
-        weight_array: numpy.ndarray,
-        oversample_rate: Union[int, float],
-        dimension: int) -> Tuple[numpy.ndarray, int, int]:
+        input_data_shape,
+        weight_array,
+        oversample_rate,
+        dimension):
     """
     Determine the appropriate resampled weight array and bounds.
 
@@ -123,11 +133,11 @@ def determine_weight_array(
 
 
 def apply_weight_array(
-        input_data: numpy.ndarray,
-        weight_array: numpy.ndarray,
-        oversample_rate: Union[int, float],
-        dimension: int,
-        inverse: bool = False) -> numpy.ndarray:
+        input_data,
+        weight_array,
+        oversample_rate,
+        dimension,
+        inverse = False):
     """
     Apply the weight array along the given dimension.
 
@@ -176,7 +186,7 @@ def apply_weight_array(
     return ifft(ifftshift(output_data, axes=dimension), axis=dimension)
 
 
-def _add_poly(poly1: numpy.ndarray, poly2: numpy.ndarray) -> numpy.ndarray:
+def _add_poly(poly1, poly2):
     """
     Add two-dimensional polynomials together.
 
@@ -201,8 +211,8 @@ def _add_poly(poly1: numpy.ndarray, poly2: numpy.ndarray) -> numpy.ndarray:
 
 
 def _get_deskew_params(
-        the_sicd: SICDType,
-        dimension: int) -> Tuple[numpy.ndarray, int]:
+        the_sicd,
+        dimension):
     """
     Gets the basic deskew parameters.
 
@@ -245,7 +255,7 @@ def _get_deskew_params(
 ##########
 # sicd state checking functions
 
-def is_not_skewed(sicd: SICDType, dimension: int) -> bool:
+def is_not_skewed(sicd, dimension):
     """
     Check if the sicd structure is not skewed along the provided dimension.
 
@@ -269,7 +279,7 @@ def is_not_skewed(sicd: SICDType, dimension: int) -> bool:
         return numpy.all(sicd.Grid.Col.DeltaKCOAPoly.get_array(dtype='float64') == 0)
 
 
-def is_uniform_weight(sicd: SICDType, dimension: int) -> bool:
+def is_uniform_weight(sicd, dimension):
     """
     Check if the sicd structure is has uniform weight along the provided dimension.
 
@@ -299,7 +309,7 @@ def is_uniform_weight(sicd: SICDType, dimension: int) -> bool:
     return True
 
 
-def is_normalized(sicd: SICDType, dimension: int = 1) -> bool:
+def is_normalized(sicd, dimension = 1):
     """
     Check if the sicd structure is normalized along the provided dimension.
 
@@ -316,7 +326,7 @@ def is_normalized(sicd: SICDType, dimension: int = 1) -> bool:
         normalization state in the given dimension
     """
 
-    def _is_fft_sgn_negative() -> bool:
+    def _is_fft_sgn_negative():
         if dimension == 0:
             if sicd.Grid is None or sicd.Grid.Row is None or sicd.Grid.Row.Sgn is None:
                 return True
@@ -352,12 +362,12 @@ class DeskewCalculator(FullResolutionFetcher):
         '_is_uniform_weight_row', '_is_uniform_weight_col', )
 
     def __init__(self,
-                 reader: SICDTypeReader,
-                 dimension: int = 1,
-                 index: int = 0,
-                 apply_deskew: bool = True,
-                 apply_deweighting: bool = False,
-                 apply_off_axis: bool = True):
+                 reader,
+                 dimension = 1,
+                 index = 0,
+                 apply_deskew = True,
+                 apply_deweighting = False,
+                 apply_off_axis = True):
         """
 
         Parameters
@@ -400,7 +410,7 @@ class DeskewCalculator(FullResolutionFetcher):
             reader, dimension=dimension, index=index, block_size=None)
 
     @property
-    def dimension(self) -> int:
+    def dimension(self):
         """
         int: The dimension along which to perform the color subaperture split.
         """
@@ -408,7 +418,7 @@ class DeskewCalculator(FullResolutionFetcher):
         return self._dimension
 
     @dimension.setter
-    def dimension(self, value) -> None:
+    def dimension(self, value):
         value = int(value)
         if value not in [0, 1]:
             raise ValueError('dimension must be 0 or 1, got {}'.format(value))
@@ -416,7 +426,7 @@ class DeskewCalculator(FullResolutionFetcher):
         if self._sicd is not None:
             self._set_sicd(self._sicd)
 
-    def _set_index(self, value) -> None:
+    def _set_index(self, value):
         value = int(value)
         if value < 0:
             raise ValueError('The index must be a non-negative integer, got {}'.format(value))
@@ -429,7 +439,7 @@ class DeskewCalculator(FullResolutionFetcher):
         self._set_sicd(sicds[value])
         self._data_size = self.reader.get_data_size_as_tuple()[value]
 
-    def _set_sicd(self, the_sicd: SICDType) -> None:
+    def _set_sicd(self, the_sicd):
         if the_sicd is None:
             self._sicd = None
             return
@@ -466,7 +476,7 @@ class DeskewCalculator(FullResolutionFetcher):
         self._is_uniform_weight_col = is_uniform_weight(the_sicd, 1)
 
     @property
-    def apply_deskew(self) -> bool:
+    def apply_deskew(self):
         """
         bool: Apply deskew to calculated value. This is for API completeness.
         """
@@ -478,7 +488,7 @@ class DeskewCalculator(FullResolutionFetcher):
         self._apply_deskew = (value is True)
 
     @property
-    def apply_deweighting(self) -> bool:
+    def apply_deweighting(self):
         """
         bool: Apply deweighting to calculated values.
         """
@@ -491,10 +501,10 @@ class DeskewCalculator(FullResolutionFetcher):
 
     def _get_index_arrays(
             self,
-            row_range: Tuple[int, Union[int, None]],
-            row_step: int,
-            col_range: Tuple[int, Union[int, None]],
-            col_step: int) -> Tuple[numpy.ndarray, numpy.ndarray]:
+            row_range,
+            row_step,
+            col_range,
+            col_step):
         """
         Get index array data for polynomial evaluation.
 
@@ -514,7 +524,7 @@ class DeskewCalculator(FullResolutionFetcher):
         col_array = self._col_mult*(numpy.arange(col_range[0], -1 if col_range[1] is None else col_range[1], col_step) - self._col_shift)
         return row_array, col_array
 
-    def __getitem__(self, item) -> numpy.ndarray:
+    def __getitem__(self, item):
         """
         Fetches the processed data based on the input slice.
 
@@ -597,10 +607,10 @@ class DeskewCalculator(FullResolutionFetcher):
 
 
 def aperture_dimension_limits(
-        sicd: SICDType,
-        dimension: int,
-        dimension_limits: Optional[Tuple[Union[int, float], Union[int, float]]] = None,
-        aperture_limits: Optional[Tuple[Union[int, float], Union[int, float]]] = None) -> Tuple[Tuple[int, int], Tuple[int, int]]:
+        sicd,
+        dimension,
+        dimension_limits = None,
+        aperture_limits = None):
     """
     This is a helper method to determine the "correct" effective limits for aperture
     processing along the given dimension, considering the ImpRespBW values.
@@ -625,7 +635,7 @@ def aperture_dimension_limits(
         of the impulse response bandwidth along the dimension.
     """
 
-    def validate_tuple(tup: Optional[tuple], limit: int) -> Tuple[int, int]:
+    def validate_tuple(tup, limit):
         if tup is None:
             return 0, limit
 
@@ -634,7 +644,7 @@ def aperture_dimension_limits(
             raise ValueError('Got invalid tuple `{}` for limit `{}`'.format(tup, limit))
         return out
 
-    def extrema_tuple(tup1: tuple, tup2: tuple) -> Tuple[int, int]:
+    def extrema_tuple(tup1, tup2):
         return int(numpy.floor(max(tup1[0], tup2[0]))), int(numpy.ceil(min(tup1[1], tup2[1])))
 
     dimension = int(dimension)
@@ -659,11 +669,11 @@ def aperture_dimension_limits(
 
 
 def aperture_dimension_params(
-        sicd: SICDType,
-        dimension: int,
-        dimension_limits: Optional[Tuple[Union[int, float], Union[int, float]]] = None,
-        aperture_limits: Optional[Tuple[int, int]] = None,
-        new_weight_function: Optional[numpy.ndarray] = None):
+        sicd,
+        dimension,
+        dimension_limits = None,
+        aperture_limits = None,
+        new_weight_function = None):
     """
     Gets the aperture processing parameters along the given dimension.
 
@@ -721,10 +731,10 @@ def aperture_dimension_params(
 
 
 def noise_scaling(
-        cur_ap_limits: Tuple[int, int],
-        cur_weighting: numpy.ndarray,
-        new_ap_limits: Tuple[int, int],
-        new_weighting: numpy.ndarray) -> float:
+        cur_ap_limits,
+        cur_weighting,
+        new_ap_limits,
+        new_weighting):
     """
     Gets noise scaling due to sub-aperture degradation and re-weighting along one
     dimension.
@@ -749,20 +759,20 @@ def noise_scaling(
 
 
 def sicd_degrade_reweight(
-        reader: SICDTypeReader,
-        output_file: Optional[str] = None,
-        index: int = 0,
-        row_limits: Optional[Tuple[int, int]] = None,
-        column_limits: Optional[Tuple[int, int]] = None,
-        row_aperture: Optional[Tuple[int, int]] = None,
-        row_weighting: Optional[Dict] = None,
-        column_aperture: Optional[Tuple[int, int]] = None,
-        column_weighting: Optional[Dict] = None,
-        add_noise: Optional[float] = None,
-        pixel_threshold: Optional[int] = 1500*1500,
-        check_existence: bool = True,
-        check_older_version: bool = False,
-        repopulate_rniirs: bool = True) -> Optional[FlatSICDReader]:
+        reader,
+        output_file = None,
+        index = 0,
+        row_limits = None,
+        column_limits = None,
+        row_aperture = None,
+        row_weighting = None,
+        column_aperture = None,
+        column_weighting = None,
+        add_noise = None,
+        pixel_threshold = 1500*1500,
+        check_existence = True,
+        check_older_version = False,
+        repopulate_rniirs = True):
     r"""
     Given input, create a SICD (file or reader) with modified weighting/subaperture
     parameters. Any additional noise will be added **before** performing any sub-aperture
@@ -1048,7 +1058,7 @@ def sicd_degrade_reweight(
 
         return noise_adjustment_multiplier*noise_multiplier
 
-    if isinstance(reader, str):
+    if isinstance(reader, string_types):
         reader = open_complex(reader)
 
     if not isinstance(reader, SICDTypeReader):

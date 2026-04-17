@@ -9,19 +9,19 @@ import sarpy.io.general.nitf_elements.image
 
 
 def __make_band_bytes(numbands):
-    banddef = {
-        'NBANDS': f'{numbands}'.encode() if numbands < 10 else b'0',
-        'XBANDS': b'' if numbands < 10 else f'{numbands:05d}'.encode(),
-    }
+    fields = []
+    if numbands < 10:
+        fields.append(('NBANDS', str(numbands).encode()))
+    else:
+        fields.append(('NBANDS', b'0'))
+        fields.append(('XBANDS', '{:05d}'.format(numbands).encode()))
     for n in range(numbands):
-        banddef.update({
-            f'IREPBAND{n:06d}': b'  ',
-            f'ISUBCAT{n:06d}': f'cat{n:03d}'.encode(),
-            f'IFC{n:06d}': b'N',
-            f'IMFLT{n:06d}': b'   ',
-            f'NLUTS{n:06d}': b'0',
-        })
-    return b''.join(banddef.values())
+        fields.append(('IREPBAND{:06d}'.format(n), b'  '))
+        fields.append(('ISUBCAT{:06d}'.format(n), 'cat{:03d}'.format(n).encode()))
+        fields.append(('IFC{:06d}'.format(n), b'N'))
+        fields.append(('IMFLT{:06d}'.format(n), b'   '))
+        fields.append(('NLUTS{:06d}'.format(n), b'0'))
+    return b''.join(value for _, value in fields)
 
 
 def test_imagebands_minlength():

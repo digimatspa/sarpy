@@ -2,7 +2,10 @@ import json
 import numpy
 import os
 import pytest
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 from sarpy.io.complex.converter          import conversion_utility, open_complex
 from sarpy.io.complex.sicd               import SICDWriter, SICDWritingDetails
@@ -38,10 +41,9 @@ def get_sicd_meta():
     return return_sicd_meta
 
 def test_sicd_writer_init_failure_no_input(tmp_path):
-    with pytest.raises(TypeError, 
-                       match="missing 1 required positional argument: " + \
-                        "'file_object'"):
-        sicd_writer = SICDWriter() 
+    pattern = r"(missing 1 required positional argument: 'file_object')|(__init__\(\) takes at least 2 arguments \(1 given\))"
+    with pytest.raises(TypeError, match=pattern):
+        sicd_writer = SICDWriter()
 
 def test_sicd_writer_init_failure_file_only(tmp_path):
     output_file = tmp_path / "out.sicd"

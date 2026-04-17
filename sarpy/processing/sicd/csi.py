@@ -41,7 +41,19 @@ Examples
     axs.imshow(density(csi_data), aspect='equal')
     pyplot.show()
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import range
+from builtins import super
+from builtins import round
+from builtins import zip
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = 'Thomas McCullough'
 
@@ -55,7 +67,7 @@ from sarpy.io.complex.utils import get_fetch_block_size
 from sarpy.io.general.slice_parsing import get_slice_result_size
 
 
-def filter_map_construction(siz: Union[int, float]) -> numpy.ndarray:
+def filter_map_construction(siz):
     """
     Provides the RGB filter array for sub-aperture processing.
 
@@ -94,11 +106,11 @@ def filter_map_construction(siz: Union[int, float]) -> numpy.ndarray:
 
 
 def csi_array(
-        array: numpy.ndarray,
-        dimension: int = 0,
-        platform_direction: str = 'R',
-        fill: Union[int, float] = 1,
-        filter_map: Optional[numpy.ndarray] = None) -> numpy.ndarray:
+        array,
+        dimension = 0,
+        platform_direction = 'R',
+        fill = 1,
+        filter_map = None):
     """
     Creates a color subaperture array from a complex array.
 
@@ -196,10 +208,10 @@ class CSICalculator(FFTCalculator):
 
     def __init__(
             self,
-            reader: Union[str, SICDTypeReader],
-            dimension: int = 0,
-            index: int = 0,
-            block_size: Union[None, int, float] = 50):
+            reader,
+            dimension = 0,
+            index = 0,
+            block_size = 50):
         """
 
         Parameters
@@ -219,8 +231,8 @@ class CSICalculator(FFTCalculator):
 
     def get_fetch_block_size(
             self,
-            start_element: int,
-            stop_element: int) -> int:
+            start_element,
+            stop_element):
         """
         Gets the fetch block size for the given full resolution section.
         This assumes that the fetched data will be 24 bytes per pixel, in
@@ -240,9 +252,9 @@ class CSICalculator(FFTCalculator):
 
     def _full_row_resolution(
             self,
-            row_range: Union[slice, Tuple[int, int, int]],
-            col_range: Union[slice, Tuple[int, int, int]],
-            filter_map: Optional[numpy.ndarray] = None) -> numpy.ndarray:
+            row_range,
+            col_range,
+            filter_map = None):
         data = super(CSICalculator, self)._full_row_resolution(row_range, col_range)
         return csi_array(
             data, dimension=0, platform_direction=self._platform_direction,
@@ -250,9 +262,9 @@ class CSICalculator(FFTCalculator):
 
     def _full_column_resolution(
             self,
-            row_range: Union[slice, Tuple[int, int, int]],
-            col_range: Union[slice, Tuple[int, int, int]],
-            filter_map: Optional[numpy.ndarray] = None) -> numpy.ndarray:
+            row_range,
+            col_range,
+            filter_map = None):
         data = super(CSICalculator, self)._full_column_resolution(row_range, col_range)
         return csi_array(
             data, dimension=1, platform_direction=self._platform_direction,
@@ -260,8 +272,8 @@ class CSICalculator(FFTCalculator):
 
     def _prepare_output(
             self,
-            row_range: Union[slice, Tuple[int, int, int]],
-            col_range: Union[slice, Tuple[int, int, int]]) -> numpy.ndarray:
+            row_range,
+            col_range):
         if isinstance(row_range, Sequence):
             row_range = slice(*row_range)
         if isinstance(col_range, Sequence):
@@ -271,7 +283,7 @@ class CSICalculator(FFTCalculator):
         out_size = (row_count, col_count, 3)
         return numpy.zeros(out_size, dtype=numpy.float64)
 
-    def __getitem__(self, item) -> numpy.ndarray:
+    def __getitem__(self, item):
         """
         Fetches the csi data based on the input slice.
 
@@ -287,7 +299,7 @@ class CSICalculator(FFTCalculator):
         if self._fill is None:
             raise ValueError('Unable to proceed unless the index and dimension are set.')
 
-        def get_dimension_details(the_range: Union[slice, Tuple[int, int, int]]):
+        def get_dimension_details(the_range):
             if isinstance(the_range, Sequence):
                 start, stop, step = the_range
             elif isinstance(the_range, slice):

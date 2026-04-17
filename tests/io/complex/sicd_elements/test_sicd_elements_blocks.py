@@ -89,7 +89,7 @@ def test_blocks_xyztype(kwargs):
     array = [1.0, 2.0]
     with pytest.raises(
         ValueError,
-        match=re.escape(f"Expected array to be of length 3, and received `{array}`"),
+        match=re.escape("Expected array to be of length 3, and received `{}`".format(array)),
     ):
         blocks.XYZType.from_array(array)
 
@@ -134,7 +134,7 @@ def test_blocks_latlon_classes(array, class_to_test, kwargs, tol):
     with pytest.raises(
         ValueError,
         match=re.escape(
-            f"Expected array to be of length 2, and received `{bad_array}`"
+            "Expected array to be of length 2, and received `{}`".format(bad_array)
         ),
     ):
         class_to_test.from_array(bad_array)
@@ -219,7 +219,7 @@ def test_blocks_latlon_classes_with_index(array, index, class_to_test, kwargs, t
     with pytest.raises(
         ValueError,
         match=re.escape(
-            f"Expected array to be of length 2, and received `{bad_array}`"
+            "Expected array to be of length 2, and received `{}`".format(bad_array)
         ),
     ):
         class_to_test.from_array(bad_array)
@@ -278,7 +278,7 @@ def test_blocks_latlonhae_classes(array, class_to_test, kwargs, tol):
     with pytest.raises(
         ValueError,
         match=re.escape(
-            f"Expected array to be of length 3, and received `{bad_array}`"
+            "Expected array to be of length 3, and received `{}`".format(bad_array)
         ),
     ):
         class_to_test.from_array(bad_array)
@@ -331,7 +331,7 @@ def test_blocks_latlonhae_classes_with_index(array, index, class_to_test, kwargs
     with pytest.raises(
         ValueError,
         match=re.escape(
-            f"Expected array to be of length 3, and received `{bad_array}`"
+            "Expected array to be of length 3, and received `{}`".format(bad_array)
         ),
     ):
         class_to_test.from_array(bad_array)
@@ -376,7 +376,7 @@ def test_blocks_rowcoltype(kwargs, tol):
     with pytest.raises(
         ValueError,
         match=re.escape(
-            f"Expected array to be of length 2, and received `{bad_array}`"
+            "Expected array to be of length 2, and received `{}`".format(bad_array)
         ),
     ):
         blocks.RowColType.from_array(bad_array)
@@ -418,7 +418,7 @@ def test_blocks_rowcolarrayelement(kwargs, tol):
     with pytest.raises(
         ValueError,
         match=re.escape(
-            f"Expected array to be of length 2, and received `{bad_array}`"
+            "Expected array to be of length 2, and received `{}`".format(bad_array)
         ),
     ):
         blocks.RowColArrayElement.from_array(bad_array)
@@ -738,7 +738,7 @@ def test_blocks_xyzpolytype(sicd, kwargs):
         X=sicd.Position.ARPPoly.X,
         Y=sicd.Position.ARPPoly.Y,
         Z=sicd.Position.ARPPoly.Z,
-        **kwargs,
+        **kwargs
     )
     assert poly._xml_ns == kwargs["_xml_ns"]
     assert poly._xml_ns_key == kwargs["_xml_ns_key"]
@@ -798,7 +798,7 @@ def test_blocks_xyzpolytype(sicd, kwargs):
     with pytest.raises(
         ValueError,
         match=re.escape(
-            f"Expected array to be of length 3, and received `{bad_array}`"
+            "Expected array to be of length 3, and received `{}`".format(bad_array)
         ),
     ):
         blocks.XYZPolyType.from_array(bad_array)
@@ -870,7 +870,7 @@ def test_blocks_xyzpolyattrtype(sicd, kwargs):
         Y=sicd.Position.ARPPoly.Y,
         Z=sicd.Position.ARPPoly.Z,
         index=1,
-        **kwargs,
+        **kwargs
     )
     assert poly._xml_ns == kwargs["_xml_ns"]
     assert poly._xml_ns_key == kwargs["_xml_ns_key"]
@@ -897,7 +897,7 @@ def test_blocks_xyzpolyattrtype(sicd, kwargs):
     with pytest.raises(
         ValueError,
         match=re.escape(
-            f"Expected array to be of length 3, and received `{bad_array}`"
+            "Expected array to be of length 3, and received `{}`".format(bad_array)
         ),
     ):
         blocks.XYZPolyAttributeType.from_array(bad_array)
@@ -926,7 +926,7 @@ def test_blocks_gainphasepolytype(sicd, kwargs):
     poly = blocks.GainPhasePolyType(
         GainPoly=sicd.Antenna.Tx.Array.GainPoly,
         PhasePoly=sicd.Antenna.Tx.Array.PhasePoly,
-        **kwargs,
+        **kwargs
     )
     assert poly._xml_ns == kwargs["_xml_ns"]
     assert poly._xml_ns_key == kwargs["_xml_ns_key"]

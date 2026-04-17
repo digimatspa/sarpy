@@ -1,4 +1,7 @@
-import pathlib
+try:
+    import pathlib
+except ImportError:
+    import pathlib2 as pathlib
 
 import pytest
 
@@ -269,7 +272,7 @@ def test_dted_interpolator_get_elevation_hae_south_east_cross_equator():
     dem_interpolator = sarpy_dted.DTEDInterpolator.from_reference_point( ll, files, geoid_file=geoid, pad_value=1.0 )
     assert dem_interpolator.get_elevation_hae(ll[0], ll[1]) ==  pytest.approx( 13.53, abs=0.01 )
 
-
+@pytest.mark.skipif(egm96_file is None, reason="EGM 96 data does not exist")
 def test_from_coords_and_list():
     # this test tests the Class method DTEDInteroplator contructor with both ignore_voids true and default false
     # against the same lat_lon_pt showing the different responses

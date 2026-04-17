@@ -1,7 +1,16 @@
 """
 This module provides tools for creating kmz products for a CRSD type element.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+#from builtins import str
+from builtins import zip
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Valkyrie Systems Corporation"
 
@@ -84,12 +93,12 @@ def crsd_create_kmz_view(reader, output_directory, file_stem="view"):
         channel_names = [chan.Identifier for chan in reader.crsd_meta.Data.Channels]
         channel_index = channel_names.index(channel_name)
         pvp_array = reader.read_pvp_array(channel_index)
-        logger.info(f"Adding channel '{channel_name}' to kmz.")
+        logger.info("Adding channel '{}' to kmz.".format(channel_name))
         channel_folder = kmz_doc.add_container(
             par=root,
             the_type="Folder",
-            name=f"Channel {channel_name}",
-            description=f"Channel {channel_name}",
+            name="Channel {}".format(channel_name),
+            description="Channel {}".format(channel_name),
         )
 
         chan_params = reader.crsd_meta.Channel.Parameters[channel_index]
@@ -99,8 +108,8 @@ def crsd_create_kmz_view(reader, output_directory, file_stem="view"):
             if txrcv == "Tx" and sar_imaging_node is None:
                 continue
 
-            pos_pvp = pvp_array[f"{txrcv}Pos"]
-            time_pvp = pvp_array[f"{txrcv}Time"]
+            pos_pvp = pvp_array["{}Pos".format(txrcv)]
+            time_pvp = pvp_array["{}Time".format(txrcv)]
             num_subselect = 24
             indices = np.where(
                 np.logical_and(np.isfinite(time_pvp), np.isfinite(pos_pvp).all(axis=1))
@@ -126,7 +135,7 @@ def crsd_create_kmz_view(reader, output_directory, file_stem="view"):
                 the_type="Folder",
                 par=channel_folder,
                 name=platform_label,
-                description=f"channel {channel_name}: {platform_label}",
+                description="channel {}: {}".format(channel_name, platform_label),
                 when=whens[0],
             )
 
@@ -142,13 +151,13 @@ def crsd_create_kmz_view(reader, output_directory, file_stem="view"):
                 placemark = kmz_doc.add_container(
                     par=platform_folder,
                     name="ImageArea",
-                    description=f"ImageArea for channel {channel_name}",
+                    description="ImageArea for channel {}".format(channel_name),
                     styleUrl="#channelimagearea",
                 )
                 kmz_doc.add_polygon(
                     " ".join(ia_coords),
                     par=placemark,
-                    name=f"ImageArea for channel {channel_name}",
+                    name="ImageArea for channel {}".format(channel_name),
                     altitudeMode="absolute",
                 )
 
@@ -156,10 +165,10 @@ def crsd_create_kmz_view(reader, output_directory, file_stem="view"):
             apc_coords = kmz_utils.ecef_to_kml_coord(apc_pos)
             placemark = kmz_doc.add_container(
                 par=platform_folder,
-                name=f"{channel_name} > {txrcv}",
+                name="{} > {}".format(channel_name, txrcv),
                 description=platform_label,
                 styleUrl="#arp",
-                **time_args,
+                **time_args
             )
             kmz_doc.add_gx_track(
                 apc_coords,
@@ -190,13 +199,13 @@ def crsd_create_kmz_view(reader, output_directory, file_stem="view"):
                 the_type="Folder",
                 par=platform_folder,
                 name="Antenna",
-                description=f"Antenna Aiming for channel {channel_name}",
+                description="Antenna Aiming for channel {}".format(channel_name),
             )
             boresight_folder = kmz_doc.add_container(
                 the_type="Folder",
                 par=antenna_folder,
                 name="Boresights",
-                description=f"Boresights for channel {channel_name}",
+                description="Boresights for channel {}".format(channel_name),
             )
 
             aiming = cphd_kpc.antenna_aiming(
@@ -209,7 +218,7 @@ def crsd_create_kmz_view(reader, output_directory, file_stem="view"):
 
             for boresight_type in ("mechanical", "electrical"):
                 visibility = txrcv == "Rcv"  # only display Rcv by default
-                name = f"{txrcv} {boresight_type} boresight"
+                name = "{} {} boresight".format(txrcv, boresight_type)
 
                 on_earth_ecf = np.asarray(
                     [
@@ -224,14 +233,14 @@ def crsd_create_kmz_view(reader, output_directory, file_stem="view"):
                 placemark = kmz_doc.add_container(
                     par=boresight_folder,
                     name=name,
-                    description=f"{name} for channel {channel_name}<br><br>Highlighted edge indicates start time",
-                    styleUrl=f"#{boresight_type}_boresight",
+                    description="{} for channel {}<br><br>Highlighted edge indicates start time".format(name, channel_name),
+                    styleUrl="#{}_boresight".format(boresight_type),
                     visibility=visibility,
                 )
                 boresight_coords = kmz_utils.ecef_to_kml_coord(on_earth_ecf)
                 kmz_utils.add_los_polygon(kmz_doc, placemark, apc_coords, boresight_coords)
 
-    kmz_file = os.path.join(output_directory, f"{file_stem}_crsd.kmz")
+    kmz_file = os.path.join(output_directory, "{}_crsd.kmz".format(file_stem))
     with cphd_kpc.prepare_kmz_file(kmz_file, name=reader.file_name) as kmz_doc:
         root = kmz_doc.add_container(
             the_type="Folder", name=reader.crsd_meta.CollectionID.CoreName

@@ -1,7 +1,10 @@
 import json
 import os
 import pytest
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 from tests import parse_file_entry
 
 from sarpy.io.complex.converter          import conversion_utility, open_complex

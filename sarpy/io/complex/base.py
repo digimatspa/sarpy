@@ -1,8 +1,17 @@
 """
 Base common features for complex readers
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
 
+from builtins import range
+from builtins import zip
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -24,10 +33,10 @@ class SICDTypeReader(BaseReader):
     """
 
     def __init__(self,
-                 data_segment: Union[None, DataSegment, Sequence[DataSegment]],
-                 sicd_meta: Union[None, SICDType, Sequence[SICDType]],
-                 close_segments: bool = True,
-                 delete_files: Union[None, str, Sequence[str]] = None):
+                 data_segment,
+                 sicd_meta,
+                 close_segments = True,
+                 delete_files = None):
         """
 
         Parameters
@@ -59,7 +68,7 @@ class SICDTypeReader(BaseReader):
         BaseReader.__init__(
             self, data_segment, reader_type='SICD', close_segments=close_segments, delete_files=delete_files)
 
-    def _check_sizes(self) -> None:
+    def _check_sizes(self):
         data_sizes = self.get_data_size_as_tuple()
         sicds = self.get_sicds_as_tuple()
         agree = True
@@ -74,14 +83,14 @@ class SICDTypeReader(BaseReader):
             raise ValueError(msg)
 
     @property
-    def sicd_meta(self) -> Union[None, SICDType, Tuple[SICDType, ...]]:
+    def sicd_meta(self):
         """
         None|SICDType|Tuple[SICDType, ...]: the sicd meta_data or meta_data collection.
         """
 
         return self._sicd_meta
 
-    def get_sicds_as_tuple(self) -> Union[None, Tuple[SICDType, ...]]:
+    def get_sicds_as_tuple(self):
         """
         Get the sicd or sicd collection as a tuple - for simplicity and consistency of use.
 
@@ -98,7 +107,7 @@ class SICDTypeReader(BaseReader):
             # noinspection PyRedundantParentheses
             return (self.sicd_meta, )
 
-    def get_sicd_partitions(self, match_function: Callable = is_general_match) -> Tuple[Tuple[int, ...], ...]:
+    def get_sicd_partitions(self, match_function = is_general_match):
         """
         Partition the sicd collection into sub-collections according to `match_function`,
         which is assumed to establish an equivalence relation.
@@ -136,7 +145,7 @@ class SICDTypeReader(BaseReader):
             matches.append(tuple(this_match))
         return tuple(matches)
 
-    def get_sicd_bands(self) -> Tuple[str, ...]:
+    def get_sicd_bands(self):
         """
         Gets the list of bands for each sicd.
 
@@ -147,7 +156,7 @@ class SICDTypeReader(BaseReader):
 
         return tuple(sicd.get_transmit_band_name() for sicd in self.get_sicds_as_tuple())
 
-    def get_sicd_polarizations(self) -> Tuple[str, ...]:
+    def get_sicd_polarizations(self):
         """
         Gets the list of polarizations for each sicd.
 
@@ -169,12 +178,12 @@ class FlatSICDReader(FlatReader, SICDTypeReader):
     def __init__(self,
                  sicd_meta,
                  underlying_array,
-                 formatted_dtype: Union[None, str, numpy.dtype] = None,
-                 formatted_shape: Union[None, Tuple[int, ...]] = None,
-                 reverse_axes: Union[None, int, Sequence[int]] = None,
-                 transpose_axes: Union[None, Tuple[int, ...]] = None,
-                 format_function: Union[None, FormatFunction] = None,
-                 close_segments: bool = True):
+                 formatted_dtype = None,
+                 formatted_shape = None,
+                 reverse_axes = None,
+                 transpose_axes = None,
+                 format_function = None,
+                 close_segments = True):
         """
 
         Parameters
@@ -211,7 +220,7 @@ class FlatSICDReader(FlatReader, SICDTypeReader):
             Should we check if the given file already exists, and raise an exception if so?
         """
 
-        if not isinstance(output_file, str):
+        if not isinstance(output_file, string_types):
             raise TypeError(
                 'output_file is expected to a be a string, got type {}'.format(type(output_file)))
 
@@ -255,5 +264,5 @@ class SubsetSICDReader(SICDTypeReader):
         SICDTypeReader.__init__(self, data_segment, sicd)
 
     @property
-    def file_name(self) -> None:
+    def file_name(self):
         return None

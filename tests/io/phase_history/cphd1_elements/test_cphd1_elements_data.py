@@ -22,7 +22,7 @@ def test_data_datatype(kwargs):
         SignalArrayByteOffset=0,
         PVPArrayByteOffset=0,
         CompressedSignalSize=123456,
-        **kwargs,
+        **kwargs
     )
 
     support_arr_size_type0 = Data.SupportArraySizeType(
@@ -31,7 +31,7 @@ def test_data_datatype(kwargs):
         NumCols=10,
         BytesPerElement=8,
         ArrayByteOffset=0,
-        **kwargs,
+        **kwargs
     )
 
     assert support_arr_size_type0.calculate_size() == (
@@ -46,7 +46,7 @@ def test_data_datatype(kwargs):
         NumCols=10,
         BytesPerElement=8,
         ArrayByteOffset=0,
-        **kwargs,
+        **kwargs
     )
 
     data_type = Data.DataType(
@@ -55,7 +55,7 @@ def test_data_datatype(kwargs):
         SignalCompressionID="NODATA",
         Channels=channel0,
         SupportArrays=[support_arr_size_type0, support_arr_size_type1],
-        **kwargs,
+        **kwargs
     )
 
     assert data_type.NumCPHDChannels == 1

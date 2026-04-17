@@ -44,7 +44,16 @@ https://sourceforge.net/projects/geographiclib/files/geoids-distrib/egm2008-5.ta
 or
 https://sourceforge.net/projects/geographiclib/files/geoids-distrib/egm2008-5.zip
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import open
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 import os
 import numpy
 
@@ -127,7 +136,7 @@ def find_geoid_file_from_dir(dir_name, search_files=None):
             'files in directory "geoid"')
     if search_files is None:
         search_files = []
-    elif isinstance(search_files, str):
+    elif isinstance(search_files, string_types):
         search_files = [search_files, ]
     else:
         search_files = list(search_files)

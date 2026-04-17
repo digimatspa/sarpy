@@ -6,7 +6,15 @@ For a basic help on the command-line, check
 >>> python -m sarpy.utils.chip_sicd --help
 
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "John Gorman"
 
@@ -75,7 +83,7 @@ def create_chip(input_reader, out_directory, output_file=None, row_limits=None, 
         else:
             return '{0:d}-{1:d}'.format(shift+limits[0], shift+limits[1])
 
-    if isinstance(input_reader, str):
+    if isinstance(input_reader, string_types):
         input_reader = SICDReader(input_reader)
     if not isinstance(input_reader, SICDReader):
         raise TypeError('We require that the input is a SICD reader or path to a sicd file.')

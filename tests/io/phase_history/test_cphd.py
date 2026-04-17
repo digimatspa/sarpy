@@ -1,6 +1,9 @@
 import contextlib
 import copy
-import pathlib
+try:
+    import pathlib
+except ImportError:
+    import pathlib2 as pathlib
 
 import numpy as np
 import numpy.testing

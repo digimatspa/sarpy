@@ -1,5 +1,16 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 from ..tre_elements import TREExtension, TREElement
+
+import sys
+import struct
 
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
@@ -122,7 +133,11 @@ class BANDSBType(TREElement):
         self.add_field('SPT_RESP_UNIT_COL', 's', 1, value)
         self.add_field('DATA_FLD_1', 'b', 48, value)
         self.add_field('EXISTENCE_MASK', 'b', 4, value)
-        existence_mask = int.from_bytes(self.EXISTENCE_MASK, byteorder='big')
+
+        if sys.version_info[0] >= 3:
+            existence_mask = int.from_bytes(self.EXISTENCE_MASK, byteorder='big')
+        else:
+            existence_mask = struct.unpack('>I', self.EXISTENCE_MASK)[0]
         if existence_mask & 0x80000000:
             self.add_field('RADIOMETRIC_ADJUSTMENT_SURFACE', 's', 24, value)
             self.add_field('ATMOSPHERIC_ADJUSTMENT_ALTITUDE', 'ieee754_binary32', 4, value)

@@ -1,7 +1,16 @@
 """
 Module for reading and writing CRSD version 1.0 files
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import int
+from builtins import open
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = ("Thomas McCullough", "Michael Stewart, Valyrie")
 
@@ -42,7 +51,7 @@ class CRSDDetails(object):
     __slots__ = (
         '_file_name', '_file_object', '_close_after', '_crsd_version', '_crsd_header', '_crsd_meta')
 
-    def __init__(self, file_object: Union[str, BinaryIO]):
+    def __init__(self, file_object):
         """
 
         Parameters
@@ -56,7 +65,7 @@ class CRSDDetails(object):
         self._crsd_meta = None
         self._close_after = False
 
-        if isinstance(file_object, str):
+        if isinstance(file_object, string_types):
             if not os.path.exists(file_object) or not os.path.isfile(file_object):
                 raise SarpyIOError('path {} does not exist or is not a file'.format(file_object))
             self._file_name = file_object
@@ -64,7 +73,7 @@ class CRSDDetails(object):
             self._close_after = True
         elif is_file_like(file_object):
             self._file_object = file_object
-            if hasattr(file_object, 'name') and isinstance(file_object.name, str):
+            if hasattr(file_object, 'name') and isinstance(file_object.name, string_types):
                 self._file_name = file_object.name
             else:
                 self._file_name = '<file like object>'
@@ -84,7 +93,7 @@ class CRSDDetails(object):
         self._extract_crsd()
 
     @property
-    def file_name(self) -> str:
+    def file_name(self):
         """
         str: The CRSD filename.
         """
@@ -92,7 +101,7 @@ class CRSDDetails(object):
         return self._file_name
 
     @property
-    def file_object(self) -> BinaryIO:
+    def file_object(self):
         """
         BinaryIO: The binary file object
         """
@@ -100,7 +109,7 @@ class CRSDDetails(object):
         return self._file_object
 
     @property
-    def crsd_version(self) -> str:
+    def crsd_version(self):
         """
         str: The CRSD version.
         """
@@ -108,7 +117,7 @@ class CRSDDetails(object):
         return self._crsd_version
 
     @property
-    def crsd_header(self) -> CRSDHeader:
+    def crsd_header(self):
         """
         CRSDHeader: The CRSD header object
         """
@@ -116,14 +125,14 @@ class CRSDDetails(object):
         return self._crsd_header
 
     @property
-    def crsd_meta(self) -> CRSDType:
+    def crsd_meta(self):
         """
         CRSDType: The CRSD structure, which is version dependent.
         """
 
         return self._crsd_meta
 
-    def _extract_version(self) -> None:
+    def _extract_version(self):
         """
         Extract the version number from the file. This will advance the file
         object to the end of the initial header line.
@@ -139,7 +148,7 @@ class CRSDDetails(object):
         crsd_version = parts[1].strip().decode('utf-8')
         self._crsd_version = crsd_version
 
-    def _extract_header(self) -> None:
+    def _extract_header(self):
         """
         Extract the header from the file. The file object is assumed to be advanced
         to the header location. This will advance to the file object to the end of
@@ -151,7 +160,7 @@ class CRSDDetails(object):
         else:
             raise ValueError(_unhandled_version_text.format(self.crsd_version))
 
-    def _extract_crsd(self) -> None:
+    def _extract_crsd(self):
         """
         Extract and interpret the CRSD structure from the file.
         """
@@ -164,7 +173,7 @@ class CRSDDetails(object):
 
         self._crsd_meta = the_type.from_xml_string(xml)
 
-    def get_crsd_bytes(self) -> bytes:
+    def get_crsd_bytes(self):
         """
         Extract the (uninterpreted) bytes representation of the CRSD structure.
 
@@ -197,8 +206,8 @@ class CRSDDetails(object):
 
 @deprecated("sarpy's CRSD implementation is deprecated. Please use SARKit.")
 def _validate_crsd_details(
-        crsd_details: Union[str, CRSDDetails],
-        version: Union[None, str, Sequence[str]] = None) -> CRSDDetails:
+        crsd_details,
+        version = None):
     """
     Validate the input argument.
 
@@ -212,7 +221,7 @@ def _validate_crsd_details(
     CRSDDetails
     """
 
-    if isinstance(crsd_details, str):
+    if isinstance(crsd_details, string_types):
         crsd_details = CRSDDetails(crsd_details)
 
     if not isinstance(crsd_details, CRSDDetails):
@@ -220,7 +229,7 @@ def _validate_crsd_details(
                         'or CRSDDetails, got type {}'.format(crsd_details))
 
     if version is not None:
-        if isinstance(version, str) and not crsd_details.crsd_version.startswith(version):
+        if isinstance(version, string_types) and not crsd_details.crsd_version.startswith(version):
             raise ValueError(
                 'This CRSD file is required to be version {},\n\t'
                 'got {}'.format(version, crsd_details.crsd_version))
@@ -265,7 +274,7 @@ class CRSDReader(CRSDTypeReader):
             raise ValueError('Got unhandled CRSD version {}'.format(crsd_details.crsd_version))
 
     @property
-    def crsd_details(self) -> CRSDDetails:
+    def crsd_details(self):
         """
         CRSDDetails: The crsd details object.
         """
@@ -273,7 +282,7 @@ class CRSDReader(CRSDTypeReader):
         return self._crsd_details
 
     @property
-    def crsd_version(self) -> str:
+    def crsd_version(self):
         """
         str: The CRSD version.
         """
@@ -281,7 +290,7 @@ class CRSDReader(CRSDTypeReader):
         return self.crsd_details.crsd_version
 
     @property
-    def crsd_header(self) -> CRSDHeader:
+    def crsd_header(self):
         """
         CRSDHeader: The CRSD header object
         """
@@ -289,37 +298,37 @@ class CRSDReader(CRSDTypeReader):
         return self.crsd_details.crsd_header
 
     @property
-    def file_name(self) -> str:
+    def file_name(self):
         return self.crsd_details.file_name
 
     def read_support_array(self,
-                           index: Union[int, str],
-                           *ranges: Sequence[Union[None, int, Tuple[int, ...], slice]]) -> numpy.ndarray:
+                           index,
+                           *ranges):
         raise NotImplementedError
 
-    def read_support_block(self) -> Dict[str, numpy.ndarray]:
+    def read_support_block(self):
         raise NotImplementedError
 
     def read_pvp_variable(
             self,
-            variable: str,
-            index: Union[int, str],
-            the_range: Union[None, int, Tuple[int, ...], slice] = None) -> Optional[numpy.ndarray]:
+            variable,
+            index,
+            the_range = None):
         raise NotImplementedError
 
     def read_pvp_array(
             self,
-            index: Union[int, str],
-            the_range: Union[None, int, Tuple[int, ...], slice] = None) -> numpy.ndarray:
+            index,
+            the_range = None):
         raise NotImplementedError
 
-    def read_pvp_block(self) -> Dict[str, numpy.ndarray]:
+    def read_pvp_block(self):
         raise NotImplementedError
 
-    def read_signal_block(self) -> Dict[str, numpy.ndarray]:
+    def read_signal_block(self):
         raise NotImplementedError
 
-    def read_signal_block_raw(self) -> Dict[str, numpy.ndarray]:
+    def read_signal_block_raw(self):
         raise NotImplementedError
 
     def close(self):
@@ -345,7 +354,7 @@ class CRSDReader1(CRSDReader):
 
     def __init__(
             self,
-            crsd_details: Union[str, CRSDDetails]):
+            crsd_details):
         """
 
         Parameters
@@ -369,7 +378,7 @@ class CRSDReader1(CRSDReader):
         BaseReader.__init__(self, data_segments, reader_type='CRSD')
 
     @property
-    def crsd_meta(self) -> CRSDType:
+    def crsd_meta(self):
         """
         CRSDType: the crsd meta_data.
         """
@@ -377,14 +386,14 @@ class CRSDReader1(CRSDReader):
         return self._crsd_meta
 
     @property
-    def crsd_header(self) -> CRSDHeader:
+    def crsd_header(self):
         """
         CRSDHeader: The CRSD header object.
         """
 
         return self.crsd_details.crsd_header
 
-    def _create_data_segments(self) -> List[DataSegment]:
+    def _create_data_segments(self):
         """
         Helper method for creating the various signal data segments.
 
@@ -420,7 +429,7 @@ class CRSDReader1(CRSDReader):
                     format_function=format_function, close_file=False))
         return data_segments
 
-    def _create_pvp_memmaps(self) -> None:
+    def _create_pvp_memmaps(self):
         """
         Helper method which creates the pvp mem_maps.
 
@@ -447,7 +456,7 @@ class CRSDReader1(CRSDReader):
             self._pvp_memmap[entry.Identifier] = numpy.memmap(
                 self.crsd_details.file_name, dtype=pvp_dtype, mode='r', offset=offset, shape=shape)
 
-    def _create_support_array_memmaps(self) -> None:
+    def _create_support_array_memmaps(self):
         """
         Helper method which creates the support array mem_maps.
 
@@ -473,7 +482,7 @@ class CRSDReader1(CRSDReader):
             self._support_array_memmap[entry.Identifier] = numpy.memmap(
                 self.crsd_details.file_name, dtype=dtype, mode='r', offset=offset, shape=shape)
 
-    def _validate_index(self, index: Union[int, str]) -> int:
+    def _validate_index(self, index):
         """
         Get corresponding integer index for CRSD channel.
 
@@ -488,7 +497,7 @@ class CRSDReader1(CRSDReader):
 
         crsd_meta = self.crsd_details.crsd_meta
 
-        if isinstance(index, str):
+        if isinstance(index, string_types):
             if index in self._channel_map:
                 return self._channel_map[index]
             else:
@@ -499,7 +508,7 @@ class CRSDReader1(CRSDReader):
                 raise ValueError(_index_range_text.format(crsd_meta.Data.NumCRSDChannels))
             return int_index
 
-    def _validate_index_key(self, index: Union[int, str]) -> str:
+    def _validate_index_key(self, index):
         """
         Gets the corresponding identifier for the CPHD channel.
 
@@ -514,7 +523,7 @@ class CRSDReader1(CRSDReader):
 
         crsd_meta = self.crsd_details.crsd_meta
 
-        if isinstance(index, str):
+        if isinstance(index, string_types):
             if index in self._channel_map:
                 return index
             else:
@@ -527,13 +536,13 @@ class CRSDReader1(CRSDReader):
 
     def read_support_array(
             self,
-            index: Union[int, str],
-            *ranges) -> numpy.ndarray:
+            index,
+            *ranges):
         # find the support array identifier
         if isinstance(index, int):
             the_entry = self.crsd_meta.Data.SupportArrays[index]
             index = the_entry.Identifier
-        if not isinstance(index, str):
+        if not isinstance(index, string_types):
             raise TypeError('Got unexpected type {} for identifier'.format(type(index)))
 
         the_memmap = self._support_array_memmap[index]
@@ -545,7 +554,7 @@ class CRSDReader1(CRSDReader):
         subscript = verify_subscript(ranges, the_memmap.shape)
         return numpy.copy(the_memmap[subscript])
 
-    def read_support_block(self) -> Dict:
+    def read_support_block(self):
         if self.crsd_meta.Data.SupportArrays:
             return {
                 sa.Identifier: self.read_support_array(sa.Identifier)
@@ -568,19 +577,21 @@ class CRSDReader1(CRSDReader):
         the_slice = verify_slice(the_range, the_memmap.shape[0])
         return numpy.copy(the_memmap[the_slice])
 
-    def read_pvp_block(self) -> Dict[str, numpy.ndarray]:
+    def read_pvp_block(self):
         return {chan.Identifier: self.read_pvp_array(chan.Identifier) for chan in self.crsd_meta.Data.Channels}
 
-    def read_signal_block(self) -> Dict[str, numpy.ndarray]:
+    def read_signal_block(self):
         return {chan.Identifier: numpy.copy(self.read(index=chan.Identifier)) for chan in self.crsd_meta.Data.Channels}
 
-    def read_signal_block_raw(self) -> Dict[str, numpy.ndarray]:
+    def read_signal_block_raw(self):
         return {chan.Identifier: numpy.copy(self.read_raw(index=chan.Identifier)) for chan in self.crsd_meta.Data.Channels}
 
     def read_chip(self,
-             *ranges: Sequence[Union[None, int, Tuple[int, ...], slice]],
-             index: Union[int, str] = 0,
-             squeeze: bool = True) -> numpy.ndarray:
+             *ranges, **_3to2kwargs):
+        if 'squeeze' in _3to2kwargs: squeeze = _3to2kwargs['squeeze']; del _3to2kwargs['squeeze']
+        else: squeeze =  True
+        if 'index' in _3to2kwargs: index = _3to2kwargs['index']; del _3to2kwargs['index']
+        else: index =  0
         """
         This is identical to :meth:`read`, and presented for backwards compatibility.
 
@@ -602,9 +613,11 @@ class CRSDReader1(CRSDReader):
         return self.__call__(*ranges, index=index, raw=False, squeeze=squeeze)
 
     def read(self,
-             *ranges: Sequence[Union[None, int, Tuple[int, ...], slice]],
-             index: Union[int, str] = 0,
-             squeeze: bool = True) -> numpy.ndarray:
+             *ranges, **_3to2kwargs):
+        if 'squeeze' in _3to2kwargs: squeeze = _3to2kwargs['squeeze']; del _3to2kwargs['squeeze']
+        else: squeeze =  True
+        if 'index' in _3to2kwargs: index = _3to2kwargs['index']; del _3to2kwargs['index']
+        else: index =  0
         """
         Read formatted data from the given data segment. Note this is an alias to the
         :meth:`__call__` called as
@@ -631,9 +644,11 @@ class CRSDReader1(CRSDReader):
         return self.__call__(*ranges, index=index, raw=False, squeeze=squeeze)
 
     def read_raw(self,
-                 *ranges: Sequence[Union[None, int, Tuple[int, ...], slice]],
-                 index: Union[int, str] = 0,
-                 squeeze: bool = True) -> numpy.ndarray:
+                 *ranges, **_3to2kwargs):
+        if 'squeeze' in _3to2kwargs: squeeze = _3to2kwargs['squeeze']; del _3to2kwargs['squeeze']
+        else: squeeze =  True
+        if 'index' in _3to2kwargs: index = _3to2kwargs['index']; del _3to2kwargs['index']
+        else: index =  0
         """
         Read raw data from the given data segment. Note this is an alias to the
         :meth:`__call__` called as
@@ -660,15 +675,18 @@ class CRSDReader1(CRSDReader):
         return self.__call__(*ranges, index=index, raw=True, squeeze=squeeze)
 
     def __call__(self,
-                 *ranges: Sequence[Union[None, int, slice]],
-                 index: int = 0,
-                 raw: bool = False,
-                 squeeze: bool = True) -> numpy.ndarray:
+                 *ranges, **_3to2kwargs):
+        if 'squeeze' in _3to2kwargs: squeeze = _3to2kwargs['squeeze']; del _3to2kwargs['squeeze']
+        else: squeeze =  True
+        if 'raw' in _3to2kwargs: raw = _3to2kwargs['raw']; del _3to2kwargs['raw']
+        else: raw =  False
+        if 'index' in _3to2kwargs: index = _3to2kwargs['index']; del _3to2kwargs['index']
+        else: index =  0
         index = self._validate_index(index)
         return BaseReader.__call__(self, *ranges, index=index, raw=raw, squeeze=squeeze)
 
 @deprecated("sarpy's CRSD implementation is deprecated. Please use SARKit.")
-def is_a(file_name: str) -> Optional[CRSDReader]:
+def is_a(file_name):
     """
     Tests whether a given file_name corresponds to a CRSD file. Returns a reader instance, if so.
 
@@ -698,10 +716,10 @@ def is_a(file_name: str) -> Optional[CRSDReader]:
 class CRSDWritingDetails(CPHDWritingDetails):
 
     @property
-    def header(self) -> CRSDHeader:
+    def header(self):
         return self._header
 
-    def _set_header(self, check_older_version: bool):
+    def _set_header(self, check_older_version):
         if check_older_version:
             use_version_tuple = self.meta.version_required()
         else:
@@ -710,7 +728,7 @@ class CRSDWritingDetails(CPHDWritingDetails):
         self._header = self.meta.make_file_header(use_version=use_version_string)
 
     @property
-    def meta(self) -> CRSDType:
+    def meta(self):
         """
         CPSDType: The metadata
         """
@@ -718,7 +736,7 @@ class CRSDWritingDetails(CPHDWritingDetails):
         return self._meta
 
     @meta.setter
-    def meta(self, value: CRSDType):
+    def meta(self, value):
         if self._meta is not None:
             raise ValueError('meta is read only once initialized.')
         if not isinstance(value, CRSDType):
@@ -727,8 +745,8 @@ class CRSDWritingDetails(CPHDWritingDetails):
 
     def write_header(
             self,
-            file_object: BinaryIO,
-            overwrite: bool = False) -> None:
+            file_object,
+            overwrite = False):
         """
         Write the header.The file object will be advanced to the end of the
         block, if writing occurs.
@@ -766,10 +784,10 @@ class CRSDWriter1(CPHDWriter1):
 
     def __init__(
             self,
-            file_object: Union[str, BinaryIO],
-            meta: Optional[CRSDType] = None,
-            writing_details: Optional[CRSDWritingDetails] = None,
-            check_existence: bool = True):
+            file_object,
+            meta = None,
+            writing_details = None,
+            check_existence = True):
         """
 
         Parameters
@@ -786,11 +804,11 @@ class CRSDWriter1(CPHDWriter1):
             check_existence=check_existence)
 
     @property
-    def writing_details(self) -> CRSDWritingDetails:
+    def writing_details(self):
         return self._writing_details
 
     @writing_details.setter
-    def writing_details(self, value: CRSDWritingDetails):
+    def writing_details(self, value):
         if self._writing_details is not None:
             raise ValueError('writing_details is read-only')
         if not isinstance(value, CRSDWritingDetails):
@@ -798,11 +816,11 @@ class CRSDWriter1(CPHDWriter1):
         self._writing_details = value
 
     @property
-    def file_name(self) -> Optional[str]:
+    def file_name(self):
         return self._file_name
 
     @property
-    def meta(self) -> CRSDType:
+    def meta(self):
         """
         CRSDType: The metadata
         """

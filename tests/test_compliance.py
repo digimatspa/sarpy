@@ -4,6 +4,11 @@ __author__ = "Tex Peterson"
 import pytest, os
 from unittest import TestCase
 
+try:
+    from unittest2 import TestCase
+except ImportError:
+    from unittest import TestCase
+
 from sarpy.compliance import SarpyError, bytes_to_string
 
 # Test the SarpyError class.
@@ -28,7 +33,7 @@ class Test_bytes_to_string(TestCase):
         self.assertEqual(self.text_string, bytes_to_string(self.text_string))
 
     def testBadInputFail(self):
-        with self.assertRaisesRegex(TypeError, 'Input is required to be bytes. Got type*'):
+        with self.assertRaisesRegex(TypeError, r'Input is required to be bytes( or string)?\. Got type.*'):
             bytes_to_string(11)
 
     def testByteInputSuccess(self):

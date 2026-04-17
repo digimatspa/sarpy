@@ -1,7 +1,16 @@
 """
 The GridType definition.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import int
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -55,8 +64,8 @@ class WgtTypeType(Serializable):
 
     def __init__(
             self,
-            WindowName: str = None,
-            Parameters: Union[ParametersCollection, Dict] = None,
+            WindowName = None,
+            Parameters = None,
             **kwargs):
         """
 
@@ -77,8 +86,8 @@ class WgtTypeType(Serializable):
 
     def get_parameter_value(
             self,
-            param_name: str,
-            default: Optional[str] = None) -> Optional[str]:
+            param_name,
+            default = None):
         """
         Gets the value (first value found) associated with a given parameter name.
         Returns `default` if not found.
@@ -192,17 +201,17 @@ class DirParamType(Serializable):
 
     def __init__(
             self,
-            UVectECF: Union[XYZType, numpy.ndarray, list, tuple] = None,
-            SS: float = None,
-            ImpRespWid: float = None,
-            Sgn: int = None,
-            ImpRespBW: float = None,
-            KCtr: float = None,
-            DeltaK1: float = None,
-            DeltaK2: float = None,
-            DeltaKCOAPoly: Union[None, Poly2DType, numpy.ndarray, list, tuple] = None,
-            WgtType: Optional[WgtTypeType] = None,
-            WgtFunct: Union[None, numpy.ndarray, list, tuple] = None,
+            UVectECF = None,
+            SS = None,
+            ImpRespWid = None,
+            Sgn = None,
+            ImpRespBW = None,
+            KCtr = None,
+            DeltaK1 = None,
+            DeltaK2 = None,
+            DeltaKCOAPoly = None,
+            WgtType = None,
+            WgtFunct = None,
             **kwargs):
         """
 
@@ -238,8 +247,8 @@ class DirParamType(Serializable):
 
     def define_weight_function(
             self,
-            weight_size: int = DEFAULT_WEIGHT_SIZE,
-            populate: bool = False) -> Optional[numpy.ndarray]:
+            weight_size = DEFAULT_WEIGHT_SIZE,
+            populate = False):
         """
         Try to derive WgtFunct from WgtType, if necessary. This should likely be called from the `GridType` parent.
 
@@ -292,7 +301,7 @@ class DirParamType(Serializable):
             self.WgtFunct = value
         return value
 
-    def get_oversample_rate(self) -> float:
+    def get_oversample_rate(self):
         """
         Gets the oversample rate. *Added in version 1.2.35.*
 
@@ -306,7 +315,7 @@ class DirParamType(Serializable):
 
         return max(1., 1./(self.SS*self.ImpRespBW))
 
-    def _get_broadening_factor(self) -> float:
+    def _get_broadening_factor(self):
         """
         Gets the *broadening factor*, assuming that `WgtFunct` has been properly populated.
 
@@ -335,7 +344,7 @@ class DirParamType(Serializable):
 
         return find_half_power(self.WgtFunct, oversample=1024)
 
-    def define_response_widths(self, populate: bool = False) -> Optional[Tuple[float, float]]:
+    def define_response_widths(self, populate = False):
         """
         Assuming that `WgtFunct` has been properly populated, define the response widths.
         This should likely be called by `GridType` parent.
@@ -369,9 +378,9 @@ class DirParamType(Serializable):
 
     def estimate_deltak(
             self,
-            x_coords: Optional[numpy.ndarray],
-            y_coords: Optional[numpy.ndarray],
-            populate: bool = False) -> Optional[Tuple[float, float]]:
+            x_coords,
+            y_coords,
+            populate = False):
         """
         The `DeltaK1` and `DeltaK2` parameters can be estimated from `DeltaKCOAPoly`, if necessary.
         This should likely be called by the `GridType` parent.
@@ -413,8 +422,8 @@ class DirParamType(Serializable):
 
     def check_deltak(
             self,
-            x_coords: Optional[numpy.ndarray],
-            y_coords: Optional[numpy.ndarray]) -> bool:
+            x_coords,
+            y_coords):
         """
         Checks the DeltaK values for validity.
 
@@ -473,7 +482,7 @@ class DirParamType(Serializable):
             pass
         return out
 
-    def _check_bw(self) -> bool:
+    def _check_bw(self):
         out = True
         try:
             if self.ImpRespBW > (self.DeltaK2 - self.DeltaK1) + 1e-10:
@@ -485,7 +494,7 @@ class DirParamType(Serializable):
             pass
         return out
 
-    def _check_wgt(self) -> bool:
+    def _check_wgt(self):
         cond = True
         if self.WgtType is None:
             return cond
@@ -518,7 +527,7 @@ class DirParamType(Serializable):
             cond = False
         return cond
 
-    def _basic_validity_check(self) -> bool:
+    def _basic_validity_check(self):
         condition = super(DirParamType, self)._basic_validity_check()
         if (self.WgtFunct is not None) and (self.WgtFunct.size < 2):
             self.log_validity_error(
@@ -585,11 +594,11 @@ class GridType(Serializable):
 
     def __init__(
             self,
-            ImagePlane: str = None,
-            Type: str = None,
-            TimeCOAPoly: Union[Poly2DType, numpy.ndarray, list, tuple] = None,
-            Row: DirParamType = None,
-            Col: DirParamType = None,
+            ImagePlane = None,
+            Type = None,
+            TimeCOAPoly = None,
+            Row = None,
+            Col = None,
             **kwargs):
         """
 
@@ -616,7 +625,7 @@ class GridType(Serializable):
     def derive_direction_params(
             self,
             ImageData,
-            populate: bool = False):
+            populate = False):
         """
         Populate the ``Row/Col`` direction parameters from ImageData, if necessary.
         Expected to be called from SICD parent.
@@ -1035,7 +1044,7 @@ class GridType(Serializable):
         if self.Col is not None and self.Col.KCtr is None:
             self.Col.KCtr = 0
 
-    def _basic_validity_check(self) -> bool:
+    def _basic_validity_check(self):
         condition = super(GridType, self)._basic_validity_check()
         if self.Row is not None and self.Row.Sgn is not None and self.Col is not None \
                 and self.Col.Sgn is not None and self.Row.Sgn != self.Col.Sgn:
@@ -1046,8 +1055,8 @@ class GridType(Serializable):
 
     def check_deltak(
             self,
-            x_coords: Optional[numpy.ndarray],
-            y_coords: Optional[numpy.ndarray]) -> bool:
+            x_coords,
+            y_coords):
         """
         Checks the validity of DeltaK values.
 
@@ -1068,7 +1077,7 @@ class GridType(Serializable):
             cond &= self.Col.check_deltak(x_coords, y_coords)
         return cond
 
-    def get_resolution_abbreviation(self) -> str:
+    def get_resolution_abbreviation(self):
         """
         Gets the resolution abbreviation for the suggested name.
 
@@ -1087,7 +1096,7 @@ class GridType(Serializable):
             else:
                 return '{0:04d}'.format(value)
 
-    def get_slant_plane_area(self) -> float:
+    def get_slant_plane_area(self):
         """
         Get the weighted slant plane area.
 

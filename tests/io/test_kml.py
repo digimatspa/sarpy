@@ -17,8 +17,8 @@ def test_add_polygon_condition_coords(tmp_path):
         kmz_doc.add_default_style()
         input_coords_by_name = {}
         for val in (True, False):
-            name = f"condition_coords={val}"
-            coords = f"-179,0,0 179,0,0 -180,{(-1)**val},15000"
+            name = "condition_coords={}".format(val)
+            coords = "-179,0,0 179,0,0 -180,{},15000".format((-1)**val)
             kmz_doc.add_polygon(
                 coords,
                 styleUrl="#defaultStyle",
@@ -28,7 +28,7 @@ def test_add_polygon_condition_coords(tmp_path):
             )
             input_coords_by_name[name] = coords
 
-    with zipfile.ZipFile(test_kmz, "r") as kmz:
+    with zipfile.ZipFile(str(test_kmz), "r") as kmz:
         assert set(kmz.namelist()) == {"doc.kml"}
         with kmz.open("doc.kml") as kml_fd:
             tree = lxml.etree.parse(kml_fd)

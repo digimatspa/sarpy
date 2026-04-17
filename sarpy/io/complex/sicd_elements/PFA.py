@@ -1,7 +1,15 @@
 """
 The PFAType definition.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -40,8 +48,8 @@ class STDeskewType(Serializable):
 
     def __init__(
             self,
-            Applied: bool = None,
-            STDSPhasePoly: Union[Poly2DType, numpy.ndarray, list, tuple] = None,
+            Applied = None,
+            STDSPhasePoly = None,
             **kwargs):
         """
 
@@ -118,16 +126,16 @@ class PFAType(Serializable):
 
     def __init__(
             self,
-            FPN: Union[XYZType, numpy.ndarray, list, tuple] = None,
-            IPN: Union[XYZType, numpy.ndarray, list, tuple] = None,
-            PolarAngRefTime: float = None,
-            PolarAngPoly: Union[Poly1DType, numpy.ndarray, list, tuple] = None,
-            SpatialFreqSFPoly: Union[Poly1DType, numpy.ndarray, list, tuple] = None,
-            Krg1: float = None,
-            Krg2: float = None,
-            Kaz1: float = None,
-            Kaz2: float = None,
-            STDeskew: Optional[STDeskewType] = None,
+            FPN = None,
+            IPN = None,
+            PolarAngRefTime = None,
+            PolarAngPoly = None,
+            SpatialFreqSFPoly = None,
+            Krg1 = None,
+            Krg2 = None,
+            Kaz1 = None,
+            Kaz2 = None,
+            STDeskew = None,
             **kwargs):
         """
 
@@ -163,9 +171,8 @@ class PFAType(Serializable):
     def pfa_polar_coords(
             self,
             Position,
-            SCP: numpy.ndarray,
-            times: Union[float, int, numpy.ndarray]) -> Tuple[
-                Union[None, float, numpy.ndarray], Union[None, float, numpy.ndarray]]:
+            SCP,
+            times):
         """
         Calculate the PFA parameters necessary for mapping phase history to polar coordinates.
 
@@ -325,7 +332,7 @@ class PFAType(Serializable):
             cond = False
         return cond
 
-    def _basic_validity_check(self) -> bool:
+    def _basic_validity_check(self):
         condition = super(PFAType, self)._basic_validity_check()
         condition &= self._check_polar_ang_ref()
         return condition

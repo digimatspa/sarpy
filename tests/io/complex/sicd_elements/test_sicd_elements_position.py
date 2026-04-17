@@ -19,7 +19,7 @@ def position(sicd, kwargs):
         GRPPoly=sicd.Position.GRPPoly,
         TxAPCPoly=sicd.Position.TxAPCPoly,
         RcvAPC=sicd.Position.RcvAPC,
-        **kwargs,
+        **kwargs
     )
 
 

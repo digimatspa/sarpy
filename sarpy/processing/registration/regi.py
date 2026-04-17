@@ -6,7 +6,15 @@ generally referred to by the name "regi".
 The relevant matlab code appears to be authored by Terry M. Calloway,
 Sandia National Laboratories, and modified by Wade Schwartzkopf, NGA.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = 'UNCLASSIFIED'
 __author__ = ["Thomas McCullough", "Terry M. Calloway", "Wade Schwartzkopf"]
 
@@ -25,11 +33,11 @@ logger = logging.getLogger(__name__)
 
 
 def _validate_match_parameters(
-        reference_size: Tuple[int, int],
-        moving_size: Tuple[int, int],
-        match_box_size: Tuple[int, int],
-        moving_deviation: Tuple[int, int],
-        decimation: Tuple[int, int]) -> None:
+        reference_size,
+        moving_size,
+        match_box_size,
+        moving_deviation,
+        decimation):
     """
     Validate the match paramaters based the size of the images.
 
@@ -66,7 +74,7 @@ def _validate_match_parameters(
 
 
 def _populate_difference_structure(
-        mapping_values: List[List[Dict]]) -> None:
+        mapping_values):
     """
     Helper function for populating derivative estimates into our structure.
 
@@ -136,7 +144,7 @@ def _populate_difference_structure(
             basic_estimate_diff(element, row_index, col_index)
 
 
-def _subpixel_shift(values: numpy.ndarray) -> float:
+def _subpixel_shift(values):
     """
     This is simplified port of the SAR toolbox matlab function fin_minms. This
     uses data from an empirical fit derived from unknown origins to estimate where
@@ -205,9 +213,9 @@ def _subpixel_shift(values: numpy.ndarray) -> float:
 
 
 def _max_correlation_step(
-        reference_array: numpy.ndarray,
-        moving_array: numpy.ndarray,
-        do_subpixel: bool = False) -> Tuple[Optional[numpy.ndarray], Optional[float]]:
+        reference_array,
+        moving_array,
+        do_subpixel = False):
     """
     Find the best match location of the moving array inside the reference array.
 
@@ -274,17 +282,17 @@ def _max_correlation_step(
 
 
 def _single_step_location(
-        reference_data: Union[BaseReader, numpy.ndarray],
-        reference_index: Optional[int],
-        reference_size: Tuple[int, int],
-        moving_data: Union[BaseReader, numpy.ndarray],
-        moving_index: Optional[int],
-        moving_size: Tuple[int, int],
-        reference_location: Tuple[int, int],
-        moving_location: Tuple[int, int],
-        match_box_size: Tuple[int, int] = (25, 25),
-        moving_deviation: Tuple[int, int] = (15, 15),
-        decimation: Tuple[int, int] = (1, 1)) -> Tuple[Optional[Tuple[int, int]], Optional[float]]:
+        reference_data,
+        reference_index,
+        reference_size,
+        moving_data,
+        moving_index,
+        moving_size,
+        reference_location,
+        moving_location,
+        match_box_size = (25, 25),
+        moving_deviation = (15, 15),
+        decimation = (1, 1)):
     """
     Perform a single step of the reference search by finding the best matching
     location at given size and scale.
@@ -379,18 +387,18 @@ def _single_step_location(
 
 
 def _single_step_grid(
-        reference_data: Union[BaseReader, numpy.ndarray],
-        reference_index: Optional[int],
-        reference_size: Tuple[int, int],
-        moving_data: Union[BaseReader, numpy.ndarray],
-        moving_index: Optional[int],
-        moving_size: Tuple[int, int],
-        reference_box_rough: Tuple[int, int],
-        moving_box_rough: Tuple[int, int],
-        match_box_size: Tuple[int, int] = (25, 25),
-        moving_deviation: Tuple[int, int] = (15, 15),
-        decimation: Tuple[int, int] = (1, 1),
-        previous_values: Optional[List[List[Dict]]] = None):
+        reference_data,
+        reference_index,
+        reference_size,
+        moving_data,
+        moving_index,
+        moving_size,
+        reference_box_rough,
+        moving_box_rough,
+        match_box_size = (25, 25),
+        moving_deviation = (15, 15),
+        decimation = (1, 1),
+        previous_values = None):
     """
     We will determine a series of best matching (small size) patch locations
     between the pixel area of `reference_data` laid out in `reference_box_rough`
@@ -500,8 +508,8 @@ def _single_step_grid(
 
 
 def register_arrays(
-        reference_data: numpy.ndarray,
-        moving_data: numpy.ndarray) -> List[List[Dict]]:
+        reference_data,
+        moving_data):
     """
     Register the moving_data array to the reference_data array using the regi algorithm.
 

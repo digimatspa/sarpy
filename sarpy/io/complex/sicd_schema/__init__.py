@@ -1,7 +1,14 @@
 """
 Tools for inspecting a SICD urn url and providing basic details.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = 'UNCLASSIFIED'
 __author__ = "Thomas McCullough"
 
@@ -85,7 +92,7 @@ for key, entry in urn_mapping.items():
         raise ValueError('`{}` has nonexistent schema path {}'.format(key, schema_path))
 
 
-def get_default_tuple() -> Tuple[int, int, int]:
+def get_default_tuple():
     """
     Get the default SICD version tuple.
 
@@ -97,7 +104,7 @@ def get_default_tuple() -> Tuple[int, int, int]:
     return _SICD_DEFAULT_TUPLE
 
 
-def get_default_version_string() -> str:
+def get_default_version_string():
     """
     Get the default SICD version string.
 
@@ -109,7 +116,7 @@ def get_default_version_string() -> str:
     return '{}.{}.{}'.format(*_SICD_DEFAULT_TUPLE)
 
 
-def get_specification_identifier() -> str:
+def get_specification_identifier():
     """
     Get the SICD specification identifier string.
 
@@ -121,7 +128,7 @@ def get_specification_identifier() -> str:
     return _SICD_SPECIFICATION_IDENTIFIER
 
 
-def check_urn(urn_string: str) -> str:
+def check_urn(urn_string):
     """
     Checks that the urn string follows the correct pattern.
 
@@ -139,7 +146,7 @@ def check_urn(urn_string: str) -> str:
         This raises an exception for a poorly formed or unmapped SICD urn.
     """
 
-    if not isinstance(urn_string, str):
+    if not isinstance(urn_string, string_types):
         raise TypeError(
             'Expected a urn input of string type, got type {}'.format(type(urn_string)))
 
@@ -155,7 +162,7 @@ def check_urn(urn_string: str) -> str:
     return urn_string
 
 
-def get_urn_details(urn_string: str) -> Dict[str, str]:
+def get_urn_details(urn_string):
     """
     Gets the associated details for the given SICD urn, or raise an exception for
     poorly formatted or unrecognized urn.
@@ -178,7 +185,7 @@ def get_urn_details(urn_string: str) -> Dict[str, str]:
     return out
 
 
-def get_schema_path(the_urn: str) -> Optional[str]:
+def get_schema_path(the_urn):
     """
     Gets the path to the proper schema file for the given urn.
 
@@ -195,7 +202,7 @@ def get_schema_path(the_urn: str) -> Optional[str]:
     return result.get('schema', None)
 
 
-def get_versions() -> List[str]:
+def get_versions():
     """
     Gets a list of recognized SICD urn.
 

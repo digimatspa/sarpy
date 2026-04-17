@@ -2,8 +2,14 @@ import json
 import logging
 import lxml.etree
 import os
-import pathlib
-import unittest
+try:
+    import pathlib
+except ImportError:
+    import pathlib2 as pathlib
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 from sarpy.io.product.converter import open_product
 from sarpy.io.product.sidd import SIDDReader

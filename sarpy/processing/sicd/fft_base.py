@@ -1,7 +1,16 @@
 """
 Helper classes and methods for Fourier processing schemes.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = 'Thomas McCullough'
 
@@ -40,10 +49,10 @@ class FFTCalculator(FullResolutionFetcher):
 
     def __init__(
             self,
-            reader: Union[str, SICDTypeReader],
-            dimension: int = 0,
-            index: int = 0,
-            block_size: Union[None, int, float] = 50):
+            reader,
+            dimension = 0,
+            index = 0,
+            block_size = 50):
         """
 
         Parameters
@@ -64,7 +73,7 @@ class FFTCalculator(FullResolutionFetcher):
         super(FFTCalculator, self).__init__(reader, dimension=dimension, index=index, block_size=block_size)
 
     @property
-    def dimension(self) -> int:
+    def dimension(self):
         """
         int: The dimension along which to perform the color subaperture split.
         """
@@ -80,7 +89,7 @@ class FFTCalculator(FullResolutionFetcher):
         self._set_fill()
 
     @property
-    def index(self) -> int:
+    def index(self):
         """
         int: The index of the reader.
         """
@@ -101,7 +110,7 @@ class FFTCalculator(FullResolutionFetcher):
         self._set_fill()
 
     @property
-    def fill(self) -> float:
+    def fill(self):
         """
         float: The fill factor for the fourier processing.
         """
@@ -127,7 +136,7 @@ class FFTCalculator(FullResolutionFetcher):
                 fill = 1.0
         self._fill = max(1.0, float(fill))
 
-    def __getitem__(self, item) -> numpy.ndarray:
+    def __getitem__(self, item):
         """
         Fetches the processed data based on the input slice.
 
@@ -143,7 +152,7 @@ class FFTCalculator(FullResolutionFetcher):
         raise NotImplementedError
 
 
-def _validate_fft_input(array: numpy.ndarray) -> None:
+def _validate_fft_input(array):
     """
     Validate the fft input.
 
@@ -165,7 +174,7 @@ def _validate_fft_input(array: numpy.ndarray) -> None:
 
 
 def _determine_direction(
-        sicd: SICDType, dimension: int) -> int:
+        sicd, dimension):
     """
     Determine the default sign for the fft.
 
@@ -195,7 +204,7 @@ def _determine_direction(
     return -1 if sgn is None else sgn
 
 
-def fft_sicd(array: numpy.ndarray, dimension: int, sicd: SICDType) -> numpy.ndarray:
+def fft_sicd(array, dimension, sicd):
     """
     Apply the forward one-dimensional forward fft to data associated with the
     given sicd along the given dimension/axis, in accordance with the sign
@@ -219,7 +228,7 @@ def fft_sicd(array: numpy.ndarray, dimension: int, sicd: SICDType) -> numpy.ndar
     return fft(array, axis=dimension) if sgn < 0 else ifft(array, axis=dimension)
 
 
-def ifft_sicd(array: numpy.ndarray, dimension: int, sicd: SICDType) -> numpy.ndarray:
+def ifft_sicd(array, dimension, sicd):
     """
     Apply the inverse one-dimensional fft to data associated with the given sicd
     along the given dimension/axis.
@@ -242,7 +251,7 @@ def ifft_sicd(array: numpy.ndarray, dimension: int, sicd: SICDType) -> numpy.nda
     return ifft(array, axis=dimension) if sgn < 0 else fft(array, axis=dimension)
 
 
-def fft2_sicd(array: numpy.ndarray, sicd: SICDType) -> numpy.ndarray:
+def fft2_sicd(array, sicd):
     """
     Apply the forward two-dimensional fft (i.e. both axes) to data associated with
     the given sicd.
@@ -262,7 +271,7 @@ def fft2_sicd(array: numpy.ndarray, sicd: SICDType) -> numpy.ndarray:
     return fft_sicd(fft_sicd(array, 0, sicd), 1, sicd)
 
 
-def ifft2_sicd(array: numpy.ndarray, sicd: SICDType) -> numpy.ndarray:
+def ifft2_sicd(array, sicd):
     """
     Apply the inverse two-dimensional fft (i.e. both axes) to data associated with
     the given sicd.

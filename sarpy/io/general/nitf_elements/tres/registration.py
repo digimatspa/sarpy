@@ -1,7 +1,14 @@
 """
 Module for maintaining the TRE registry
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas Mccullough"
 
@@ -51,7 +58,7 @@ def register_tre(tre_type, tre_id=None, replace=False):
 
     if tre_id is None:
         tre_id = tre_type.__name__
-    if not isinstance(tre_id, str):
+    if not isinstance(tre_id, string_types):
         raise TypeError('tre_id must be a string, got type {}'.format(type(tre_id)))
 
     if tre_id in _TRE_Registry:
@@ -86,7 +93,7 @@ def find_tre(tre_id):
 
     if isinstance(tre_id, bytes):
         tre_id = bytes_to_string(tre_id)
-    if not isinstance(tre_id, str):
+    if not isinstance(tre_id, string_types):
         raise TypeError('tre_id must be of type string. Got {}'.format(tre_id))
     return _TRE_Registry.get(tre_id.strip(), None)
 
@@ -115,7 +122,7 @@ def parse_package(packages=None):
             _parsed_package = True
             packages = _default_tre_packages
 
-    if isinstance(packages, str):
+    if isinstance(packages, string_types):
         packages = [packages, ]
 
     logger.info('Finding and registering TREs contained in packages {}'.format(packages))

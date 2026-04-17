@@ -51,10 +51,9 @@ def test_j2ksubtype_set_layer_info_no_layer_info_passed():
     assert numpy.array_equal(j2ksubtype.LayerInfo, bitrates)
 
 def test_j2ksubtype_init_failure_layer_info():
-    # makes sure that an error is thrown if LayerInfo is neither an ElementTree, list, tuple, ndarray, or None
     layer_info = "abc"
-    with pytest.raises(TypeError,
-                       match=re.escape("Invalid input type for LayerInfo: <class 'str'>. Must be an ElementTree, list, tuple, ndarray, or None.")):
+    pattern = r"Invalid input type for LayerInfo: <(?:class|type) 'str'>\. Must be an ElementTree, list, tuple, ndarray, or None\."
+    with pytest.raises(TypeError, match=pattern):
         J2KSubtype(NumWaveletLevels=3, NumBands=7, LayerInfo=layer_info)
 
 @pytest.fixture()

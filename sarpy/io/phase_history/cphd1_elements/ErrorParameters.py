@@ -1,7 +1,15 @@
 """
 The error parameters type definition.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -156,7 +164,7 @@ class BistaticRadarSensorType(Serializable):
         self.CollectionStartTime = CollectionStartTime
         super(BistaticRadarSensorType, self).__init__(**kwargs)
 
-    def version_required(self) -> Tuple[int, int, int]:
+    def version_required(self):
         required = (1, 0, 1)
         if self.DelayBias is not None:
             required = max(required, (1, 1, 0))
@@ -247,7 +255,7 @@ class PlatformType(Serializable):
         self.RadarSensor = RadarSensor
         super(PlatformType, self).__init__(**kwargs)
 
-    def version_required(self) -> Tuple[int, int, int]:
+    def version_required(self):
         required = (1, 0, 1)
         if self.RadarSensor is not None:
             required = max(required, self.RadarSensor.version_required())
@@ -292,7 +300,7 @@ class BistaticType(Serializable):
         self.AddedParameters = AddedParameters
         super(BistaticType, self).__init__(**kwargs)
 
-    def version_required(self) -> Tuple[int, int, int]:
+    def version_required(self):
         required = (1, 0, 1)
         for fld in ['TxPlatform', 'RcvPlatform']:
             val = getattr(self, fld)
@@ -337,7 +345,7 @@ class ErrorParametersType(Serializable):
         self.Bistatic = Bistatic
         super(ErrorParametersType, self).__init__(**kwargs)
 
-    def version_required(self) -> Tuple[int, int, int]:
+    def version_required(self):
         required = (1, 0, 1)
         if self.Bistatic is not None:
             required = max(required, self.Bistatic.version_required())

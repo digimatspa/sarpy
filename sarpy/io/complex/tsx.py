@@ -1,7 +1,19 @@
 """
 Functionality for reading TerraSAR-X data into a SICD model.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import zip
+from builtins import open
+from builtins import dict
+from builtins import int
+from builtins import round
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -48,8 +60,7 @@ logger = logging.getLogger(__name__)
 ##########
 # helper functions and basic interpreter
 
-def _parse_xml(file_name: str, without_ns: bool = False) -> Union[
-        ElementTree.Element, Tuple[dict, ElementTree.Element]]:
+def _parse_xml(file_name, without_ns = False):
     root_node = ElementTree.parse(file_name).getroot()
     if without_ns:
         return root_node
@@ -58,7 +69,7 @@ def _parse_xml(file_name: str, without_ns: bool = False) -> Union[
         return ns, root_node
 
 
-def _is_level1_product(prospective_file: str) -> bool:
+def _is_level1_product(prospective_file):
     with open(prospective_file, 'rb') as fi:
         check = fi.read(200)
         if check.startswith(b'<?xml'):
@@ -83,7 +94,7 @@ class TSXDetails(object):
         '_parent_directory', '_main_file', '_georef_file', '_main_root', '_georef_root',
         '_im_format')
 
-    def __init__(self, file_name: str):
+    def __init__(self, file_name):
         """
 
         Parameters
@@ -105,7 +116,7 @@ class TSXDetails(object):
                 'The file is determined to be of type TerraSAR-X, but we got '
                 'unexpected image format value {}'.format(self.image_format))
 
-    def _validate_file(self, file_name: str) -> None:
+    def _validate_file(self, file_name):
         """
         Validate the input file location.
 
@@ -118,7 +129,7 @@ class TSXDetails(object):
         None
         """
 
-        if not isinstance(file_name, str):
+        if not isinstance(file_name, string_types):
             raise SarpyIOError('file_name must be of string type.')
         if not os.path.exists(file_name):
             raise SarpyIOError('file {} does not exist'.format(file_name))
@@ -166,7 +177,7 @@ class TSXDetails(object):
             self._georef_root = _parse_xml(self._georef_file, without_ns=True)
 
     @property
-    def file_name(self) -> str:
+    def file_name(self):
         """
         str: the package directory location
         """
@@ -174,14 +185,14 @@ class TSXDetails(object):
         return self._parent_directory
 
     @property
-    def image_format(self) -> str:
+    def image_format(self):
         """
         str: The image file format enum value.
         """
 
         return self._im_format
 
-    def _find_main(self, tag: str) -> ElementTree.Element:
+    def _find_main(self, tag):
         """
         Pass through to ElementTree.Element.find(tag).
 
@@ -196,7 +207,7 @@ class TSXDetails(object):
 
         return self._main_root.find(tag)
 
-    def _findall_main(self, tag: str) -> List[ElementTree.Element]:
+    def _findall_main(self, tag):
         """
         Pass through to ElementTree.Element.findall(tag).
 
@@ -211,7 +222,7 @@ class TSXDetails(object):
 
         return self._main_root.findall(tag)
 
-    def _find_georef(self, tag: str) -> ElementTree.Element:
+    def _find_georef(self, tag):
         """
         Pass through to ElementTree.Element.find(tag).
 
@@ -226,7 +237,7 @@ class TSXDetails(object):
 
         return None if self._georef_root is None else self._georef_root.find(tag)
 
-    def _findall_georef(self, tag: str) -> List[ElementTree.Element]:
+    def _findall_georef(self, tag):
         """
         Pass through to ElementTree.Element.findall(tag).
 
@@ -241,7 +252,7 @@ class TSXDetails(object):
 
         return None if self._georef_root is None else self._georef_root.findall(tag)
 
-    def _get_state_vector_data(self) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
+    def _get_state_vector_data(self):
         """
         Gets the state vector data.
 
@@ -267,14 +278,14 @@ class TSXDetails(object):
         return tims, pos, vel
 
     @staticmethod
-    def _parse_pol_string(str_in: str) -> Tuple[str, str]:
+    def _parse_pol_string(str_in):
         return str_in[0], str_in[1]
 
-    def _get_sicd_tx_rcv_pol(self, str_in: str) -> str:
+    def _get_sicd_tx_rcv_pol(self, str_in):
         tx_pol, rcv_pol = self._parse_pol_string(str_in)
         return '{}:{}'.format(tx_pol, rcv_pol)
 
-    def _get_full_pol_list(self) -> Tuple[List[str], List[str], List[str]]:
+    def _get_full_pol_list(self):
         """
         Gets the full list of polarization states.
 
@@ -297,7 +308,7 @@ class TSXDetails(object):
             t_tx_rcv_pols.append('{}:{}'.format(tx_part, rcv_part))
         return t_original_pols, t_tx_pols, t_tx_rcv_pols
 
-    def _find_middle_grid_node(self) -> Optional[ElementTree.Element]:
+    def _find_middle_grid_node(self):
         """
         Find and returns the middle geolocationGrid point, if it exists.
         Otherwise, returns None.
@@ -322,11 +333,11 @@ class TSXDetails(object):
         return test_nodes[int(len(test_nodes)/2)]
 
     def _calculate_dop_polys(self,
-                             layer_index: str,
-                             azimuth_time_scp: float,
-                             range_time_scp: float,
-                             collect_start: numpy.datetime64,
-                             doppler_rate_reference_node: ElementTree.Element) -> Tuple[numpy.ndarray, numpy.ndarray]:
+                             layer_index,
+                             azimuth_time_scp,
+                             range_time_scp,
+                             collect_start,
+                             doppler_rate_reference_node):
         """
         Calculate the doppler centroid polynomials. This is apparently extracted
         from the paper "TerraSAR-X Deskew Description" by Michael Stewart dated
@@ -415,9 +426,9 @@ class TSXDetails(object):
         return dop_centroid_poly, time_coa_poly
 
     def _get_basic_sicd_shell(self,
-                              center_freq: float,
-                              dop_bw: float,
-                              ss_zd_s: float) -> SICDType:
+                              center_freq,
+                              dop_bw,
+                              ss_zd_s):
         """
         Define the common sicd elements.
 
@@ -564,8 +575,8 @@ class TSXDetails(object):
             RMA=init_rma)
 
     def _populate_basic_image_data(self,
-                                   sicd: SICDType,
-                                   grid_node: Optional[ElementTree.Element]) -> None:
+                                   sicd,
+                                   grid_node):
         """
         Populate the basic ImageData and GeoData. This assumes not ScanSAR mode.
         This modifies the provided sicd in place.
@@ -610,9 +621,9 @@ class TSXDetails(object):
 
     @staticmethod
     def _populate_initial_radar_collection(
-            sicd: SICDType,
-            tx_pols: List[str],
-            tx_rcv_pols: List[str]) -> None:
+            sicd,
+            tx_pols,
+            tx_rcv_pols):
         """
         Populate the initial radar collection information. This modifies the
         provided sicd in place.
@@ -641,18 +652,18 @@ class TSXDetails(object):
             RcvChannels=[ChanParametersType(TxRcvPolarization=tx_rcv_pol) for tx_rcv_pol in tx_rcv_pols])
 
     def _complete_sicd(self,
-                       sicd: SICDType,
-                       orig_pol: str,
-                       layer_index: str,
-                       pol_index: int,
-                       ss_zd_s: float,
-                       side_of_track: str,
-                       center_freq: float,
-                       arp_times: numpy.ndarray,
-                       arp_pos: numpy.ndarray,
-                       arp_vel: numpy.ndarray,
-                       middle_grid: Optional[ElementTree.Element],
-                       doppler_rate_reference_node: ElementTree.Element) -> SICDType:
+                       sicd,
+                       orig_pol,
+                       layer_index,
+                       pol_index,
+                       ss_zd_s,
+                       side_of_track,
+                       center_freq,
+                       arp_times,
+                       arp_pos,
+                       arp_vel,
+                       middle_grid,
+                       doppler_rate_reference_node):
         """
         Complete the remainder of the sicd information and populate as collection,
         if appropriate. **This assumes that this is not ScanSAR mode.**
@@ -894,7 +905,7 @@ class TSXDetails(object):
         out_sicd.populate_rniirs(override=False)
         return out_sicd
 
-    def get_sicd_collection(self) -> Tuple[List[str], List[SICDType]]:
+    def get_sicd_collection(self):
         """
         Gets the sicd metadata collection.
 
@@ -957,7 +968,7 @@ class COSARDetails(object):
         '_file_name', '_file_size', '_header_offsets', '_data_offsets',
         '_burst_index', '_burst_size', '_data_sizes', '_version')
 
-    def __init__(self, file_name: str):
+    def __init__(self, file_name):
         """
 
         Parameters
@@ -979,7 +990,7 @@ class COSARDetails(object):
         self._parse_details()
 
     @property
-    def burst_count(self) -> int:
+    def burst_count(self):
         """
         int: The discovered burst count
         """
@@ -987,7 +998,7 @@ class COSARDetails(object):
         return len(self._data_offsets)
 
     @property
-    def version(self) -> Optional[int]:
+    def version(self):
         """
         int: The COSAR version
         """
@@ -995,7 +1006,7 @@ class COSARDetails(object):
         return self._version
 
     @property
-    def pixel_type(self) -> Optional[str]:
+    def pixel_type(self):
         """
         str: The pixel type
         """
@@ -1011,8 +1022,8 @@ class COSARDetails(object):
 
     def _process_burst_header(
             self,
-            fi: BinaryIO,
-            the_offset: int):
+            fi,
+            the_offset):
         """
 
         Parameters
@@ -1082,7 +1093,7 @@ class COSARDetails(object):
             raise ValueError(
                 'Got unexpected version value {}'.format(self._version))
 
-    def _parse_details(self) -> None:
+    def _parse_details(self):
         with open(self._file_name, 'rb') as fi:
             # process the first burst header
             self._process_burst_header(fi, 0)
@@ -1096,10 +1107,10 @@ class COSARDetails(object):
 
     def construct_data_segment(
             self,
-            index: int,
-            reverse_axes: Optional[Tuple[int, ...]],
-            transpose_axes: Optional[Tuple[int, ...]],
-            expected_size: Tuple[int, ...]) -> DataSegment:
+            index,
+            reverse_axes,
+            transpose_axes,
+            expected_size):
         """
         Construct a data segment for the given burst index.
 
@@ -1165,7 +1176,7 @@ class TSXReader(SICDTypeReader):
         tsx_details : str|TSXDetails
         """
 
-        if isinstance(tsx_details, str):
+        if isinstance(tsx_details, string_types):
             tsx_details = TSXDetails(tsx_details)
         if not isinstance(tsx_details, TSXDetails):
             raise TypeError(
@@ -1197,14 +1208,14 @@ class TSXReader(SICDTypeReader):
         self._check_sizes()
 
     @property
-    def file_name(self) -> str:
+    def file_name(self):
         return self._tsx_details.file_name
 
 
 ########
 # base expected functionality for a module with an implemented Reader
 
-def is_a(file_name: str) -> Optional[TSXReader]:
+def is_a(file_name):
     """
     Tests whether a given file_name corresponds to a TerraSAR-X file SSC package.
     Returns a reader instance, if so.

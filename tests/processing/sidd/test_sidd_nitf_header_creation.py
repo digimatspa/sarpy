@@ -9,9 +9,12 @@ import os
 
 import pytest
 import logging
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 from tests import parse_file_entry # fails unless run using pytest
-from datetime  import datetime, timezone
+from datetime  import datetime
 
 from sarpy.io.complex.converter import conversion_utility, open_complex
 from sarpy.processing.ortho_rectify import NearestNeighborMethod
@@ -67,7 +70,7 @@ def test_nitf_fdt_updated_for_detected_image_sidd(tmp_path):
     test_sidd = create_detected_image_sidd(ortho_helper, output_directory, output_file)
 
     # Full path to the created SIDD file
-    sidd_file = os.path.join(*output_directory.parts,output_file)
+    sidd_file = os.path.join(*(output_directory.parts + (output_file,)))
 
      # Get NITF header data from created SIDD file
     details = NITFDetails(sidd_file)
@@ -80,8 +83,8 @@ def test_nitf_fdt_updated_for_detected_image_sidd(tmp_path):
     # is not represented in their datetime python objects, we need to determine the
     # current datetime relative to Zule, but then remove the tiemzone info from the
     # object in order to compute time deltas later.
-    current_time_zulu = datetime.now(timezone.utc).replace(tzinfo=None)
-    
+    current_time_zulu = datetime.utcnow()
+        
      # Compute time difference between FDT (presumably current time) and IDATIM (collection time)
     time_delta = fdt_datetime - collection_datetime
     
@@ -114,7 +117,7 @@ def test_nitf_fdt_updated_for_dynamic_image_sidd(tmp_path):
     test_sidd = create_dynamic_image_sidd(ortho_helper, output_directory, output_file)
     
     # Full path to the created SIDD file
-    sidd_file = os.path.join(*output_directory.parts,output_file)
+    sidd_file = os.path.join(*(output_directory.parts + (output_file,)))
     
     # Get NITF header data from created SIDD file
     details = NITFDetails(sidd_file)

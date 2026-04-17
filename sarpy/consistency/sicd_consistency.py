@@ -11,7 +11,17 @@ For more information, about command line usage, see
 >>> python -m sarpy.consistency.sicd_consistency --help
 
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import int
+from builtins import range
+from builtins import open
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -320,7 +330,7 @@ def check_sicd_file(nitf_details):
 
         return valid_images
 
-    if isinstance(nitf_details, str):
+    if isinstance(nitf_details, string_types):
         if not os.path.isfile(nitf_details):
             raise ValueError('Got string input, but it is not a valid path')
         nitf_details = NITFDetails(nitf_details)
@@ -361,7 +371,7 @@ def check_file(file_name):
     bool
     """
 
-    if isinstance(file_name, str):
+    if isinstance(file_name, string_types):
         if not os.path.isfile(file_name):
             raise ValueError('Got string input, but it is not a valid path')
 

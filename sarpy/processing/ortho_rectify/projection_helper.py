@@ -2,7 +2,16 @@
 Unified methods of projection between sicd pixel coordinates,
 some ortho-rectified pixel grid coordinates, and geophysical coordinates
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import int
+from builtins import range
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -21,7 +30,10 @@ logger = logging.getLogger(__name__)
 _PIXEL_METHODOLOGY = ('MAX', 'MIN', 'MEAN', 'GEOM_MEAN')
 
 
-class ProjectionHelper(abc.ABC):
+import six
+
+@six.add_metaclass(abc.ABCMeta)
+class ProjectionHelper(object):
     """
     Abstract helper class which defines the projection interface for
     ortho-rectification usage for a sicd type object.

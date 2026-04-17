@@ -1,8 +1,14 @@
 import logging
 import os
-import pathlib
+try:
+    import pathlib
+except ImportError:
+    import pathlib2 as pathlib
 import time
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 import numpy
 

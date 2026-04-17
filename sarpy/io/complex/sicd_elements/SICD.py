@@ -1,7 +1,16 @@
 """
 The SICDType definition.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -137,23 +146,23 @@ class SICDType(Serializable):
 
     def __init__(
             self,
-            CollectionInfo: CollectionInfoType = None,
-            ImageCreation: Optional[ImageCreationType] = None,
-            ImageData: ImageDataType = None,
-            GeoData: GeoDataType = None,
-            Grid: GridType = None,
-            Timeline: TimelineType = None,
-            Position: PositionType = None,
-            RadarCollection: RadarCollectionType = None,
-            ImageFormation: ImageFormationType = None,
-            SCPCOA: SCPCOAType = None,
-            Radiometric: Optional[RadiometricType] = None,
-            Antenna: Optional[AntennaType] = None,
-            ErrorStatistics: Optional[ErrorStatisticsType] = None,
-            MatchInfo: Optional[MatchInfoType] = None,
-            RgAzComp: Optional[RgAzCompType] = None,
-            PFA: Optional[PFAType] = None,
-            RMA: Optional[RMAType] = None,
+            CollectionInfo = None,
+            ImageCreation = None,
+            ImageData = None,
+            GeoData = None,
+            Grid = None,
+            Timeline = None,
+            Position = None,
+            RadarCollection = None,
+            ImageFormation = None,
+            SCPCOA = None,
+            Radiometric = None,
+            Antenna = None,
+            ErrorStatistics = None,
+            MatchInfo = None,
+            RgAzComp = None,
+            PFA = None,
+            RMA = None,
             **kwargs):
         """
 
@@ -222,7 +231,7 @@ class SICDType(Serializable):
         return self._coa_projection
 
     @property
-    def NITF(self) -> Optional[Dict]:
+    def NITF(self):
         """
         Optional dictionary of NITF header information, pertains only to subsequent
         SICD file writing.
@@ -235,7 +244,7 @@ class SICDType(Serializable):
         return self._NITF
 
     @NITF.setter
-    def NITF(self, value: Optional[Dict]):
+    def NITF(self, value):
         if value is None:
             self._NITF = {}
             return
@@ -245,7 +254,7 @@ class SICDType(Serializable):
             raise TypeError('data must be dictionary instance. Received {}'.format(type(value)))
 
     @property
-    def ImageFormType(self) -> str:
+    def ImageFormType(self):
         """
         str: *READ ONLY* Identifies the specific image formation type supplied. This is determined by
         returning the (first) attribute among `RgAzComp`, `PFA`, `RMA` which is populated. `OTHER` will be returned if
@@ -259,8 +268,8 @@ class SICDType(Serializable):
 
     def update_scp(
             self,
-            point: Union[numpy.ndarray, list, tuple],
-            coord_system: str = 'ECF'):
+            point,
+            coord_system = 'ECF'):
         """
         Modify the SCP point, and modify the associated SCPCOA fields.
 
@@ -289,12 +298,12 @@ class SICDType(Serializable):
         if self.SCPCOA is not None:
             self.SCPCOA.rederive(self.Grid, self.Position, self.GeoData)
 
-    def _basic_validity_check(self) -> bool:
+    def _basic_validity_check(self):
         condition = super(SICDType, self)._basic_validity_check()
         condition &= detailed_validation_checks(self)
         return condition
 
-    def is_valid(self, recursive: bool = False, stack: bool = False) -> bool:
+    def is_valid(self, recursive = False, stack = False):
         all_required = self._basic_validity_check()
         if not recursive:
             return all_required
@@ -302,7 +311,7 @@ class SICDType(Serializable):
         valid_children = self._recursive_validity_check(stack=stack)
         return all_required & valid_children
 
-    def define_geo_image_corners(self, override: bool = False) -> None:
+    def define_geo_image_corners(self, override = False):
         """
         Defines the GeoData image corner points (if possible), if they are not already defined.
 
@@ -328,7 +337,7 @@ class SICDType(Serializable):
 
         self.GeoData.ImageCorners = corner_coords
 
-    def define_geo_valid_data(self) -> None:
+    def define_geo_valid_data(self):
         """
         Defines the GeoData valid data corner points (if possible), if they are not already defined.
 
@@ -347,7 +356,7 @@ class SICDType(Serializable):
         except AttributeError:
             pass
 
-    def derive(self) -> None:
+    def derive(self):
         """
         Populates any potential derived data in the SICD structure. This should get called after reading an XML,
         or as a user desires.
@@ -436,7 +445,7 @@ class SICDType(Serializable):
             # noinspection PyProtectedMember
             self.Radiometric._derive_parameters(self.Grid, self.SCPCOA)
 
-    def get_transmit_band_name(self) -> str:
+    def get_transmit_band_name(self):
         """
         Gets the processed transmit band name.
 
@@ -449,7 +458,7 @@ class SICDType(Serializable):
             return 'UN'
         return self.ImageFormation.get_transmit_band_name()
 
-    def get_processed_polarization_abbreviation(self) -> str:
+    def get_processed_polarization_abbreviation(self):
         """
         Gets the processed polarization abbreviation (two letters).
 
@@ -462,7 +471,7 @@ class SICDType(Serializable):
             return 'UN'
         return self.ImageFormation.get_polarization_abbreviation()
 
-    def get_processed_polarization(self) -> str:
+    def get_processed_polarization(self):
         """
         Gets the processed polarization.
 
@@ -475,7 +484,7 @@ class SICDType(Serializable):
             return 'UN'
         return self.ImageFormation.get_polarization()
 
-    def apply_reference_frequency(self, reference_frequency: float) -> None:
+    def apply_reference_frequency(self, reference_frequency):
         """
         If the reference frequency is used, adjust the necessary fields accordingly.
 
@@ -507,7 +516,7 @@ class SICDType(Serializable):
             # noinspection PyProtectedMember
             self.RMA._apply_reference_frequency(reference_frequency)
 
-    def get_ground_resolution(self) -> Tuple[float, float]:
+    def get_ground_resolution(self):
         """
         Gets the ground resolution for the sicd.
 
@@ -525,7 +534,7 @@ class SICDType(Serializable):
         col_ground = float(numpy.sqrt((numpy.tan(graze) * numpy.tan(twist) * row_ss)**2 + (col_ss/numpy.cos(twist))**2))
         return row_ground, col_ground
 
-    def can_project_coordinates(self) -> bool:
+    def can_project_coordinates(self):
         """
         Determines whether the necessary elements are populated to permit projection
         between image and physical coordinates. If False, then the (first discovered)
@@ -683,11 +692,11 @@ class SICDType(Serializable):
 
     def define_coa_projection(
             self,
-            delta_arp: Union[None, numpy.ndarray, list, tuple] = None,
-            delta_varp: Union[None, numpy.ndarray, list, tuple] = None,
-            range_bias: Optional[float] = None,
-            adj_params_frame: str = 'ECF',
-            override: bool = True) -> None:
+            delta_arp = None,
+            delta_varp = None,
+            range_bias = None,
+            adj_params_frame = 'ECF',
+            override = True):
         """
         Define the COAProjection object.
 
@@ -723,8 +732,8 @@ class SICDType(Serializable):
 
     def project_ground_to_image(
             self,
-            coords: Union[numpy.ndarray, list, tuple],
-            **kwargs) -> Tuple[numpy.ndarray, Union[numpy.ndarray, float], Union[numpy.ndarray, int]]:
+            coords,
+            **kwargs):
         """
         Transforms a 3D ECF point to pixel (row/column) coordinates. This is
         implemented in accordance with the SICD Image Projections Description Document.
@@ -758,9 +767,9 @@ class SICDType(Serializable):
 
     def project_ground_to_image_geo(
             self,
-            coords: Union[numpy.ndarray, list, tuple],
-            ordering: str = 'latlong',
-            **kwargs) -> Tuple[numpy.ndarray, Union[numpy.ndarray, float], Union[numpy.ndarray, int]]:
+            coords,
+            ordering = 'latlong',
+            **kwargs):
         """
         Transforms a 3D Lat/Lon/HAE point to pixel (row/column) coordinates. This is
         implemented in accordance with the SICD Image Projections Description Document.
@@ -798,9 +807,9 @@ class SICDType(Serializable):
 
     def project_image_to_ground(
             self,
-            im_points: Union[numpy.ndarray, list, tuple],
-            projection_type: str = 'HAE',
-            **kwargs) -> numpy.ndarray:
+            im_points,
+            projection_type = 'HAE',
+            **kwargs):
         """
         Transforms image coordinates to ground plane ECF coordinate via the algorithm(s)
         described in SICD Image Projections document.
@@ -831,10 +840,10 @@ class SICDType(Serializable):
 
     def project_image_to_ground_geo(
             self,
-            im_points: Union[numpy.ndarray, list, tuple],
-            ordering: str = 'latlong',
-            projection_type: str = 'HAE',
-            **kwargs) -> numpy.ndarray:
+            im_points,
+            ordering = 'latlong',
+            projection_type = 'HAE',
+            **kwargs):
         """
         Transforms image coordinates to ground plane WGS-84 coordinate via the algorithm(s)
         described in SICD Image Projections document.
@@ -867,9 +876,9 @@ class SICDType(Serializable):
 
     def populate_rniirs(
             self,
-            signal: Optional[float] = None,
-            noise: Optional[float] = None,
-            override: bool = False) -> None:
+            signal = None,
+            noise = None,
+            override = False):
         """
         Given the signal and noise values (in sigma zero power units),
         calculate and populate an estimated RNIIRS value.
@@ -891,7 +900,7 @@ class SICDType(Serializable):
 
     def get_suggested_name(
             self,
-            product_number: int = 1) -> str:
+            product_number = 1):
         """
         Get the suggested name stem for the sicd and derived data.
 
@@ -910,7 +919,7 @@ class SICDType(Serializable):
                 'Unknown_Sicd{}'.format(product_number)
         return re.sub(':', '_', sugg_name)
 
-    def version_required(self) -> Tuple[int, int, int]:
+    def version_required(self):
         """
         What SICD version is required for valid support?
 
@@ -928,7 +937,7 @@ class SICDType(Serializable):
 
     def get_des_details(
             self,
-            check_older_version: bool = False) -> Dict:
+            check_older_version = False):
         """
         Gets the correct current SICD DES subheader details.
 
@@ -983,8 +992,8 @@ class SICDType(Serializable):
 
     def create_subset_structure(
             self,
-            row_bounds: Optional[Tuple[int, int]] = None,
-            column_bounds: Optional[Tuple[int, int]] = None):
+            row_bounds = None,
+            column_bounds = None):
         """
         Create a version of the SICD structure for a given subset.
 

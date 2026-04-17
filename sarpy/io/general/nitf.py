@@ -3,7 +3,18 @@ Module laying out basic functionality for reading and writing NITF files.
 
 Updated extensively in version 1.3.0.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import open
+from builtins import zip
+from builtins import range
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -76,7 +87,7 @@ _unhandled_version_text = 'Unhandled NITF version `{}`'
 # helper functions
 
 def extract_image_corners(
-        img_header: Union[ImageSegmentHeader, ImageSegmentHeader0]) -> Union[None, numpy.ndarray]:
+        img_header):
     """
     Extract the image corner point array for the image segment header.
 
@@ -113,7 +124,7 @@ def extract_image_corners(
     return numpy.array(icps, dtype='float64')
 
 
-def find_jpeg_delimiters(the_bytes: bytes) -> List[Tuple[int, int]]:
+def find_jpeg_delimiters(the_bytes):
     """
     Finds regular jpeg delimiters from the image segment bytes.
 
@@ -148,7 +159,7 @@ def find_jpeg_delimiters(the_bytes: bytes) -> List[Tuple[int, int]]:
     return out
 
 
-def _get_shape(rows: int, cols: int, bands: int, band_dimension=2) -> Tuple[int, ...]:
+def _get_shape(rows, cols, bands, band_dimension=2):
     """
     Helper function for turning rows/cols/bands into a shape tuple.
 
@@ -177,12 +188,12 @@ def _get_shape(rows: int, cols: int, bands: int, band_dimension=2) -> Tuple[int,
 
 
 def _get_subscript_def(
-        row_start: int,
-        row_end: int,
-        col_start: int,
-        col_end: int,
-        raw_bands: int,
-        raw_band_dimension: int) -> Tuple[slice, ...]:
+        row_start,
+        row_end,
+        col_start,
+        col_end,
+        raw_bands,
+        raw_band_dimension):
     if raw_bands == 1:
         return slice(row_start, row_end, 1), slice(col_start, col_end, 1)
     elif raw_band_dimension == 0:
@@ -196,7 +207,7 @@ def _get_subscript_def(
 
 
 def _construct_block_bounds(
-        image_header: Union[ImageSegmentHeader, ImageSegmentHeader0]) -> List[Tuple[int, int, int, int]]:
+        image_header):
     """
     Construct the bounds for the blocking definition in row/column space for
     the image segment.
@@ -252,8 +263,8 @@ def _construct_block_bounds(
 
 
 def _get_dtype(
-        image_header: Union[ImageSegmentHeader, ImageSegmentHeader0]
-        ) -> Tuple[numpy.dtype, numpy.dtype, int, Optional[str], Optional[numpy.ndarray]]:
+        image_header
+        ):
     """
     Gets the information necessary for constructing the format function applicable
     to the given image segment.
@@ -280,7 +291,7 @@ def _get_dtype(
         If populated, the lookup table presented in the data.
     """
 
-    def get_raw_dtype() -> numpy.dtype:
+    def get_raw_dtype():
         if pvtype == 'INT':
             return numpy.dtype('>u{}'.format(bpp))
         elif pvtype == 'SI':
@@ -293,7 +304,7 @@ def _get_dtype(
                     'Got PVTYPE = C and NBPP = {} (not 32, 64 or 128), which is unsupported.'.format(nbpp))
             return numpy.dtype('>c{}'.format(bpp))
 
-    def get_complex_order() -> Optional[str]:
+    def get_complex_order():
         bands = image_header.Bands
         if (len(bands) % 2) != 0:
             return None
@@ -315,7 +326,7 @@ def _get_dtype(
                     'but PVTYPE is `{}`'.format(order, pvtype))
         return order
 
-    def get_lut_info() -> Optional[numpy.ndarray]:
+    def get_lut_info():
         bands = image_header.Bands
         if len(bands) > 1:
             for band in bands:
@@ -358,10 +369,10 @@ def _get_dtype(
 
 
 def _get_format_function(
-        raw_dtype: numpy.dtype,
-        complex_order: Optional[str] = None,
-        lut: Optional[numpy.ndarray] = None,
-        band_dimension: int = -1) -> Optional[FormatFunction]:
+        raw_dtype,
+        complex_order = None,
+        lut = None,
+        band_dimension = -1):
     """
     Gets the format function for use in a data segment.
 
@@ -386,8 +397,8 @@ def _get_format_function(
 
 
 def _verify_image_segment_compatibility(
-        img0: Union[ImageSegmentHeader, ImageSegmentHeader0],
-        img1: Union[ImageSegmentHeader, ImageSegmentHeader0]) -> bool:
+        img0,
+        img1):
     """
     Verify that the image segments are compatible from the data formatting
     perspective.
@@ -436,8 +447,8 @@ def _verify_image_segment_compatibility(
 
 
 def _get_collection_element_coordinate_limits(
-        image_headers: Sequence[Union[ImageSegmentHeader, ImageSegmentHeader0]],
-        return_clevel: bool = False) -> Union[numpy.ndarray, Tuple[numpy.ndarray, int]]:
+        image_headers,
+        return_clevel = False):
     """
     For the given collection of image segments, get the relative coordinate
     scheme of the form `[[start_row, end_row, start_column, end_column]]`.
@@ -468,7 +479,7 @@ def _get_collection_element_coordinate_limits(
     if not all((im.IALVL in unique_idlvls) and (im.IALVL < im.IDLVL) for im in image_headers[1:]):
         raise ValueError(
             'Headers violate: "The attachment level of an item is equal to the display level of the item to which '
-            'it is “attached.” Items can only be attached to existing items at a lower display level."'
+            'it is "attached." Items can only be attached to existing items at a lower display level."'
         )
     # IDLVL -> [Row, Col]
     loc = {image_headers[0].IALVL: numpy.zeros(2)}
@@ -532,7 +543,7 @@ class NITFDetails(object):
         'res_subheader_offsets', 'res_subheader_sizes',  # only 2.1
         'res_segment_offsets', 'res_segment_sizes')
 
-    def __init__(self, file_object: Union[str, BinaryIO]):
+    def __init__(self, file_object):
         """
 
         Parameters
@@ -546,7 +557,7 @@ class NITFDetails(object):
         self._file_object = None
         self._close_after = False
 
-        if isinstance(file_object, str):
+        if isinstance(file_object, string_types):
             if not os.path.isfile(file_object):
                 raise SarpyIOError('Path {} is not a file'.format(file_object))
             self._file_name = file_object
@@ -554,7 +565,7 @@ class NITFDetails(object):
             self._close_after = True
         elif is_file_like(file_object):
             self._file_object = file_object
-            if hasattr(file_object, 'name') and isinstance(file_object.name, str):
+            if hasattr(file_object, 'name') and isinstance(file_object.name, string_types):
                 self._file_name = file_object.name
             else:
                 self._file_name = '<file like object>'
@@ -633,9 +644,9 @@ class NITFDetails(object):
 
     @staticmethod
     def _element_offsets(
-            cur_loc: int,
-            item_array_details: Union[_ItemArrayHeaders, None]
-    ) -> Tuple[int, Optional[numpy.ndarray], Optional[numpy.ndarray], Optional[numpy.ndarray], Optional[numpy.ndarray]]:
+            cur_loc,
+            item_array_details
+    ):
 
         if item_array_details is None:
             return cur_loc, None, None, None, None
@@ -651,7 +662,7 @@ class NITFDetails(object):
         return cur_loc, subhead_offsets, subhead_sizes, item_offsets, item_sizes
 
     @property
-    def file_name(self) -> Optional[str]:
+    def file_name(self):
         """
         None|str: the file name, which may not be useful if the input was based
         on a file like object
@@ -660,7 +671,7 @@ class NITFDetails(object):
         return self._file_name
 
     @property
-    def file_object(self) -> BinaryIO:
+    def file_object(self):
         """
         BinaryIO: The binary file object
         """
@@ -668,7 +679,7 @@ class NITFDetails(object):
         return self._file_object
 
     @property
-    def nitf_header(self) -> Union[NITFHeader, NITFHeader0]:
+    def nitf_header(self):
         """
         NITFHeader: the nitf header object
         """
@@ -676,7 +687,7 @@ class NITFDetails(object):
         return self._nitf_header
 
     @property
-    def img_headers(self) -> Union[None, List[ImageSegmentHeader], List[ImageSegmentHeader0]]:
+    def img_headers(self):
         """
         The image segment headers.
 
@@ -694,14 +705,14 @@ class NITFDetails(object):
         return self._img_headers
 
     @property
-    def nitf_version(self) -> str:
+    def nitf_version(self):
         """
         str: The NITF version number.
         """
 
         return self._nitf_version
 
-    def _parse_img_headers(self) -> None:
+    def _parse_img_headers(self):
         if self.img_segment_offsets is None or \
                 self._img_headers is not None:
             return
@@ -710,10 +721,10 @@ class NITFDetails(object):
 
     def _fetch_item(
             self,
-            name: str,
-            index: int,
-            offsets: numpy.ndarray,
-            sizes: numpy.ndarray) -> bytes:
+            name,
+            index,
+            offsets,
+            sizes):
         if index >= offsets.size:
             raise IndexError(
                 'There are only {0:d} {1:s}, invalid {1:s} position {2:d}'.format(
@@ -724,7 +735,7 @@ class NITFDetails(object):
         the_item = self._file_object.read(int(the_size))
         return the_item
 
-    def get_image_subheader_bytes(self, index: int) -> bytes:
+    def get_image_subheader_bytes(self, index):
         """
         Fetches the image segment subheader at the given index.
 
@@ -743,7 +754,7 @@ class NITFDetails(object):
             self.img_subheader_offsets,
             self._nitf_header.ImageSegments.subhead_sizes)
 
-    def parse_image_subheader(self, index: int) -> Union[ImageSegmentHeader, ImageSegmentHeader0]:
+    def parse_image_subheader(self, index):
         """
         Parse the image segment subheader at the given index.
 
@@ -777,7 +788,7 @@ class NITFDetails(object):
                 the_bytes, 0, band_depth=band_depth, blocks=blocks)
         return out
 
-    def get_image_bytes(self, index: int) -> bytes:
+    def get_image_bytes(self, index):
         """
         Fetches the image bytes at the given index.
 
@@ -796,7 +807,7 @@ class NITFDetails(object):
             self.img_segment_offsets,
             self._nitf_header.ImageSegments.item_sizes)
 
-    def get_text_subheader_bytes(self, index: int) -> bytes:
+    def get_text_subheader_bytes(self, index):
         """
         Fetches the text segment subheader at the given index.
 
@@ -815,7 +826,7 @@ class NITFDetails(object):
             self.text_subheader_offsets,
             self._nitf_header.TextSegments.subhead_sizes)
 
-    def get_text_bytes(self, index: int) -> bytes:
+    def get_text_bytes(self, index):
         """
         Fetches the text extension segment bytes at the given index.
 
@@ -834,7 +845,7 @@ class NITFDetails(object):
             self.text_segment_offsets,
             self._nitf_header.TextSegments.item_sizes)
 
-    def parse_text_subheader(self, index: int) -> Union[TextSegmentHeader, TextSegmentHeader0]:
+    def parse_text_subheader(self, index):
         """
         Parse the text segment subheader at the given index.
 
@@ -855,7 +866,7 @@ class NITFDetails(object):
         else:
             raise ValueError(_unhandled_version_text.format(self.nitf_version))
 
-    def get_graphics_subheader_bytes(self, index: int) -> bytes:
+    def get_graphics_subheader_bytes(self, index):
         """
         Fetches the graphics segment subheader at the given index (only version 2.1).
 
@@ -877,7 +888,7 @@ class NITFDetails(object):
         else:
             raise ValueError('Only NITF version 02.10 has graphics segments')
 
-    def get_graphics_bytes(self, index: int) -> bytes:
+    def get_graphics_bytes(self, index):
         """
         Fetches the graphics extension segment bytes at the given index (only version 2.1).
 
@@ -899,7 +910,7 @@ class NITFDetails(object):
         else:
             raise ValueError('Only NITF version 02.10 has graphics segments')
 
-    def parse_graphics_subheader(self, index: int) -> GraphicsSegmentHeader:
+    def parse_graphics_subheader(self, index):
         """
         Parse the graphics segment subheader at the given index (only version 2.1).
 
@@ -918,7 +929,7 @@ class NITFDetails(object):
         else:
             raise ValueError('Only NITF version 02.10 has graphics segments')
 
-    def get_symbol_subheader_bytes(self, index: int) -> bytes:
+    def get_symbol_subheader_bytes(self, index):
         """
         Fetches the symbol segment subheader at the given index (only version 2.0).
 
@@ -940,7 +951,7 @@ class NITFDetails(object):
         else:
             raise ValueError('Only NITF 02.00 has symbol elements.')
 
-    def get_symbol_bytes(self, index: int) -> bytes:
+    def get_symbol_bytes(self, index):
         """
         Fetches the symbol extension segment bytes at the given index (only version 2.0).
 
@@ -962,7 +973,7 @@ class NITFDetails(object):
         else:
             raise ValueError('Only NITF 02.00 has symbol elements.')
 
-    def parse_symbol_subheader(self, index: int) -> SymbolSegmentHeader:
+    def parse_symbol_subheader(self, index):
         """
         Parse the symbol segment subheader at the given index (only version 2.0).
 
@@ -981,7 +992,7 @@ class NITFDetails(object):
         else:
             raise ValueError('Only NITF 02.00 has symbol elements.')
 
-    def get_label_subheader_bytes(self, index: int) -> bytes:
+    def get_label_subheader_bytes(self, index):
         """
         Fetches the label segment subheader at the given index (only version 2.0).
 
@@ -1003,7 +1014,7 @@ class NITFDetails(object):
         else:
             raise ValueError('Only NITF 02.00 has label elements.')
 
-    def get_label_bytes(self, index: int) -> bytes:
+    def get_label_bytes(self, index):
         """
         Fetches the label extension segment bytes at the given index (only version 2.0).
 
@@ -1025,7 +1036,7 @@ class NITFDetails(object):
         else:
             raise ValueError('Only NITF 02.00 has symbol elements.')
 
-    def parse_label_subheader(self, index: int) -> LabelSegmentHeader:
+    def parse_label_subheader(self, index):
         """
         Parse the label segment subheader at the given index (only version 2.0).
 
@@ -1044,7 +1055,7 @@ class NITFDetails(object):
         else:
             raise ValueError('Only NITF 02.00 has label elements.')
 
-    def get_des_subheader_bytes(self, index: int) -> bytes:
+    def get_des_subheader_bytes(self, index):
         """
         Fetches the data extension segment subheader bytes at the given index.
 
@@ -1063,7 +1074,7 @@ class NITFDetails(object):
             self.des_subheader_offsets,
             self._nitf_header.DataExtensions.subhead_sizes)
 
-    def get_des_bytes(self, index: int) -> bytes:
+    def get_des_bytes(self, index):
         """
         Fetches the data extension segment bytes at the given index.
 
@@ -1082,7 +1093,7 @@ class NITFDetails(object):
             self.des_segment_offsets,
             self._nitf_header.DataExtensions.item_sizes)
 
-    def parse_des_subheader(self, index: int) -> Union[DataExtensionHeader, DataExtensionHeader0]:
+    def parse_des_subheader(self, index):
         """
         Parse the data extension segment subheader at the given index.
 
@@ -1103,7 +1114,7 @@ class NITFDetails(object):
         else:
             raise ValueError(_unhandled_version_text.format(self.nitf_version))
 
-    def get_res_subheader_bytes(self, index: int) -> bytes:
+    def get_res_subheader_bytes(self, index):
         """
         Fetches the reserved extension segment subheader bytes at the given index (only version 2.1).
 
@@ -1122,7 +1133,7 @@ class NITFDetails(object):
             self.res_subheader_offsets,
             self._nitf_header.ReservedExtensions.subhead_sizes)
 
-    def get_res_bytes(self, index: int) -> bytes:
+    def get_res_bytes(self, index):
         """
         Fetches the reserved extension segment bytes at the given index (only version 2.1).
 
@@ -1141,7 +1152,7 @@ class NITFDetails(object):
             self.res_segment_offsets,
             self._nitf_header.ReservedExtensions.item_sizes)
 
-    def parse_res_subheader(self, index: int) -> Union[ReservedExtensionHeader, ReservedExtensionHeader0]:
+    def parse_res_subheader(self, index):
         """
         Parse the reserved extension subheader at the given index (only version 2.1).
 
@@ -1162,7 +1173,7 @@ class NITFDetails(object):
         else:
             raise ValueError('Unhandled version {}.'.format(self.nitf_version))
 
-    def get_headers_json(self) -> dict:
+    def get_headers_json(self):
         """
         Get a json (i.e. dict) representation of the NITF header elements.
 
@@ -1227,10 +1238,10 @@ class NITFReader(BaseReader):
 
     def __init__(
             self,
-            nitf_details: Union[str, BinaryIO, NITFDetails],
+            nitf_details,
             reader_type="OTHER",
-            reverse_axes: Union[None, int, Sequence[int]] = None,
-            transpose_axes: Union[None, Tuple[int, ...]] = None):
+            reverse_axes = None,
+            transpose_axes = None):
         """
 
         Parameters
@@ -1258,7 +1269,7 @@ class NITFReader(BaseReader):
             _ = self._nitf_details
             # something has already defined this, so it's already ready
         except AttributeError:
-            if isinstance(nitf_details, str) or is_file_like(nitf_details):
+            if isinstance(nitf_details, string_types) or is_file_like(nitf_details):
                 nitf_details = NITFDetails(nitf_details)
             if not isinstance(nitf_details, NITFDetails):
                 raise TypeError('The input argument for NITFReader must be a NITFDetails object.')
@@ -1302,14 +1313,14 @@ class NITFReader(BaseReader):
         BaseReader.__init__(self, data_segments, reader_type=reader_type, close_segments=True)
 
     @property
-    def nitf_details(self) -> NITFDetails:
+    def nitf_details(self):
         """
         NITFDetails: The NITF details object.
         """
 
         return self._nitf_details
 
-    def get_image_header(self, index: int) -> Union[ImageSegmentHeader, ImageSegmentHeader0]:
+    def get_image_header(self, index):
         """
         Gets the image subheader at the specified index.
 
@@ -1325,11 +1336,11 @@ class NITFReader(BaseReader):
         return self.nitf_details.img_headers[index]
 
     @property
-    def file_name(self) -> Optional[str]:
+    def file_name(self):
         return self._nitf_details.file_name
 
     @property
-    def file_object(self) -> BinaryIO:
+    def file_object(self):
         """
         BinaryIO: the binary file like object from which we are reading
         """
@@ -1337,7 +1348,7 @@ class NITFReader(BaseReader):
         return self._nitf_details.file_object
 
     @property
-    def unsupported_segments(self) -> Tuple[int, ...]:
+    def unsupported_segments(self):
         """
         Tuple[int, ...]: The image segments deemed not supported.
         """
@@ -1345,7 +1356,7 @@ class NITFReader(BaseReader):
         return self._unsupported_segments
 
     @property
-    def image_segment_collections(self) -> Tuple[Tuple[int, ...]]:
+    def image_segment_collections(self):
         """
         The definition for how image segments are grouped together to form the
         output image collection.
@@ -1360,7 +1371,7 @@ class NITFReader(BaseReader):
 
         return self._image_segment_collections
 
-    def can_use_memmap(self) -> bool:
+    def can_use_memmap(self):
         """
         Can a memmap be used? This is only supported and/or sensible in the case
         that the file-like object represents a local file.
@@ -1372,7 +1383,7 @@ class NITFReader(BaseReader):
 
         return is_real_file(self.nitf_details.file_object)
 
-    def _read_file_data(self, start_bytes: int, byte_length: int) -> bytes:
+    def _read_file_data(self, start_bytes, byte_length):
         initial_loc = self.file_object.tell()
         self.file_object.seek(start_bytes, os.SEEK_SET)
         the_bytes = self.file_object.read(byte_length)
@@ -1381,8 +1392,8 @@ class NITFReader(BaseReader):
 
     def _check_image_segment_for_compliance(
             self,
-            index: int,
-            img_header: Union[ImageSegmentHeader, ImageSegmentHeader0]) -> bool:
+            index,
+            img_header):
         """
         Checks whether the image segment can be (or should be) opened.
 
@@ -1423,7 +1434,7 @@ class NITFReader(BaseReader):
             out = False
         return out
 
-    def check_for_compliance(self) -> Tuple[int, ...]:
+    def check_for_compliance(self):
         """
         Gets indices of image segments that cannot (or should not) be opened.
 
@@ -1438,14 +1449,14 @@ class NITFReader(BaseReader):
                 out.append(index)
         return tuple(out)
 
-    def _construct_block_bounds(self, image_segment_index: int) -> List[Tuple[int, int, int, int]]:
+    def _construct_block_bounds(self, image_segment_index):
         image_header = self.get_image_header(image_segment_index)
         # noinspection PyTypeChecker
         return _construct_block_bounds(image_header)
 
     def _get_mask_details(
             self,
-            image_segment_index: int) -> Tuple[Optional[numpy.ndarray], int, int]:
+            image_segment_index):
         """
         Gets the mask offset details.
 
@@ -1488,11 +1499,11 @@ class NITFReader(BaseReader):
 
     def _get_dtypes(
             self,
-            image_segment_index: int) -> Tuple[numpy.dtype, numpy.dtype, int, Optional[str], Optional[numpy.ndarray]]:
+            image_segment_index):
         image_header = self.get_image_header(image_segment_index)
         return _get_dtype(image_header)
 
-    def _get_transpose(self, formatted_bands: int) -> Optional[Tuple[int, ...]]:
+    def _get_transpose(self, formatted_bands):
         if self._transpose_axes is None:
             return None
         elif formatted_bands > 1:
@@ -1503,20 +1514,20 @@ class NITFReader(BaseReader):
     # noinspection PyMethodMayBeStatic, PyUnusedLocal
     def get_format_function(
             self,
-            raw_dtype: numpy.dtype,
-            complex_order: Optional[str] = None,
-            lut: Optional[numpy.ndarray] = None,
-            band_dimension: int = -1,
-            image_segment_index: Optional[int] = None,
-            **kwargs) -> Optional[FormatFunction]:
+            raw_dtype,
+            complex_order = None,
+            lut = None,
+            band_dimension = -1,
+            image_segment_index = None,
+            **kwargs):
         return _get_format_function(raw_dtype, complex_order, lut, band_dimension)
 
-    def _verify_image_segment_compatibility(self, index0: int, index1: int) -> bool:
+    def _verify_image_segment_compatibility(self, index0, index1):
         img0 = self.get_image_header(index0)
         img1 = self.get_image_header(index1)
         return _verify_image_segment_compatibility(img0, img1)
 
-    def find_image_segment_collections(self) -> Tuple[Tuple[int, ...]]:
+    def find_image_segment_collections(self):
         """
         Determines the image segments, other than those specifically excluded in
         `unsupported_segments` property value. It is implicitly assumed that the
@@ -1536,7 +1547,7 @@ class NITFReader(BaseReader):
                 out.append((index, ))
         return tuple(out)
 
-    def verify_collection_compliance(self) -> None:
+    def verify_collection_compliance(self):
         """
         Verify that image segments collections are compatible.
 
@@ -1563,7 +1574,7 @@ class NITFReader(BaseReader):
         if not all_compatible:
             raise ValueError('Image segment collection incompatibilities')
 
-    def _get_collection_element_coordinate_limits(self, collection_index: int) -> numpy.ndarray:
+    def _get_collection_element_coordinate_limits(self, collection_index):
         """
         For the given image segment collection, as defined in the
         `image_segment_collections` property value, get the relative coordinate
@@ -1588,7 +1599,7 @@ class NITFReader(BaseReader):
         # noinspection PyTypeChecker
         return _get_collection_element_coordinate_limits(image_headers, return_clevel=False)
 
-    def _handle_jpeg2k_no_mask(self, image_segment_index: int, apply_format: bool) -> DataSegment:
+    def _handle_jpeg2k_no_mask(self, image_segment_index, apply_format):
         # NOTE: it appears that the PIL to numpy array conversion will rearrange
         # bands to be in the final dimension, regardless of storage particulars?
 
@@ -1646,7 +1657,7 @@ class NITFReader(BaseReader):
             reverse_axes=reverse_axes, transpose_axes=transpose_axes,
             format_function=format_function, mode='r', close_file=True)
 
-    def _handle_jpeg2k_with_mask(self, image_segment_index: int, apply_format: bool) -> DataSegment:
+    def _handle_jpeg2k_with_mask(self, image_segment_index, apply_format):
         # NOTE: it appears that the PIL to numpy array conversion will rearrange
         # bands to be in the final dimension, regardless of storage particulars?
 
@@ -1730,7 +1741,7 @@ class NITFReader(BaseReader):
             reverse_axes=reverse_axes, transpose_axes=transpose_axes,
             format_function=format_function, mode='r', close_file=True)
 
-    def _handle_jpeg(self, image_segment_index: int, apply_format: bool) -> DataSegment:
+    def _handle_jpeg(self, image_segment_index, apply_format):
         # NOTE: it appears that the PIL to numpy array conversion will rearrange
         # bands to be in the final dimension, regardless of storage particulars?
 
@@ -1842,7 +1853,7 @@ class NITFReader(BaseReader):
             reverse_axes=reverse_axes, transpose_axes=transpose_axes,
             format_function=format_function, mode='r', close_file=False)
 
-    def _handle_no_compression(self, image_segment_index: int, apply_format: bool) -> DataSegment:
+    def _handle_no_compression(self, image_segment_index, apply_format):
         # NB: Natural order inside the block is (bands, rows, columns)
         image_header = self.get_image_header(image_segment_index)
         if image_header.IMODE not in ['B', 'R', 'P'] or image_header.IC not in ['NC', 'NM']:
@@ -2000,7 +2011,7 @@ class NITFReader(BaseReader):
             transpose_axes=transpose_axes, format_function=format_function,
             close_children=True)
 
-    def _handle_imode_s_jpeg(self, image_segment_index: int, apply_format: bool) -> DataSegment:
+    def _handle_imode_s_jpeg(self, image_segment_index, apply_format):
         image_header = self.get_image_header(image_segment_index)
         if image_header.IMODE != 'S' or image_header.IC not in ['C3', 'C5', 'M3', 'M5']:
             raise ValueError(
@@ -2112,7 +2123,7 @@ class NITFReader(BaseReader):
             reverse_axes=reverse_axes, transpose_axes=transpose_axes,
             format_function=format_function, mode='r', close_file=False)
 
-    def _handle_imode_s_no_compression(self, image_segment_index: int, apply_format: bool) -> DataSegment:
+    def _handle_imode_s_no_compression(self, image_segment_index, apply_format):
         image_header = self.get_image_header(image_segment_index)
         if image_header.IMODE != 'S' or image_header.IC not in ['NC', 'NM']:
             raise ValueError(
@@ -2219,7 +2230,7 @@ class NITFReader(BaseReader):
             reverse_axes=reverse_axes, transpose_axes=transpose_axes,
             format_function=format_function, close_children=True)
 
-    def _create_data_segment_from_imode_b(self, image_segment_index: int, apply_format: bool) -> DataSegment:
+    def _create_data_segment_from_imode_b(self, image_segment_index, apply_format):
         image_header = self.get_image_header(image_segment_index)
         if image_header.IMODE != 'B':
             raise ValueError(
@@ -2242,7 +2253,7 @@ class NITFReader(BaseReader):
         else:
             raise ValueError('Got unhandled IC `{}`'.format(image_header.IC))
 
-    def _create_data_segment_from_imode_p(self, image_segment_index: int, apply_format: bool) -> DataSegment:
+    def _create_data_segment_from_imode_p(self, image_segment_index, apply_format):
         image_header = self.get_image_header(image_segment_index)
         if image_header.IMODE != 'P':
             raise ValueError(
@@ -2261,7 +2272,7 @@ class NITFReader(BaseReader):
         else:
             raise ValueError('Got unhandled IC `{}`'.format(image_header.IC))
 
-    def _create_data_segment_from_imode_r(self, image_segment_index: int, apply_format: bool) -> DataSegment:
+    def _create_data_segment_from_imode_r(self, image_segment_index, apply_format):
         image_header = self.get_image_header(image_segment_index)
         if image_header.IMODE != 'R':
             raise ValueError(
@@ -2277,7 +2288,7 @@ class NITFReader(BaseReader):
         else:
             raise ValueError('Got unhandled IC `{}`'.format(image_header.IC))
 
-    def _create_data_segment_from_imode_s(self, image_segment_index: int, apply_format: bool) -> DataSegment:
+    def _create_data_segment_from_imode_s(self, image_segment_index, apply_format):
         image_header = self.get_image_header(image_segment_index)
         if image_header.IMODE != 'S':
             raise ValueError(
@@ -2301,8 +2312,8 @@ class NITFReader(BaseReader):
 
     def create_data_segment_for_image_segment(
             self,
-            image_segment_index: int,
-            apply_format: bool) -> DataSegment:
+            image_segment_index,
+            apply_format):
         """
         Creates the data segment for the given image segment.
 
@@ -2351,7 +2362,7 @@ class NITFReader(BaseReader):
         self._image_segment_data_segments[image_segment_index] = out
         return out
 
-    def create_data_segment_for_collection_element(self, collection_index: int) -> DataSegment:
+    def create_data_segment_for_collection_element(self, collection_index):
         """
         Creates the data segment overarching the given segment collection.
 
@@ -2401,7 +2412,7 @@ class NITFReader(BaseReader):
             reverse_axes=self._reverse_axes, transpose_axes=transpose, format_function=format_function,
             close_children=True)
 
-    def get_data_segments(self) -> List[DataSegment]:
+    def get_data_segments(self):
         """
         Gets a data segment for each of these image segment collection.
 
@@ -2415,7 +2426,7 @@ class NITFReader(BaseReader):
             out.append(self.create_data_segment_for_collection_element(index))
         return out
 
-    def close(self) -> None:
+    def close(self):
         self._nitf_details.close()
         self._image_segment_data_segments = None
         BaseReader.close(self)
@@ -2424,7 +2435,7 @@ class NITFReader(BaseReader):
 ########
 # base expected functionality for a module with an implemented Reader
 
-def is_a(file_name: Union[str, BinaryIO]) -> Optional[NITFReader]:
+def is_a(file_name):
     """
     Tests whether a given file_name corresponds to a nitf file. Returns a
     nitf reader instance, if so.
@@ -2453,10 +2464,10 @@ def is_a(file_name: Union[str, BinaryIO]) -> Optional[NITFReader]:
 # NITF writing elements
 
 def interpolate_corner_points_string(
-        entry: numpy.ndarray,
-        rows: int,
-        cols: int,
-        icp: numpy.ndarray):
+        entry,
+        rows,
+        cols,
+        icp):
     """
     Interpolate the corner points for the given subsection from
     the given corner points. This supplies entries for the NITF headers.
@@ -2500,7 +2511,7 @@ def interpolate_corner_points_string(
     return ''.join(out)
 
 
-def default_image_segmentation(rows: int, cols: int, row_limit: int) -> Tuple[Tuple[int, ...], ...]:
+def default_image_segmentation(rows, cols, row_limit):
     """
     Determine the appropriate segmentation for the image. This is driven
     by the SICD/SIDD standard, and not the only generally feasible segmentation
@@ -2528,7 +2539,7 @@ def default_image_segmentation(rows: int, cols: int, row_limit: int) -> Tuple[Tu
     return tuple(im_segments)
 
 
-def _flatten_bytes(value: Union[bytes, Sequence]) -> bytes:
+def _flatten_bytes(value):
     if value is None:
         return b''
     elif isinstance(value, bytes):
@@ -2564,7 +2575,7 @@ class SubheaderManager(object):
     What is the type for the subheader?
     """
 
-    def __init__(self, subheader, item_bytes: Optional[bytes] = None):
+    def __init__(self, subheader, item_bytes = None):
         if not isinstance(subheader, self.subheader_type):
             raise TypeError(
                 'subheader must be of type {} for class {}'.format(
@@ -2595,7 +2606,7 @@ class SubheaderManager(object):
         return self._subheader
 
     @property
-    def subheader_offset(self) -> Optional[int]:
+    def subheader_offset(self):
         """
         int: The subheader offset.
         """
@@ -2603,14 +2614,14 @@ class SubheaderManager(object):
         return self._subheader_offset
 
     @subheader_offset.setter
-    def subheader_offset(self, value) -> None:
+    def subheader_offset(self, value):
         if self._subheader_offset is not None:
             raise ValueError("subheader_offset is read only after being initially defined.")
         self._subheader_offset = int(value)
         self._item_offset = self._subheader_offset + self.subheader_size
 
     @property
-    def subheader_size(self) -> int:
+    def subheader_size(self):
         """
         int: The subheader size
         """
@@ -2618,7 +2629,7 @@ class SubheaderManager(object):
         return self._subheader_size
 
     @property
-    def item_offset(self) -> Optional[int]:
+    def item_offset(self):
         """
         int: The item offset.
         """
@@ -2626,7 +2637,7 @@ class SubheaderManager(object):
         return self._item_offset
 
     @property
-    def item_size(self) -> Optional[int]:
+    def item_size(self):
         """
         int: The item size
         """
@@ -2634,13 +2645,13 @@ class SubheaderManager(object):
         return self._item_size
 
     @item_size.setter
-    def item_size(self, value) -> None:
+    def item_size(self, value):
         if self._item_size is not None:
             raise ValueError("item_size is read only after being initially defined.")
         self._item_size = int(value)
 
     @property
-    def end_of_item(self) -> Optional[int]:
+    def end_of_item(self):
         """
         int: The position of the end of respective item. This will be the
         offset for the next element.
@@ -2654,7 +2665,7 @@ class SubheaderManager(object):
         return self.item_offset + self.item_size
 
     @property
-    def subheader_written(self) -> bool:
+    def subheader_written(self):
         """
         bool: Has this subheader been written?
         """
@@ -2662,7 +2673,7 @@ class SubheaderManager(object):
         return self._subheader_written
 
     @subheader_written.setter
-    def subheader_written(self, value) -> None:
+    def subheader_written(self, value):
         value = bool(value)
         if self._subheader_written and not value:
             raise ValueError(
@@ -2671,7 +2682,7 @@ class SubheaderManager(object):
         self._subheader_written = value
 
     @property
-    def item_bytes(self) -> Optional[bytes]:
+    def item_bytes(self):
         """
         None|bytes: The item bytes.
         """
@@ -2679,7 +2690,7 @@ class SubheaderManager(object):
         return self._item_bytes
 
     @item_bytes.setter
-    def item_bytes(self, value: Union[bytes, Sequence]) -> None:
+    def item_bytes(self, value):
         if self._item_bytes is not None:
             raise ValueError("item_bytes is read only after being initially defined.")
         if value is None:
@@ -2697,7 +2708,7 @@ class SubheaderManager(object):
             self.item_size = len(value)
 
     @property
-    def item_written(self) -> bool:
+    def item_written(self):
         """
         bool: Has the item been written?
         """
@@ -2713,7 +2724,7 @@ class SubheaderManager(object):
                 'it cannot be reverted to False')
         self._item_written = value
 
-    def write_subheader(self, file_object: BinaryIO) -> None:
+    def write_subheader(self, file_object):
         """
         Write the subheader, at its specified offset, to the file. If writing
         occurs, the file location will be advanced to the end of the subheader
@@ -2740,7 +2751,7 @@ class SubheaderManager(object):
         file_object.write(the_bytes)
         self.subheader_written = True
 
-    def write_item(self, file_object: BinaryIO) -> None:
+    def write_item(self, file_object):
         """
         Write the item bytes (if populated), at its specified offset, to the
         file. This requires that the subheader has previously be written. If
@@ -2778,7 +2789,7 @@ class ImageSubheaderManager(SubheaderManager):
     subheader_type = ImageSegmentHeader
 
     @property
-    def subheader(self) -> ImageSegmentHeader:
+    def subheader(self):
         """
         ImageSegmentHeader: The image subheader. Any image mask subheader should
         be populated in the `mask_subheader` property. The size of this will be
@@ -2788,7 +2799,7 @@ class ImageSubheaderManager(SubheaderManager):
         return self._subheader
 
     @property
-    def item_size(self) -> Optional[int]:
+    def item_size(self):
         """
         int: The item size.
         """
@@ -2805,7 +2816,7 @@ class ImageSubheaderManager(SubheaderManager):
         else:
             self._item_size = int(value) + self.subheader.mask_subheader.get_bytes_length()
 
-    def write_subheader(self, file_object: BinaryIO) -> None:
+    def write_subheader(self, file_object):
         if self.subheader_written:
             return
 
@@ -2813,7 +2824,7 @@ class ImageSubheaderManager(SubheaderManager):
         if self.subheader.mask_subheader is not None:
             file_object.write(self.subheader.mask_subheader.to_bytes())
 
-    def write_item(self, file_object: BinaryIO) -> None:
+    def write_item(self, file_object):
         if self.item_written:
             return
 
@@ -2840,7 +2851,7 @@ class GraphicsSubheaderManager(SubheaderManager):
     subheader_type = GraphicsSegmentHeader
 
     @property
-    def subheader(self) -> GraphicsSegmentHeader:
+    def subheader(self):
         return self._subheader
 
 
@@ -2849,7 +2860,7 @@ class TextSubheaderManager(SubheaderManager):
     subheader_type = TextSegmentHeader
 
     @property
-    def subheader(self) -> TextSegmentHeader:
+    def subheader(self):
         return self._subheader
 
 
@@ -2858,7 +2869,7 @@ class DESSubheaderManager(SubheaderManager):
     subheader_type = DataExtensionHeader
 
     @property
-    def subheader(self) -> DataExtensionHeader:
+    def subheader(self):
         return self._subheader
 
 
@@ -2867,7 +2878,7 @@ class RESSubheaderManager(SubheaderManager):
     subheader_type = DataExtensionHeader
 
     @property
-    def subheader(self) -> ReservedExtensionHeader:
+    def subheader(self):
         return self._subheader
 
 
@@ -2887,14 +2898,14 @@ class NITFWritingDetails(object):
 
     def __init__(
             self,
-            header: NITFHeader,
-            image_managers: Optional[Tuple[ImageSubheaderManager, ...]] = None,
-            image_segment_collections: Optional[Tuple[Tuple[int, ...], ...]] = None,
-            image_segment_coordinates: Optional[Tuple[Tuple[Tuple[int, ...], ...], ...]] = None,
-            graphics_managers: Optional[Tuple[GraphicsSubheaderManager, ...]] = None,
-            text_managers: Optional[Tuple[TextSubheaderManager, ...]] = None,
-            des_managers: Optional[Tuple[DESSubheaderManager, ...]] = None,
-            res_managers: Optional[Tuple[RESSubheaderManager, ...]] = None):
+            header,
+            image_managers = None,
+            image_segment_collections = None,
+            image_segment_coordinates = None,
+            graphics_managers = None,
+            text_managers = None,
+            des_managers = None,
+            res_managers = None):
         """
 
         Parameters
@@ -2938,7 +2949,7 @@ class NITFWritingDetails(object):
         self._header_size = header.get_bytes_length()  # type: int
 
     @property
-    def header(self) -> NITFHeader:
+    def header(self):
         """
         NITFHeader: The main NITF header. Note that doing anything that changes
         the size of that header (i.e. adding TREs) after initialization will
@@ -2956,7 +2967,7 @@ class NITFWritingDetails(object):
         self._header = value
 
     @property
-    def image_managers(self) -> Optional[Tuple[ImageSubheaderManager, ...]]:
+    def image_managers(self):
         return self._image_managers
 
     @image_managers.setter
@@ -2975,7 +2986,7 @@ class NITFWritingDetails(object):
         self._image_managers = value
 
     @property
-    def image_segment_collections(self) -> Tuple[Tuple[int, ...]]:
+    def image_segment_collections(self):
         """
         The definition for how image segments are grouped together to form the
         aggregate images.
@@ -3023,7 +3034,7 @@ class NITFWritingDetails(object):
         self._image_segment_collections = value
 
     @property
-    def image_segment_coordinates(self) -> Tuple[Tuple[Tuple[int, ...], ...], ...]:
+    def image_segment_coordinates(self):
         """
         The image bounds for the segment collection. This is associated with the
         `image_segment_collection` property.
@@ -3095,7 +3106,7 @@ class NITFWritingDetails(object):
         self._image_segment_coordinates = value
 
     @property
-    def graphics_managers(self) -> Optional[Tuple[GraphicsSubheaderManager, ...]]:
+    def graphics_managers(self):
         return self._graphics_managers
 
     @graphics_managers.setter
@@ -3114,7 +3125,7 @@ class NITFWritingDetails(object):
         self._graphics_managers = value
 
     @property
-    def text_managers(self) -> Optional[Tuple[TextSubheaderManager, ...]]:
+    def text_managers(self):
         return self._text_managers
 
     @text_managers.setter
@@ -3133,7 +3144,7 @@ class NITFWritingDetails(object):
         self._text_managers = value
 
     @property
-    def des_managers(self) -> Optional[Tuple[DESSubheaderManager, ...]]:
+    def des_managers(self):
         return self._des_managers
 
     @des_managers.setter
@@ -3152,7 +3163,7 @@ class NITFWritingDetails(object):
         self._des_managers = value
 
     @property
-    def res_managers(self) -> Optional[Tuple[RESSubheaderManager, ...]]:
+    def res_managers(self):
         return self._res_managers
 
     @res_managers.setter
@@ -3172,9 +3183,9 @@ class NITFWritingDetails(object):
 
     def _get_sizes(
             self,
-            managers: Optional[Sequence[SubheaderManager]],
-            name: str,
-            require: bool = False) -> Tuple[Optional[numpy.ndarray], Optional[numpy.ndarray]]:
+            managers,
+            name,
+            require = False):
         if managers is None:
             return None, None
 
@@ -3191,14 +3202,14 @@ class NITFWritingDetails(object):
             item_sizes[i] = item_size
         return subhead_sizes, item_sizes
 
-    def _write_items(self, managers: Optional[Sequence[SubheaderManager]], file_object: BinaryIO) -> None:
+    def _write_items(self, managers, file_object):
         if managers is None:
             return
         for index, entry in enumerate(managers):
             entry.write_subheader(file_object)
             entry.write_item(file_object)
 
-    def _verify_item_written(self, managers: Optional[Sequence[SubheaderManager]], name: str) -> None:
+    def _verify_item_written(self, managers, name):
         if managers is None:
             return
 
@@ -3208,7 +3219,7 @@ class NITFWritingDetails(object):
             if not entry.item_written:
                 logger.error('{} data at index {} not written'.format(name, index))
 
-    def _get_image_sizes(self, require: bool = False) -> ImageSegmentsType:
+    def _get_image_sizes(self, require = False):
         """
         Gets the image sizes details for the NITF header.
 
@@ -3220,7 +3231,7 @@ class NITFWritingDetails(object):
         subhead_sizes, item_sizes = self._get_sizes(self.image_managers, 'Image', require=require)
         return ImageSegmentsType(subhead_sizes=subhead_sizes, item_sizes=item_sizes)
 
-    def _get_graphics_sizes(self, require: bool = False) -> GraphicsSegmentsType:
+    def _get_graphics_sizes(self, require = False):
         """
         Gets the graphics sizes details for the NITF header.
 
@@ -3237,7 +3248,7 @@ class NITFWritingDetails(object):
         subhead_sizes, item_sizes = self._get_sizes(self.graphics_managers, 'Graphics', require=require)
         return GraphicsSegmentsType(subhead_sizes=subhead_sizes, item_sizes=item_sizes)
 
-    def _get_text_sizes(self, require: bool = False) -> TextSegmentsType:
+    def _get_text_sizes(self, require = False):
         """
         Gets the text sizes details for the NITF header.
 
@@ -3249,7 +3260,7 @@ class NITFWritingDetails(object):
         subhead_sizes, item_sizes = self._get_sizes(self.text_managers, 'Text', require=require)
         return TextSegmentsType(subhead_sizes=subhead_sizes, item_sizes=item_sizes)
 
-    def _get_des_sizes(self, require: bool = False) -> DataExtensionsType:
+    def _get_des_sizes(self, require = False):
         """
         Gets the image sizes details for the NITF header.
 
@@ -3261,7 +3272,7 @@ class NITFWritingDetails(object):
         subhead_sizes, item_sizes = self._get_sizes(self.des_managers, 'DES', require=require)
         return DataExtensionsType(subhead_sizes=subhead_sizes, item_sizes=item_sizes)
 
-    def _get_res_sizes(self, require: bool = False) -> ReservedExtensionsType:
+    def _get_res_sizes(self, require = False):
         """
         Gets the image sizes details for the NITF header.
 
@@ -3273,7 +3284,7 @@ class NITFWritingDetails(object):
         subhead_sizes, item_sizes = self._get_sizes(self.res_managers, 'RES', require=require)
         return ReservedExtensionsType(subhead_sizes=subhead_sizes, item_sizes=item_sizes)
 
-    def set_first_image_offset(self) -> None:
+    def set_first_image_offset(self):
         """
         Sets the first image offset from the header length.
 
@@ -3286,7 +3297,7 @@ class NITFWritingDetails(object):
             return
         self.image_managers[0].subheader_offset = self._header_size
 
-    def verify_images_have_no_compression(self) -> bool:
+    def verify_images_have_no_compression(self):
         """
         Verify that there is no compression set for every image manager. That is,
         we are going to directly write a NITF file.
@@ -3304,7 +3315,7 @@ class NITFWritingDetails(object):
             out &= (entry.subheader.IC in ['NC', 'NM'])
         return out
 
-    def set_all_sizes(self, require: bool = False) -> None:
+    def set_all_sizes(self, require = False):
         """
         This sets the nominal size information in the nitf header, and optionally
         verifies that all the item_size values are set.
@@ -3326,7 +3337,7 @@ class NITFWritingDetails(object):
         self.header.DataExtensions = self._get_des_sizes(require=require)
         self.header.ReservedExtensions = self._get_res_sizes(require=require)
 
-    def verify_all_offsets(self, require: bool = False) -> bool:
+    def verify_all_offsets(self, require = False):
         """
         This sets and/or verifies all offsets.
 
@@ -3423,7 +3434,7 @@ class NITFWritingDetails(object):
         self.header.FL = last_offset
         return True
 
-    def set_header_clevel(self) -> None:
+    def set_header_clevel(self):
         """
         Sets the appropriate CLEVEL. This requires that header.FL (file size) has
         been previously populated correctly (using :meth:`verify_all_offsets`).
@@ -3448,7 +3459,7 @@ class NITFWritingDetails(object):
         self.header.CLEVEL = mem_clevel if self._collections_clevel is None else \
             max(mem_clevel, max(self._collections_clevel))
 
-    def write_header(self, file_object: BinaryIO, overwrite: bool = False) -> None:
+    def write_header(self, file_object, overwrite = False):
         """
         Write the main NITF header.
 
@@ -3475,7 +3486,7 @@ class NITFWritingDetails(object):
         file_object.write(the_bytes)
         self._header_written = True
 
-    def write_all_populated_items(self, file_object: BinaryIO) -> None:
+    def write_all_populated_items(self, file_object):
         """
         Write everything populated. This assumes that the header will start at the
         beginning (position 0) of the file-like object.
@@ -3496,7 +3507,7 @@ class NITFWritingDetails(object):
         self._write_items(self.des_managers, file_object)
         self._write_items(self.res_managers, file_object)
 
-    def verify_all_written(self) -> None:
+    def verify_all_written(self):
         if not self._header_written:
             logger.error('NITF header not written')
 
@@ -3517,10 +3528,10 @@ class NITFWriter(BaseWriter):
 
     def __init__(
             self,
-            file_object: Union[str, BinaryIO],
-            writing_details: NITFWritingDetails,
-            check_existence: bool = True,
-            in_memory: bool = None):
+            file_object,
+            writing_details,
+            check_existence = True,
+            in_memory = None):
         """
 
         Parameters
@@ -3542,7 +3553,7 @@ class NITFWriter(BaseWriter):
         self._image_segment_data_segments = []  # type: List[DataSegment]
         self._close_after = False
 
-        if isinstance(file_object, str):
+        if isinstance(file_object, string_types):
             if check_existence and os.path.exists(file_object):
                 raise SarpyIOError(
                     'Given file {} already exists, and a new NITF file cannot be created here.'.format(file_object))
@@ -3584,7 +3595,7 @@ class NITFWriter(BaseWriter):
         BaseWriter.__init__(self, data_segments)
 
     @property
-    def nitf_writing_details(self) -> NITFWritingDetails:
+    def nitf_writing_details(self):
         """
         NITFWritingDetails: The NITF subheader details.
         """
@@ -3600,10 +3611,10 @@ class NITFWriter(BaseWriter):
         self._nitf_writing_details = value
 
     @property
-    def image_managers(self) -> Tuple[ImageSubheaderManager, ...]:
+    def image_managers(self):
         return self.nitf_writing_details.image_managers
 
-    def _set_image_size(self, image_segment_index: int, item_size: int) -> None:
+    def _set_image_size(self, image_segment_index, item_size):
         """
         Sets the image size information. This should be without consideration
         for the presence of an image mask, which is handled by with the image
@@ -3618,7 +3629,7 @@ class NITFWriter(BaseWriter):
         self.image_managers[image_segment_index].item_size = item_size
 
     @property
-    def image_segment_collections(self) -> Tuple[Tuple[int, ...]]:
+    def image_segment_collections(self):
         """
         The definition for how image segments are grouped together to form the
         aggregate image.
@@ -3633,7 +3644,7 @@ class NITFWriter(BaseWriter):
 
         return self.nitf_writing_details.image_segment_collections
 
-    def get_image_header(self, index: int) -> ImageSegmentHeader:
+    def get_image_header(self, index):
         """
         Gets the image subheader at the specified index.
 
@@ -3651,8 +3662,8 @@ class NITFWriter(BaseWriter):
     # noinspection PyMethodMayBeStatic
     def _check_image_segment_for_compliance(
             self,
-            index: int,
-            img_header: ImageSegmentHeader) -> None:
+            index,
+            img_header):
         """
         Checks whether the image segment can be (or should be) opened.
 
@@ -3686,7 +3697,7 @@ class NITFWriter(BaseWriter):
             if img_header.IC != 'NM':
                 raise ValueError('Mask subheader is defined, but IC is not `NM`')
 
-    def _verify_image_segments(self) -> None:
+    def _verify_image_segments(self):
         for index, entry in enumerate(self.image_managers):
             if entry.item_bytes is not None:
                 raise ValueError(
@@ -3695,14 +3706,14 @@ class NITFWriter(BaseWriter):
             subhead = entry.subheader
             self._check_image_segment_for_compliance(index, subhead)
 
-    def _construct_block_bounds(self, image_segment_index: int) -> List[Tuple[int, int, int, int]]:
+    def _construct_block_bounds(self, image_segment_index):
         image_header = self.get_image_header(image_segment_index)
         # noinspection PyTypeChecker
         return _construct_block_bounds(image_header)
 
     def _get_mask_details(
             self,
-            image_segment_index: int) -> Tuple[Optional[numpy.ndarray], int, int]:
+            image_segment_index):
         """
         Gets the mask offset details.
 
@@ -3745,27 +3756,27 @@ class NITFWriter(BaseWriter):
 
     def _get_dtypes(
             self,
-            image_segment_index: int) -> Tuple[numpy.dtype, numpy.dtype, int, Optional[str], Optional[numpy.ndarray]]:
+            image_segment_index):
         image_header = self.get_image_header(image_segment_index)
         return _get_dtype(image_header)
 
     # noinspection PyMethodMayBeStatic, PyUnusedLocal
     def get_format_function(
             self,
-            raw_dtype: numpy.dtype,
-            complex_order: Optional[str] = None,
-            lut: Optional[numpy.ndarray] = None,
-            band_dimension: int = -1,
-            image_segment_index: Optional[int] = None,
-            **kwargs) -> Optional[FormatFunction]:
+            raw_dtype,
+            complex_order = None,
+            lut = None,
+            band_dimension = -1,
+            image_segment_index = None,
+            **kwargs):
         return _get_format_function(raw_dtype, complex_order, lut, band_dimension)
 
-    def _verify_image_segment_compatibility(self, index0: int, index1: int) -> bool:
+    def _verify_image_segment_compatibility(self, index0, index1):
         img0 = self.get_image_header(index0)
         img1 = self.get_image_header(index1)
         return _verify_image_segment_compatibility(img0, img1)
 
-    def verify_collection_compliance(self) -> None:
+    def verify_collection_compliance(self):
         """
         Verify that image segments collections are compatible.
 
@@ -3792,7 +3803,7 @@ class NITFWriter(BaseWriter):
         if not all_compatible:
             raise ValueError('Image segment collection incompatibilities')
 
-    def _get_collection_element_coordinate_limits(self, collection_index: int) -> Tuple[Tuple[int, ...], ...]:
+    def _get_collection_element_coordinate_limits(self, collection_index):
         """
         For the given image segment collection, as defined in the
         `image_segment_collections` property value, get the relative coordinate
@@ -3814,7 +3825,7 @@ class NITFWriter(BaseWriter):
 
         return self.nitf_writing_details.image_segment_coordinates[collection_index]
 
-    def _handle_no_compression(self, image_segment_index: int, apply_format: bool) -> DataSegment:
+    def _handle_no_compression(self, image_segment_index, apply_format):
         # NB: this should definitely set the image size in the manager.
 
         image_header = self.get_image_header(image_segment_index)
@@ -3961,7 +3972,7 @@ class NITFWriter(BaseWriter):
             transpose_axes=transpose_axes, format_function=format_function,
             close_children=True)
 
-    def _create_data_segment_from_imode_b(self, image_segment_index: int, apply_format: bool) -> DataSegment:
+    def _create_data_segment_from_imode_b(self, image_segment_index, apply_format):
         image_header = self.get_image_header(image_segment_index)
         if image_header.IMODE != 'B':
             raise ValueError(
@@ -3972,7 +3983,7 @@ class NITFWriter(BaseWriter):
         else:
             raise ValueError('Got unhandled IC `{}`'.format(image_header.IC))
 
-    def _create_data_segment_from_imode_p(self, image_segment_index: int, apply_format: bool) -> DataSegment:
+    def _create_data_segment_from_imode_p(self, image_segment_index, apply_format):
         image_header = self.get_image_header(image_segment_index)
         if image_header.IMODE != 'P':
             raise ValueError(
@@ -3984,7 +3995,7 @@ class NITFWriter(BaseWriter):
         else:
             raise ValueError('Got unhandled IC `{}`'.format(image_header.IC))
 
-    def _create_data_segment_from_imode_r(self, image_segment_index: int, apply_format: bool) -> DataSegment:
+    def _create_data_segment_from_imode_r(self, image_segment_index, apply_format):
         image_header = self.get_image_header(image_segment_index)
         if image_header.IMODE != 'R':
             raise ValueError(
@@ -3998,8 +4009,8 @@ class NITFWriter(BaseWriter):
 
     def create_data_segment_for_image_segment(
             self,
-            image_segment_index: int,
-            apply_format: bool) -> DataSegment:
+            image_segment_index,
+            apply_format):
         """
         Creates the data segment for the given image segment.
 
@@ -4061,7 +4072,7 @@ class NITFWriter(BaseWriter):
 
         return out
 
-    def create_data_segment_for_collection_element(self, collection_index: int) -> DataSegment:
+    def create_data_segment_for_collection_element(self, collection_index):
         """
         Creates the data segment overarching the given segment collection.
 
@@ -4110,7 +4121,7 @@ class NITFWriter(BaseWriter):
             child_segments, child_arrangement, 'raw', 0, raw_shape, formatted_dtype, formatted_shape,
             format_function=format_function, close_children=True)
 
-    def get_data_segments(self) -> List[DataSegment]:
+    def get_data_segments(self):
         """
         Gets a data segment for each of these image segment collection.
 
@@ -4124,7 +4135,7 @@ class NITFWriter(BaseWriter):
             out.append(self.create_data_segment_for_collection_element(index))
         return out
 
-    def flush(self, force: bool = False) -> None:
+    def flush(self, force = False):
         self._validate_closed()
 
         BaseWriter.flush(self, force=force)
@@ -4148,7 +4159,7 @@ class NITFWriter(BaseWriter):
         except AttributeError:
             return
 
-    def close(self) -> None:
+    def close(self):
         BaseWriter.close(self)  # NB: flush called here
         try:
             if self.nitf_writing_details is not None:
@@ -4165,3 +4176,6 @@ class NITFWriter(BaseWriter):
                 self._file_object.close()
             except Exception:
                 pass
+                
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()

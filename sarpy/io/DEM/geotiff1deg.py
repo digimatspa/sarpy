@@ -8,9 +8,23 @@ This code makes the following assumptions.
     4. The latitude and longitude of south-west corner points is encoded in the GeoTIFF filename.
     5. The anti-meridian is at W180 rather than at E180 so that valid longitude values are (-180 <= lon < 180) degrees.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
+#from builtins import str
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 import glob
 import logging
-import pathlib
+try:
+    import pathlib
+except ImportError:
+    import pathlib2 as pathlib
+import struct
 import warnings
 
 import numpy as np
@@ -35,7 +49,7 @@ __author__ = "Valkyrie Systems Corporation"
 
 
 
-class GeoTIFF1DegReader:
+class GeoTIFF1DegReader(object):
     """Class to read in a GeoTIFF file, if necessary, and cache the data."""
 
     def __init__(self, filename):
@@ -102,8 +116,13 @@ class GeoTIFF1DegInterpolator(DEMInterpolator):
     __slots__ = ('_geoid_path', '_interp_method', '_ref_surface', '_geotiff_list_obj',
                  '_bounding_box_cache', '_max_readers', '_readers')
 
-    def __init__(self, dem_filename_pattern, ref_surface='EGM2008', geoid_path=None, *,
-                 missing_error=False, interp_method="linear", max_readers=4):
+    def __init__(self, dem_filename_pattern, ref_surface='EGM2008', geoid_path=None, **_3to2kwargs):
+        if 'max_readers' in _3to2kwargs: max_readers = _3to2kwargs['max_readers']; del _3to2kwargs['max_readers']
+        else: max_readers = 4
+        if 'interp_method' in _3to2kwargs: interp_method = _3to2kwargs['interp_method']; del _3to2kwargs['interp_method']
+        else: interp_method = "linear"
+        if 'missing_error' in _3to2kwargs: missing_error = _3to2kwargs['missing_error']; del _3to2kwargs['missing_error']
+        else: missing_error = False
         self._geoid_path = pathlib.Path(geoid_path) if geoid_path else None
         self._interp_method = str(interp_method)
         self._ref_surface = str(ref_surface).upper()
@@ -171,6 +190,7 @@ class GeoTIFF1DegInterpolator(DEMInterpolator):
 
         lat = np.atleast_1d(lat)
         lon = np.atleast_1d(lon)
+        lat_shape = lat.shape
 
         if lat.shape != lon.shape:
             raise ValueError("The lat and lon arrays are not the same shape.")
@@ -206,10 +226,10 @@ class GeoTIFF1DegInterpolator(DEMInterpolator):
                                    'Unknown')
             if ((self._ref_surface.startswith('EGM') and implied_ref_surface.startswith('WGS')) or
                     (self._ref_surface.startswith('WGS') and implied_ref_surface.startswith('EGM'))):
-                msg = (f"{filename}\n"
-                       f"The GeoAsciiParamsTag tag implies that the reference surface is {implied_ref_surface},\n"
-                       f"but the explicit reference surface was defined to be {self._ref_surface}.\n"
-                       f"This might cause the elevation values to be calculated incorrectly.\n")
+                msg = ("{}\n"
+                       "The GeoAsciiParamsTag tag implies that the reference surface is {},\n"
+                       "but the explicit reference surface was defined to be {}.\n"
+                       "This might cause the elevation values to be calculated incorrectly.\n".format(filename, implied_ref_surface, self._ref_surface))
                 logger.warning(msg)
 
             tile_num_lats, tile_num_lons = dem_data.shape
@@ -229,7 +249,7 @@ class GeoTIFF1DegInterpolator(DEMInterpolator):
             mask = np.logical_not(np.isnan(interp_height))
             height[mask] = interp_height[mask]
 
-        return height.reshape(lat.shape)
+        return height.reshape(lat_shape)
 
     def get_elevation_hae(self, lat, lon, block_size=None):
         """
@@ -258,7 +278,7 @@ class GeoTIFF1DegInterpolator(DEMInterpolator):
 
             return height_native + self._geoid_obj.get(lat, lon, block_size=block_size)
         else:
-            raise ValueError(f"The reference surface is {self._ref_surface}, which is not supported")
+            raise ValueError("The reference surface is {}, which is not supported".format(self._ref_surface))
 
     def get_elevation_geoid(self, lat, lon, block_size=None):
         """
@@ -287,7 +307,7 @@ class GeoTIFF1DegInterpolator(DEMInterpolator):
 
             return height_native - self._geoid_obj.get(lat, lon, block_size=block_size)
         else:
-            raise ValueError(f"The reference surface is {self._ref_surface}, which is not supported.")
+            raise ValueError("The reference surface is {}, which is not supported.".format(self._ref_surface))
 
     def get_max_hae(self, lat_lon_box=None):
         """
@@ -459,6 +479,25 @@ class GeoTIFF1DegInterpolator(DEMInterpolator):
         return self._bounding_box_cache
 
 
+def format_map_compat(pattern, mapping):
+    from string import Formatter
+    fmt = Formatter()
+    parts = []
+    for literal, field, spec, conv in fmt.parse(pattern):
+        parts.append(literal)
+        if field is not None:
+            value = mapping[field]
+            if conv == 'r':
+                value = repr(value)
+            elif conv == 's':
+                value = str(value)
+            elif conv == 'a':
+                value = ascii(value)
+            if spec:
+                value = format(value, spec)
+            parts.append(str(value))
+    return ''.join(parts)
+
 # ---------------------------------------------------------------------------------------------------------------------
 # GeoTIFF1DegList
 # ---------------------------------------------------------------------------------------------------------------------
@@ -530,9 +569,9 @@ class GeoTIFF1DegList(DEMList):
 
         class SkipMissing(dict):
             def __missing__(self, key):
-                return f'{{{key}}}'
+                return '{{{}}}'.format(key)
 
-        return pattern.format_map(SkipMissing(**pars))
+        return format_map_compat(pattern, SkipMissing(**pars))
 
     def find_dem_files(self, lat, lon):
         """
@@ -574,6 +613,7 @@ class GeoTIFF1DegList(DEMList):
                 glob_pattern = self.filename_from_lat_lon(int(sw_lat), int(sw_lon), self._dem_filename_pattern)
                 if glob_pattern not in self._pattern_to_filename:
                     for filename in glob.glob(glob_pattern):
+                        filename = filename.decode('utf-8') if isinstance(filename, bytes) else filename
                         if pathlib.Path(filename).is_file():
                             # The glob should not return more than one filename,
                             # but if it does then keep only the first.
@@ -581,7 +621,7 @@ class GeoTIFF1DegList(DEMList):
                             break
                     else:
                         self._pattern_to_filename[glob_pattern] = None
-                        msg = f'Missing expected DEM file for tile with lower left lat/lon corner ({sw_lat}, {sw_lon})'
+                        msg = 'Missing expected DEM file for tile with lower left lat/lon corner ({}, {})'.format(sw_lat, sw_lon)
                         if self._missing_error:
                             raise ValueError(msg)
                         else:

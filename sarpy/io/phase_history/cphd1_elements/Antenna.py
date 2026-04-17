@@ -1,7 +1,15 @@
 """
 The Antenna type definition.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -43,10 +51,10 @@ class AntCoordFrameType(Serializable):
 
     def __init__(
             self,
-            Identifier: str = None,
-            XAxisPoly: XYZPolyType = None,
-            YAxisPoly: XYZPolyType = None,
-            UseACFPVP: Optional[bool] = None,
+            Identifier = None,
+            XAxisPoly = None,
+            YAxisPoly = None,
+            UseACFPVP = None,
             **kwargs):
         """
 
@@ -69,7 +77,7 @@ class AntCoordFrameType(Serializable):
         self.UseACFPVP = UseACFPVP
         super(AntCoordFrameType, self).__init__(**kwargs)
 
-    def version_required(self) -> Tuple[int, int, int]:
+    def version_required(self):
         required = (1, 0, 1)
         if self.UseACFPVP is not None:
             required = max(required, (1, 1, 0))
@@ -181,7 +189,7 @@ class FreqSFType(Serializable, Arrayable):
         self.DCYSF = DCYSF
         super(FreqSFType, self).__init__(**kwargs)
 
-    def get_array(self, dtype=numpy.float64) -> numpy.ndarray:
+    def get_array(self, dtype=numpy.float64):
         """
         Gets an array representation of the class instance.
 
@@ -199,7 +207,7 @@ class FreqSFType(Serializable, Arrayable):
         return numpy.array([self.DCXSF, self.DCYSF], dtype=dtype)
 
     @classmethod
-    def from_array(cls, array: numpy.ndarray):
+    def from_array(cls, array):
         """
         Construct from an iterable.
 
@@ -245,9 +253,9 @@ class AntPolRefType(Serializable, Arrayable):
 
     def __init__(
             self,
-            AmpX: float = None,
-            AmpY: float = None,
-            PhaseY: float = None,
+            AmpX = None,
+            AmpY = None,
+            PhaseY = None,
             **kwargs):
         if '_xml_ns' in kwargs:
             self._xml_ns = kwargs['_xml_ns']
@@ -258,7 +266,7 @@ class AntPolRefType(Serializable, Arrayable):
         self.PhaseY = PhaseY
         super(AntPolRefType, self).__init__(**kwargs)
 
-    def get_array(self, dtype=numpy.float64) -> numpy.ndarray:
+    def get_array(self, dtype=numpy.float64):
         """
         Gets an array representation of the class instance.
 
@@ -276,7 +284,7 @@ class AntPolRefType(Serializable, Arrayable):
         return numpy.array([self.AmpX, self.AmpY, self.PhaseY], dtype=dtype)
 
     @classmethod
-    def from_array(cls, array: numpy.ndarray):
+    def from_array(cls, array):
         """
         Construct from an iterable.
 
@@ -362,7 +370,7 @@ class EBType(Serializable):
             return None
         return numpy.array([self.DCXPoly(t), self.DCYPoly(t)])
 
-    def version_required(self) -> Tuple[int, int, int]:
+    def version_required(self):
         required = (1, 0, 1)
         if self.UseEBPVP is not None:
             required = max(required, (1, 1, 0))
@@ -443,7 +451,7 @@ class GainPhasePolyType(Serializable):
         self.GainPoly.minimize_order()
         self.PhasePoly.minimize_order()
 
-    def version_required(self) -> Tuple[int, int, int]:
+    def version_required(self):
         required = (1, 0, 1)
         if self.AntGPId is not None:
             required = max(required, (1, 1, 0))
@@ -523,11 +531,11 @@ class AntPatternType(Serializable):
             FreqZero=None,
             GainZero=None,
             EBFreqShift=None,
-            EBFreqShiftSF: Optional[FreqSFType] = None,
+            EBFreqShiftSF = None,
             MLFreqDilation=None,
-            MLFreqDilationSF: Optional[FreqSFType] = None,
+            MLFreqDilationSF = None,
             GainBSPoly=None,
-            AntPolRef: Union[None, AntPolRefType, numpy.ndarray, list, tuple] = None,
+            AntPolRef = None,
             EB=None,
             Array=None,
             Element=None,
@@ -572,7 +580,7 @@ class AntPatternType(Serializable):
         self.GainPhaseArray = GainPhaseArray
         super(AntPatternType, self).__init__(**kwargs)
 
-    def version_required(self) -> Tuple[int, int, int]:
+    def version_required(self):
         required = (1, 0, 1)
         for fld in ['EB', 'Array', 'Element']:
             val = getattr(self, fld)
@@ -663,7 +671,7 @@ class AntennaType(Serializable):
             return 0
         return len(self.AntPattern)
 
-    def version_required(self) -> Tuple[int, int, int]:
+    def version_required(self):
         required = (1, 0, 1)
         if self.AntCoordFrame is not None:
             for entry in self.AntCoordFrame:

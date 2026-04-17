@@ -52,10 +52,8 @@ def test_image_formation_txfreq(caplog, tol, kwargs):
     ):
         tx_freq.from_array([1])
 
-    with pytest.raises(
-        ValueError,
-        match="Expected array to be numpy.ndarray, list, or tuple, got <class 'dict'>",
-    ):
+    pattern = r"Expected array to be numpy\.ndarray, list, or tuple, got <(?:class|type) 'dict'>"
+    with pytest.raises(ValueError, match=pattern):
         tx_freq.from_array({"1": 1})
 
     tx_freq._apply_reference_frequency(100000)
@@ -70,7 +68,7 @@ def test_image_formation_txfreq(caplog, tol, kwargs):
     tx_freq = ImageFormation.TxFrequencyProcType(MinProc=MAX_FREQ, MaxProc=MIN_FREQ)
     assert not tx_freq._basic_validity_check()
     assert (
-        f"Invalid frequency bounds MinProc ({tx_freq.MinProc}) > MaxProc ({tx_freq.MaxProc})"
+        "Invalid frequency bounds MinProc ({}) > MaxProc ({})".format(tx_freq.MinProc, tx_freq.MaxProc)
         in caplog.text
     )
 
@@ -94,7 +92,7 @@ def test_image_formation_distortion(kwargs):
         F2=complex(7, 8),
         Q3=complex(9, 1),
         Q4=complex(1, 3),
-        **kwargs,
+        **kwargs
     )
     assert distortion._xml_ns == kwargs["_xml_ns"]
     assert distortion._xml_ns_key == kwargs["_xml_ns_key"]
@@ -132,7 +130,7 @@ def test_image_formation(sicd, caplog, kwargs):
         ImageBeamComp=sicd.ImageFormation.ImageBeamComp,
         AzAutofocus=sicd.ImageFormation.AzAutofocus,
         RgAutofocus=sicd.ImageFormation.RgAutofocus,
-        **kwargs,
+        **kwargs
     )
     assert image_form_type._xml_ns == kwargs["_xml_ns"]
     assert image_form_type._xml_ns_key == kwargs["_xml_ns_key"]
@@ -142,7 +140,7 @@ def test_image_formation(sicd, caplog, kwargs):
     image_form_type.TStartProc = image_form_type.TEndProc + 1
     image_form_type._basic_validity_check()
     assert (
-        f"Invalid time processing bounds TStartProc ({image_form_type.TStartProc}) > TEndProc ({image_form_type.TEndProc})"
+        "Invalid time processing bounds TStartProc ({}) > TEndProc ({})".format(image_form_type.TStartProc, image_form_type.TEndProc)
         in caplog.text
     )
 

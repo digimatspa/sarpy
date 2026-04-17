@@ -6,21 +6,27 @@ from unittest import TestCase
 
 from sarpy.io.general.slice_parsing import validate_slice_int, verify_slice, \
     verify_subscript, get_slice_result_size, get_subscript_result_size
-
+import sys
+from builtins import Ellipsis
 
 class Test_validate_slice_int(TestCase):
+    if not hasattr(TestCase, 'assertRaisesRegex'):
+        assertRaisesRegex = TestCase.assertRaisesRegexp
+
     def setUp(self):
         self.the_int = 5
         self.bound   = 20
         self.include = True
 
     def testNoParamsFail(self):
-        with self.assertRaisesRegex(TypeError, 
-                                    re.escape(
-                                        "validate_slice_int() missing 2 " + \
-                                            "required positional arguments: " + \
-                                                "'the_int' and 'bound'")):
+        with self.assertRaises(TypeError) as cm:
             validate_slice_int()
+        msg = str(cm.exception)
+        if sys.version_info[0] >= 3:
+            expected = "validate_slice_int() missing 2 required positional arguments: 'the_int' and 'bound'"
+        else:
+            expected = "validate_slice_int() takes at least 2 arguments (0 given)"
+        self.assertEqual(msg, expected)
 
     def testBoundAsZeroFail(self):
         with self.assertRaisesRegex(TypeError, 'bound must be a positive integer.'):
@@ -47,17 +53,20 @@ class Test_validate_slice_int(TestCase):
             self.assertEqual(validate_slice_int(2, 1, False), 2)
 
 class Test_verify_slice(TestCase):
+    if not hasattr(TestCase, 'assertRaisesRegex'):
+        assertRaisesRegex = TestCase.assertRaisesRegexp
+
     def setUp(self):
         self.item = [1, 60, 3]
         self.max_element = 111
 
     def testNoParamsFail(self):
-        with self.assertRaisesRegex(TypeError, 
-                                    re.escape(
-                                        "verify_slice() missing 2 required " + \
-                                            "positional arguments: " + \
-                                                "'item' and 'max_element'")):
-            verify_slice()
+        pattern = (
+            r"(verify_subscript\(\) missing 2 required positional arguments: 'subscript' and 'corresponding_shape')|"
+            r"(verify_subscript\(\) takes (?:exactly|at least) 2 arguments \(0 given\))"
+        )
+        with self.assertRaisesRegex(TypeError, pattern):
+            verify_subscript()
 
     def testMaxElementFloatFail(self):
         with self.assertRaisesRegex(ValueError, 
@@ -123,23 +132,24 @@ class Test_verify_slice(TestCase):
             verify_slice([-6, 3, 1], 100)
     
     def testBadValueFail(self):
-        with self.assertRaisesRegex(ValueError, 
-                                    re.escape(
-                                        "Got unexpected argument of type " + \
-                                            "<class 'dict'> in slice")):
+        pattern = r"Got unexpected argument of type <(?:class|type) 'dict'> in slice"
+        with self.assertRaisesRegex(ValueError, pattern):
             verify_slice({'key': 'Bad Info', 'Value': 'Not a number'}, self.max_element)
 
 class Test_verify_subscript(TestCase):
+    if not hasattr(TestCase, 'assertRaisesRegex'):
+        assertRaisesRegex = TestCase.assertRaisesRegexp
+
     def setUp(self):
         self.item = [1, 60, 3]
         self.max_element = 111
 
     def testNoParamsFail(self):
-        with self.assertRaisesRegex(TypeError, 
-                                    re.escape(
-                                        "verify_subscript() missing 2 required " + \
-                                            "positional arguments: 'subscript' " + \
-                                                "and 'corresponding_shape'")):
+        pattern = (
+            r"(verify_subscript\(\) missing 2 required positional arguments: 'subscript' and 'corresponding_shape')|"
+            r"(verify_subscript\(\) takes (?:exactly|at least) 2 arguments \(0 given\))"
+        )
+        with self.assertRaisesRegex(TypeError, pattern):
             verify_subscript()
 
     def testSubscriptNoneSuccess(self):
@@ -149,7 +159,7 @@ class Test_verify_subscript(TestCase):
 
     def testSubscriptElipsisSuccess(self):
         expected_value = (slice(0, 1, 1), slice(0, 60, 1), slice(0, 3, 1))
-        return_value   = verify_subscript(..., self.item)
+        return_value   = verify_subscript(Ellipsis, self.item)
         self.assertEqual(expected_value, return_value)
 
     def testSubscriptIntSuccess(self):
@@ -173,7 +183,7 @@ class Test_verify_subscript(TestCase):
                                     re.escape(
                                         "slice definition cannot contain more " + \
                                              "than one ellipsis")):
-             return_value   = verify_subscript([0,..., ...], self.item)
+             return_value = verify_subscript([0, Ellipsis, Ellipsis], self.item)
         
     def testSubscriptSequenceListWithOneElipsisSubscriptTooBigFail(self):
         expected_value = (slice(0, 1, 1), slice(0, 60, 1), slice(0, 3, 1))
@@ -181,21 +191,21 @@ class Test_verify_subscript(TestCase):
                                     re.escape(
                                         "More subscript entries (4) than shape " + \
                                              "dimensions (3)")):
-             return_value   = verify_subscript([0,..., 1, 5], self.item)
+             return_value   = verify_subscript([0,Ellipsis, 1, 5], self.item)
 
     def testSubscriptSequenceListWithLastElipsisSuccess(self):
         expected_value = (slice(0, 1, 1), slice(1, 2, 1), slice(0, 3, 1))
-        return_value   = verify_subscript([0,1,...], self.item)
+        return_value   = verify_subscript([0,1,Ellipsis], self.item)
         self.assertEqual(expected_value, return_value)
 
     def testSubscriptSequenceListWithFirstElipsisSuccess(self):
         expected_value = (slice(0, 1, 1), slice(0, 60, 1), slice(1, 2, 1))
-        return_value   = verify_subscript([...,1], self.item)
+        return_value   = verify_subscript([Ellipsis,1], self.item)
         self.assertEqual(expected_value, return_value)
 
     def testSubscriptSequenceListWithMiddleElipsisSuccess(self):
         expected_value = (slice(0, 1, 1), slice(0, 60, 1), slice(2, 3, 1))
-        return_value   = verify_subscript([0,...,2], self.item)
+        return_value   = verify_subscript([0,Ellipsis,2], self.item)
         self.assertEqual(expected_value, return_value)
 
     def testSubscriptSequenceListNoElipsisSubscriptTooBigFail(self):
@@ -217,12 +227,17 @@ class Test_verify_subscript(TestCase):
                                     re.escape("Got unhandled subscript 4.5")):
              return_value   = verify_subscript(4.5, self.item)
 
+    import sys
+
     def testSubscriptStringFail(self):
-        expected_value = (slice(0, 1, 1), slice(0, 60, 1), slice(0, 3, 1))
-        with self.assertRaisesRegex(TypeError, 
-                                    re.escape("'<=' not supported between " + \
-                                              "instances of 'int' and 'str'")):
-             return_value   = verify_subscript("bob", self.item)
+        if sys.version_info[0] >= 3:
+            expected_exception = TypeError
+            pattern = re.escape("'<=' not supported between instances of 'int' and 'str'")
+        else:
+            expected_exception = ValueError
+            pattern = r"Got out of bounds argument \(b\) in slice limited by `\d+`"
+        with self.assertRaisesRegex(expected_exception, pattern):
+            verify_subscript("bob", self.item)
 
     def testSubscriptRangeFail(self):
         expected_value = (slice(0, 1, 1), slice(0, 60, 1), slice(0, 3, 1))
@@ -237,16 +252,19 @@ class Test_verify_subscript(TestCase):
         self.assertEqual(expected_value, return_value)
         
 class Test_get_slice_result_size(TestCase):
+    if not hasattr(TestCase, 'assertRaisesRegex'):
+        assertRaisesRegex = TestCase.assertRaisesRegexp
+
     def setUp(self):
         self.item = [1, 60, 3]
         self.max_element = 111
 
     def testNoParamsFail(self):
-        with self.assertRaisesRegex(TypeError, 
-                                    re.escape(
-                                        "get_slice_result_size() missing 1 " + \
-                                            "required positional argument: " + \
-                                                "'slice_in'")):
+        pattern = (
+            r"(get_slice_result_size\(\) missing 1 required positional argument: 'slice_in')|"
+            r"(get_slice_result_size\(\) takes (?:exactly|at least) 1 argument \(0 given\))"
+        )
+        with self.assertRaisesRegex(TypeError, pattern):
             get_slice_result_size()
 
     def testFullSliceSuccess(self):
@@ -262,17 +280,19 @@ class Test_get_slice_result_size(TestCase):
         self.assertEqual(-5, return_value)
 
 class Test_get_subscript_result_size(TestCase):
+    if not hasattr(TestCase, 'assertRaisesRegex'):
+        assertRaisesRegex = TestCase.assertRaisesRegexp
+
     def setUp(self):
         self.item = [1, 60, 3]
         self.max_element = 111
 
     def testNoParamsFail(self):
-        with self.assertRaisesRegex(TypeError, 
-                                    re.escape(
-                                        "get_subscript_result_size() missing " + \
-                                            "2 required positional arguments: " + \
-                                                "'subscript' and " + \
-                                                    "'corresponding_shape'")):
+        pattern = (
+            r"(get_subscript_result_size\(\) missing 2 required positional arguments: 'subscript' and 'corresponding_shape')|"
+            r"(get_subscript_result_size\(\) takes (?:exactly|at least) 2 arguments \(0 given\))"
+        )
+        with self.assertRaisesRegex(TypeError, pattern):
             get_subscript_result_size()
 
     def testSubscriptNoneSuccess(self):

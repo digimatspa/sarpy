@@ -1,7 +1,17 @@
 """
 Module providing api consistent with other file types for reading tiff files.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import range
+from builtins import open
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = ("Thomas McCullough", "Daniel Haverporth")
 
@@ -155,7 +165,7 @@ class TiffDetails(object):
          8, 8, 8], dtype=numpy.int64)
     # no definition for entries for 14 & 15
 
-    def __init__(self, file_name: str):
+    def __init__(self, file_name):
         """
 
         Parameters
@@ -163,7 +173,7 @@ class TiffDetails(object):
         file_name : str
         """
 
-        if not (isinstance(file_name, str) and os.path.isfile(file_name)):
+        if not (isinstance(file_name, string_types) and os.path.isfile(file_name)):
             raise SarpyIOError('Not a TIFF file.')
 
         with open(file_name, 'rb') as fi:
@@ -195,7 +205,7 @@ class TiffDetails(object):
         self._tags = None
 
     @property
-    def file_name(self) -> str:
+    def file_name(self):
         """
         str: READ ONLY. The file name.
         """
@@ -203,7 +213,7 @@ class TiffDetails(object):
         return self._file_name
 
     @property
-    def endian(self) -> str:
+    def endian(self):
         """
         str: READ ONLY. The numpy dtype style ``('>' = big, '<' = little)`` endian string for the tiff file.
         """
@@ -211,7 +221,7 @@ class TiffDetails(object):
         return self._endian
 
     @property
-    def tags(self) -> Dict[str, Union[str, numpy.ndarray]]:
+    def tags(self):
         """
         Dict: READ ONLY. The tiff tags dictionary,
         provided that :meth:`parse_tags` has been called. This dictionary is
@@ -223,7 +233,7 @@ class TiffDetails(object):
             self.parse_tags()
         return self._tags
 
-    def parse_tags(self) -> None:
+    def parse_tags(self):
         """
         Parse the tags from the file, if desired. This sets the `tags` attribute.
 
@@ -254,10 +264,10 @@ class TiffDetails(object):
         self._tags = tags
 
     def _read_tag(self,
-                  fi: BinaryIO,
-                  tiff_type: int,
-                  num_tag: int,
-                  count: int) -> Dict:
+                  fi,
+                  tiff_type,
+                  num_tag,
+                  count):
         """
         Parse the specific tag information.
 
@@ -298,7 +308,7 @@ class TiffDetails(object):
             return {'Value': None, 'Name': name, 'Extension': ext}
         if tiff_type == 2:  # ascii field - read directly and decode?
             val = fi.read(count)  # this will be a string for python 2, and we decode for python 3
-            if not isinstance(val, str):
+            if not isinstance(val, string_types):
                 val = val.decode('utf-8')
             # eliminate the null characters
             val = re.sub('\x00', '', val)
@@ -311,12 +321,12 @@ class TiffDetails(object):
         return {'Value': val, 'Name': name, 'Extension': ext}
 
     def _parse_ifd(self,
-                   fi: BinaryIO,
-                   tags: dict,
-                   type_dtype: Union[str, numpy.dtype],
-                   count_dtype: Union[str, numpy.dtype],
-                   offset_dtype: Union[str, numpy.dtype],
-                   offset_size: int) -> None:
+                   fi,
+                   tags,
+                   type_dtype,
+                   count_dtype,
+                   offset_dtype,
+                   offset_size):
         """
         Recursively parses the tag data and populates a provided dictionary
         Parameters
@@ -406,9 +416,9 @@ class NativeTiffDataSegment(NumpyMemmapSegment):
         1: 'u', 2: 'i', 3: 'f', 5: 'i', 6: 'f'}  # 5 and 6 are complex int/float
 
     def __init__(self,
-                 tiff_details: Union[str, TiffDetails],
-                 reverse_axes: Union[None, int, Sequence[int]] = None,
-                 transpose_axes: Union[None, Tuple[int, ...]] = None):
+                 tiff_details,
+                 reverse_axes = None,
+                 transpose_axes = None):
         """
         If format function and format_dtype are not provided, then SAR specific
         (not necessarily general) choices will be made.
@@ -420,7 +430,7 @@ class NativeTiffDataSegment(NumpyMemmapSegment):
         transpose_axes : None|Tuple[int, ...]
         """
 
-        if isinstance(tiff_details, str):
+        if isinstance(tiff_details, string_types):
             tiff_details = TiffDetails(tiff_details)
         if not isinstance(tiff_details, TiffDetails):
             raise TypeError('NativeTiffChipper input argument must be a filename '
@@ -503,15 +513,15 @@ class NativeTiffDataSegment(NumpyMemmapSegment):
             format_function=format_function, mode='r', close_file=True)
 
     @property
-    def tiff_details(self) -> TiffDetails:
+    def tiff_details(self):
         return self._tiff_details
 
 
 class TiffReader(BaseReader):
     def __init__(self,
-                 tiff_details: Union[str, TiffDetails],
-                 reverse_axes: Union[None, int, Sequence[int]] = None,
-                 transpose_axes: Union[None, Tuple[int, ...]] = None):
+                 tiff_details,
+                 reverse_axes = None,
+                 transpose_axes = None):
         """
 
         Parameters
@@ -525,7 +535,7 @@ class TiffReader(BaseReader):
         BaseReader.__init__(self, data_segment, reader_type='OTHER', close_segments=True)
 
     @property
-    def data_segment(self) -> NativeTiffDataSegment:
+    def data_segment(self):
         """
         NativeTiffDataSegment: The tiff data segment.
         """
@@ -533,7 +543,7 @@ class TiffReader(BaseReader):
         return self._data_segment
 
     @property
-    def tiff_details(self) -> TiffDetails:
+    def tiff_details(self):
         """
         TiffDetails: The tiff details object.
         """
@@ -548,7 +558,7 @@ class TiffReader(BaseReader):
 # base expected functionality for a module with an implemented Reader
 
 
-def is_a(file_name: str) -> Union[None, TiffReader]:
+def is_a(file_name):
     """
     Tests whether a given file_name corresponds to a tiff file. Returns a
     tiff reader instance, if so.

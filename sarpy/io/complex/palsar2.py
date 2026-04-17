@@ -1,7 +1,20 @@
 """
 Functionality for reading PALSAR ALOS 2 data into a SICD model.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import zip
+from builtins import open
+from builtins import super
+from builtins import int
+from builtins import range
+from builtins import round
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -198,7 +211,7 @@ class _CommonElements3(_CommonElements2):
         'num_proc_rec', 'proc_len', 'num_cal_rec', 'cal_len',
         'num_gcp_rec', 'gcp_len', 'num_fac_data_rec', 'fac_data_len')
 
-    def __init__(self, fi, facility_count: int):
+    def __init__(self, fi, facility_count):
         super(_CommonElements3, self).__init__(fi)
         self.num_map_rec = int(fi.read(6))  # type: int
         self.map_len = int(fi.read(6))  # type: int
@@ -1166,7 +1179,7 @@ class PALSARDetails(object):
     __slots__ = (
         '_file_name', '_img_elements', '_led_element', '_trl_element', '_vol_element')
 
-    def __init__(self, file_name: str):
+    def __init__(self, file_name):
         """
 
         Parameters
@@ -1186,7 +1199,7 @@ class PALSARDetails(object):
                     'image file {} corresponds to part of a ScanSAR collect, '
                     'which is currently unsupported'.format(entry.file_name))
 
-    def _validate_filename(self, file_name: str) -> None:
+    def _validate_filename(self, file_name):
         """
         Validate the input path, and find the associated files.
 
@@ -1241,7 +1254,7 @@ class PALSARDetails(object):
         self._vol_element = _VOL_Elements(vol_files[0]) if len(vol_files) > 0 else None
 
     @property
-    def file_name(self) -> str:
+    def file_name(self):
         """
         str: The parent directory.
         """
@@ -1249,7 +1262,7 @@ class PALSARDetails(object):
         return self._file_name
 
     @property
-    def img_elements(self) -> Tuple[_IMG_Elements, ...]:
+    def img_elements(self):
         """
         Tuple[_IMG_Elements, ...]: The img elements
         """
@@ -1257,9 +1270,9 @@ class PALSARDetails(object):
         return self._img_elements
 
     def _get_sicd(self,
-                  index: int,
-                  tx_pols: List[str],
-                  tx_rcv_pols: List[str]) -> SICDType:
+                  index,
+                  tx_pols,
+                  tx_rcv_pols):
         """
         Gets the SICD structure for image at `index`.
 
@@ -1274,7 +1287,7 @@ class PALSARDetails(object):
         SICDType
         """
 
-        def get_collection_info() -> CollectionInfoType:
+        def get_collection_info():
             if self._led_element.data.scene_id.startswith('ALOS2'):
                 collector_name = 'ALOS2'
             elif self._led_element.data.scene_id.startswith('STRIX'):
@@ -1291,7 +1304,7 @@ class PALSARDetails(object):
                 Classification='UNCLASSIFIED',
                 RadarMode=RadarModeType(ModeID=mode_id, ModeType=mode_type))
 
-        def get_image_creation() -> ImageCreationType:
+        def get_image_creation():
             from sarpy.__about__ import __version__
             the_date = self._vol_element.log_vol_create_date
             the_time = self._vol_element.log_vol_create_time
@@ -1309,7 +1322,7 @@ class PALSARDetails(object):
                                      Site=site,
                                      Profile='sarpy {}'.format(__version__))
 
-        def get_image_data() -> ImageDataType:
+        def get_image_data():
             rows = img_element.num_pixels
             cols = img_element.num_lines
             if img_element.num_bytes == 8:
@@ -1334,13 +1347,13 @@ class PALSARDetails(object):
                 FullImage=(rows, cols),
                 SCPPixel=(scp_row, scp_col))
 
-        def get_geo_data() -> GeoDataType:
+        def get_geo_data():
             # NB: lat/lon are expressed in 10-6 degrees
             scp_lat = 5e-7*(start_signal.lat_center + end_signal.lat_center)
             scp_lon = 5e-7*(start_signal.lon_center + end_signal.lon_center)
             return GeoDataType(SCP=SCPType(LLH=[scp_lat, scp_lon, 0.0]))
 
-        def get_timeline() -> TimelineType:
+        def get_timeline():
             starting_usec = start_signal.usec if start_signal.usec != 0 else 1000*start_signal.msec
             ending_usec = end_signal.usec if end_signal.usec != 0 else 1000*end_signal.msec
 
@@ -1361,7 +1374,7 @@ class PALSARDetails(object):
                                 IPPEnd=round(prf*duration) - 1,
                                 IPPPoly=[0, prf]), ])
 
-        def get_position() -> PositionType:
+        def get_position():
             pos_element = led_element.position
             position_start = numpy.datetime64(
                 '{0:04d}-{1:02d}-{2:02d}'.format(pos_element.year, pos_element.month, pos_element.day), 'us') + \
@@ -1375,7 +1388,7 @@ class PALSARDetails(object):
                 times_s[mask], arp_pos[mask, :], arp_vel[mask, :], max_degree=8)
             return PositionType(ARPPoly=XYZPolyType(X=P_x, Y=P_y, Z=P_z))
 
-        def get_radar_collection() -> RadarCollectionType:
+        def get_radar_collection():
             data = led_element.data
             bw = data.bw_rng*1e3  # NB: bandwidth is given in strange units?
             tx_freq_min = center_frequency - bw*0.5  # NB: bandwidth is given in milliHz
@@ -1409,7 +1422,7 @@ class PALSARDetails(object):
                     ChanParametersType(TxRcvPolarization=tx_rcv_p, index=j+1)
                     for j, tx_rcv_p in enumerate(tx_rcv_pols)])
 
-        def get_image_formation() -> ImageFormationType:
+        def get_image_formation():
             az_autofocus = 'GLOBAL' if led_element.data.autofocus_flg.strip() == 'YES' else 'NO'
             tx_min_freq = radar_collection.TxFrequency.Min
             tx_max_freq = radar_collection.TxFrequency.Max
@@ -1426,11 +1439,11 @@ class PALSARDetails(object):
                 RcvChanProc=RcvChanProcType(NumChanProc=1,
                                             ChanIndices=[index+1, ]))
 
-        def get_radiometric() -> RadiometricType:
+        def get_radiometric():
             sigma_zero = 10**(0.1*(led_element.radiometric.cal_factor - 32))
             return RadiometricType(SigmaZeroSFPoly=[[sigma_zero, ]])
 
-        def get_error_stats() -> ErrorStatisticsType:
+        def get_error_stats():
             pos_element = led_element.position
             range_bias = 1e-2
             # NB: there is a comment in the matlab code for range bias error:
@@ -1447,7 +1460,7 @@ class PALSARDetails(object):
                         V3=pos_element.ct_vel_err if numpy.isfinite(pos_element.ct_vel_err) else None),
                     RadarSensor=RadarSensorErrorType(RangeBias=range_bias)))
 
-        def get_grid_and_rma() -> Tuple[GridType, RMAType]:
+        def get_grid_and_rma():
             data = led_element.data
             dop_bw = data.bw_az
             ss_zd_s = 1000.0/data.prf
@@ -1542,7 +1555,7 @@ class PALSARDetails(object):
                 INCA=inca)
             return t_grid, t_rma
 
-        def adjust_scp() -> None:
+        def adjust_scp():
             scp_pixel = sicd.ImageData.SCPPixel.get_array()
             scp_ecf = sicd.project_image_to_ground(scp_pixel)
             sicd.update_scp(scp_ecf, coord_system='ECF')
@@ -1589,7 +1602,7 @@ class PALSARDetails(object):
         sicd.derive()
         return sicd
 
-    def get_sicd_collection(self) -> List[SICDType]:
+    def get_sicd_collection(self):
         """
         Gets the sicd structure collection.
 
@@ -1630,7 +1643,7 @@ class PALSARReader(SICDTypeReader):
             Path name to file package or palsar details object.
         """
 
-        if isinstance(palsar_details, str):
+        if isinstance(palsar_details, string_types):
             palsar_details = PALSARDetails(palsar_details)
         if not isinstance(palsar_details, PALSARDetails):
             raise TypeError(
@@ -1649,14 +1662,14 @@ class PALSARReader(SICDTypeReader):
         self._check_sizes()
 
     @property
-    def file_name(self) -> str:
+    def file_name(self):
         return self._palsar_details.file_name
 
 ########
 # base expected functionality for a module with an implemented Reader
 
 
-def is_a(file_name: str) -> Optional[PALSARReader]:
+def is_a(file_name):
     """
     Tests whether a given file_name corresponds to a PALSAR ALOS2file. Returns a reader instance, if so.
 

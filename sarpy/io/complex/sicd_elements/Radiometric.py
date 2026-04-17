@@ -1,7 +1,15 @@
 """
 The RadiometricType definition.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -38,8 +46,8 @@ class NoiseLevelType_(Serializable):
 
     def __init__(
             self,
-            NoiseLevelType: str = None,
-            NoisePoly: Union[Poly2DType, numpy.ndarray, list, tuple] = None,
+            NoiseLevelType = None,
+            NoisePoly = None,
             **kwargs):
         """
 
@@ -105,11 +113,11 @@ class RadiometricType(Serializable):
 
     def __init__(
             self,
-            NoiseLevel: Optional[NoiseLevelType_] = None,
-            RCSSFPoly: Union[None, Poly2DType, numpy.ndarray, list, tuple] = None,
-            SigmaZeroSFPoly: Union[None, Poly2DType, numpy.ndarray, list, tuple] = None,
-            BetaZeroSFPoly: Union[None, Poly2DType, numpy.ndarray, list, tuple] = None,
-            GammaZeroSFPoly: Union[None, Poly2DType, numpy.ndarray, list, tuple] = None,
+            NoiseLevel = None,
+            RCSSFPoly = None,
+            SigmaZeroSFPoly = None,
+            BetaZeroSFPoly = None,
+            GammaZeroSFPoly = None,
             **kwargs):
         """
 

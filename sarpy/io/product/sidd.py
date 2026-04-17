@@ -1,7 +1,17 @@
 """
 Module for reading and writing SIDD files
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import int
+from builtins import range
+#from builtins import str
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -56,7 +66,7 @@ class SIDDDetails(NITFDetails):
     __slots__ = (
         '_is_sidd', '_sidd_meta', '_sicd_meta')
 
-    def __init__(self, file_object: Union[str, BinaryIO]):
+    def __init__(self, file_object):
         """
 
         Parameters
@@ -86,7 +96,7 @@ class SIDDDetails(NITFDetails):
             raise SarpyIOError('Could not find SIDD xml data extensions.')
 
     @property
-    def is_sidd(self) -> bool:
+    def is_sidd(self):
         """
         bool: whether file name corresponds to a SIDD file, or not.
         """
@@ -94,7 +104,7 @@ class SIDDDetails(NITFDetails):
         return self._is_sidd
 
     @property
-    def sidd_meta(self) -> Union[SIDDType3, SIDDType2, SIDDType1, List[SIDDType3], List[SIDDType2], List[SIDDType1]]:
+    def sidd_meta(self):
         """
         None|SIDDType3|SIDDType2|SIDDType1|List[SIDDType3]|List[SIDDType2]|List[SIDDType1]: the sidd meta-data structure(s).
         """
@@ -102,14 +112,14 @@ class SIDDDetails(NITFDetails):
         return self._sidd_meta
 
     @property
-    def sicd_meta(self) -> Optional[List[SICDType]]:
+    def sicd_meta(self):
         """
         None|List[SICDType]: the sicd meta-data structure(s).
         """
 
         return self._sicd_meta
 
-    def _find_sidd(self) -> None:
+    def _find_sidd(self):
         self._is_sidd = False
         if self.des_subheader_offsets is None:
             return
@@ -167,7 +177,7 @@ class SIDDDetails(NITFDetails):
 #######
 #  The actual reading implementation
 
-def _check_iid_format(iid1: str) -> bool:
+def _check_iid_format(iid1):
     if not (iid1[:4] == 'SIDD' and iid1[4:].isnumeric()):
         return False
     return True
@@ -187,7 +197,7 @@ class SIDDReader(NITFReader, SIDDTypeReader):
             filename, file-like object, or SIDDDetails object
         """
 
-        if isinstance(nitf_details, str) or is_file_like(nitf_details):
+        if isinstance(nitf_details, string_types) or is_file_like(nitf_details):
             nitf_details = SIDDDetails(nitf_details)
         if not isinstance(nitf_details, SIDDDetails):
             raise TypeError('The input argument for SIDDReader must be a filename or '
@@ -204,7 +214,7 @@ class SIDDReader(NITFReader, SIDDTypeReader):
         self._check_sizes()
 
     @property
-    def nitf_details(self) -> SIDDDetails:
+    def nitf_details(self):
         """
         SIDDDetails: The SIDD NITF details object.
         """
@@ -213,8 +223,8 @@ class SIDDReader(NITFReader, SIDDTypeReader):
 
     def _check_image_segment_for_compliance(
             self,
-            index: int,
-            img_header: Union[ImageSegmentHeader, ImageSegmentHeader0]) -> bool:
+            index,
+            img_header):
 
         out = NITFReader._check_image_segment_for_compliance(self, index, img_header)
         if not out:
@@ -230,7 +240,7 @@ class SIDDReader(NITFReader, SIDDTypeReader):
             out = False
         return out
 
-    def find_image_segment_collections(self) -> Tuple[Tuple[int, ...]]:
+    def find_image_segment_collections(self):
         segments = [[] for _ in self._sidd_meta]  # the number of segments that we should have
 
         for i, img_header in enumerate(self.nitf_details.img_headers):
@@ -257,7 +267,7 @@ class SIDDReader(NITFReader, SIDDTypeReader):
 ########
 # base expected functionality for a module with an implemented Reader
 
-def is_a(file_name: Union[str, BinaryIO]) -> Optional[SIDDReader]:
+def is_a(file_name):
     """
     Tests whether a given file_name corresponds to a SIDD file.
     Returns a reader instance, if so.
@@ -289,8 +299,7 @@ def is_a(file_name: Union[str, BinaryIO]) -> Optional[SIDDReader]:
 # The writer implementation
 
 def validate_sidd_for_writing(
-        sidd_meta: Union[SIDDType3, SIDDType2, SIDDType1, List[SIDDType3], List[SIDDType2],
-                   List[SIDDType1]]) -> Union[Tuple[SIDDType3, ...], Tuple[SIDDType2, ...], Tuple[SIDDType1, ...]]:
+        sidd_meta):
     """
     Helper method which ensures the provided SIDD structure is appropriate.
 
@@ -303,7 +312,7 @@ def validate_sidd_for_writing(
     Tuple[SIDDType3, ...]|Tuple[SIDDType2, ...]|Tuple[SIDDType1, ...]
     """
 
-    def inspect_sidd(the_sidd: Union[SIDDType3, SIDDType2, SIDDType1]) -> None:
+    def inspect_sidd(the_sidd):
         # we must have the image size
         if the_sidd.Measurement is None:
             raise ValueError('The sidd_meta has un-populated Measurement, '
@@ -369,7 +378,7 @@ def validate_sidd_for_writing(
                         'of such instances, got {}'.format(type(sidd_meta)))
 
 
-def validate_sicd_for_writing(sicd_meta: Union[SICDType, Sequence[SICDType]]) -> Optional[Tuple[SICDType, ...]]:
+def validate_sicd_for_writing(sicd_meta):
     """
     Helper method which ensures the provided SICD structure is appropriate.
 
@@ -400,7 +409,7 @@ def validate_sicd_for_writing(sicd_meta: Union[SICDType, Sequence[SICDType]]) ->
                         'of such instances, got {}'.format(type(sicd_meta)))
 
 
-def extract_clas(the_sidd: Union[SIDDType3, SIDDType2, SIDDType1]) -> str:
+def extract_clas(the_sidd):
     """
     Extract the classification string from a SIDD as appropriate for NITF Security
     tags CLAS attribute.
@@ -422,7 +431,7 @@ def extract_clas(the_sidd: Union[SIDDType3, SIDDType2, SIDDType1]) -> str:
         return class_str[:1]
 
 
-def extract_clsy(the_sidd: Union[SIDDType3, SIDDType2, SIDDType1]) -> str:
+def extract_clsy(the_sidd):
     """
     Extract the ownerProducer string from a SIDD as appropriate for NITF Security
     tags CLSY attribute.
@@ -452,7 +461,7 @@ def extract_clsy(the_sidd: Union[SIDDType3, SIDDType2, SIDDType1]) -> str:
         return owner[:2]
 
 
-def create_security_tags_from_sidd(sidd_meta: Union[SIDDType3, SIDDType2, SIDDType1]) -> NITFSecurityTags:
+def create_security_tags_from_sidd(sidd_meta):
     def get_basic_args():
         out = {}
         sec_tags = sidd_meta.NITF.get('Security', {})
@@ -494,13 +503,13 @@ class SIDDWritingDetails(NITFWritingDetails):
 
     def __init__(
             self,
-            sidd_meta: Union[SIDDType3, SIDDType2, SIDDType1, Sequence[SIDDType3], Sequence[SIDDType2], Sequence[SIDDType1]],
-            sicd_meta: Optional[Union[SICDType, Sequence[SICDType]]],
-            row_limit: Optional[int] = None,
-            additional_des: Optional[Sequence[DESSubheaderManager]] = None,
-            graphics_managers: Optional[Tuple[GraphicsSubheaderManager, ...]] = None,
-            text_managers: Optional[Tuple[TextSubheaderManager, ...]] = None,
-            res_managers: Optional[Tuple[RESSubheaderManager, ...]] = None):
+            sidd_meta,
+            sicd_meta,
+            row_limit = None,
+            additional_des = None,
+            graphics_managers = None,
+            text_managers = None,
+            res_managers = None):
         """
 
         Parameters
@@ -545,14 +554,14 @@ class SIDDWritingDetails(NITFWritingDetails):
             res_managers=res_managers)
 
     @property
-    def sidd_meta(self) -> Union[Tuple[SIDDType3, ...], Tuple[SIDDType2, ...], Tuple[SIDDType1, ...]]:
+    def sidd_meta(self):
         """
         Tuple[SIDDType3, ...]: The sidd metadata.
         """
 
         return self._sidd_meta
 
-    def _set_sidd_meta(self, value) -> None:
+    def _set_sidd_meta(self, value):
         if self._sidd_meta is not None:
             raise ValueError('sidd_meta is read only')
         if value is None:
@@ -563,14 +572,14 @@ class SIDDWritingDetails(NITFWritingDetails):
         self._sidd_security_tags = tuple(create_security_tags_from_sidd(entry) for entry in self._sidd_meta)
 
     @property
-    def sicd_meta(self) -> Tuple[SICDType, ...]:
+    def sicd_meta(self):
         """
         Tuple[SICDType, ...]: The sicd metadata
         """
 
         return self._sicd_meta
 
-    def _set_sicd_meta(self, value) -> None:
+    def _set_sicd_meta(self, value):
         if self._sicd_meta is not None:
             raise ValueError('sicd_meta is read only')
         if value is None:
@@ -583,10 +592,10 @@ class SIDDWritingDetails(NITFWritingDetails):
         self._sicd_security_tags = tuple(create_security_tags_from_sicd(entry) for entry in self._sicd_meta)
 
     @property
-    def row_limit(self) -> Tuple[int, ...]:
+    def row_limit(self):
         return self._row_limit
 
-    def _set_row_limit(self, value) -> None:
+    def _set_row_limit(self, value):
         if value is not None:
             if not isinstance(value, int):
                 raise TypeError('row_bounds must be an integer')
@@ -623,7 +632,7 @@ class SIDDWritingDetails(NITFWritingDetails):
         # populate the attribute
         self._security_tags = NITFSecurityTags(CLAS=clas, CLSY=clsy)
 
-    def _get_iid2(self, index: int) -> str:
+    def _get_iid2(self, index):
         """
         Get the IID2 for the sidd at `index`.
 
@@ -647,7 +656,7 @@ class SIDDWritingDetails(NITFWritingDetails):
             iid2 = 'SIDD: Unknown'
         return iid2
 
-    def _get_ftitle(self, index: int = 0) -> str:
+    def _get_ftitle(self, index = 0):
         sidd = self.sidd_meta[index]
         ftitle = sidd.NITF.get('FTITLE', None)
         if ftitle is None:
@@ -657,7 +666,7 @@ class SIDDWritingDetails(NITFWritingDetails):
         return ftitle
 
     # File Creation DateTime
-    def _get_fdt(self, index: int) -> Optional[str]:
+    def _get_fdt(self, index):
         sidd = self.sidd_meta[index]
         if sidd.ProductCreation.ProcessorInformation.ProcessingDateTime is not None:
             the_time = sidd.ProductCreation.ProcessorInformation.ProcessingDateTime.astype('datetime64[s]')
@@ -666,7 +675,7 @@ class SIDDWritingDetails(NITFWritingDetails):
             return None
 
     # Image Acquisition (Collection) Datetime
-    def _get_collection_datetime(self, index: int) -> Optional[str]:   
+    def _get_collection_datetime(self, index):   
         sidd = self.sidd_meta[index]
         if sidd.ExploitationFeatures.Collections[0].Information.CollectionDateTime is not None:
             the_time = sidd.ExploitationFeatures.Collections[0].Information.CollectionDateTime.astype('datetime64[s]')
@@ -674,19 +683,19 @@ class SIDDWritingDetails(NITFWritingDetails):
         else:
             return None
 
-    def _get_ostaid(self, index: int = 0) -> str:
+    def _get_ostaid(self, index = 0):
         sidd = self.sidd_meta[index]
         ostaid = sidd.NITF.get('OSTAID', 'Unknown')
         return ostaid
 
-    def _get_isorce(self, index: int = 0) -> str:
+    def _get_isorce(self, index = 0):
         sidd = self.sidd_meta[index]
         isorce = sidd.NITF.get('ISORCE', sidd.ExploitationFeatures.Collections[0].Information.SensorName)
         if isorce is None:
             isorce = 'Unknown'
         return isorce
 
-    def _get_icp(self, sidd_index: int) -> Optional[numpy.ndarray]:
+    def _get_icp(self, sidd_index):
         """
         Get the Image corner point array, if possible.
 
@@ -710,7 +719,7 @@ class SIDDWritingDetails(NITFWritingDetails):
             return sidd.GeographicAndTarget.GeographicCoverage.Footprint.get_array(dtype=numpy.dtype('float64'))
         return None
 
-    def _create_header(self) -> NITFHeader:
+    def _create_header(self):
         """
         Create the main NITF header.
 
@@ -726,8 +735,8 @@ class SIDDWritingDetails(NITFWritingDetails):
 
     def _create_image_segment_for_sidd(
             self,
-            sidd_index: int,
-            starting_index: int) -> Tuple[List[ImageSubheaderManager], Tuple[int, ...], Tuple[Tuple[int, ...], ...]]:
+            sidd_index,
+            starting_index):
 
         image_managers = []
         sidd = self.sidd_meta[sidd_index]
@@ -802,7 +811,7 @@ class SIDDWritingDetails(NITFWritingDetails):
             image_managers.append(ImageSubheaderManager(subhead))
         return image_managers, tuple(image_segment_indices), image_segment_limits
 
-    def _create_image_segments(self) -> Tuple[Tuple[ImageSubheaderManager, ...], Tuple[Tuple[int, ...], ...], Tuple[Tuple[Tuple[int, ...], ...]]]:
+    def _create_image_segments(self):
         image_managers = []
         image_segment_collection = []
         image_segment_coordinates = []
@@ -815,7 +824,7 @@ class SIDDWritingDetails(NITFWritingDetails):
             starting_index = t_indices[-1] + 1
         return tuple(image_managers), tuple(image_segment_collection), tuple(image_segment_coordinates)
 
-    def _create_des_segment_for_sidd(self, sidd_index: int) -> DESSubheaderManager:
+    def _create_des_segment_for_sidd(self, sidd_index):
         sidd = self.sidd_meta[sidd_index]
         uh_args = sidd.get_des_details()
 
@@ -842,10 +851,10 @@ class SIDDWritingDetails(NITFWritingDetails):
         return DESSubheaderManager(
             subhead, sidd.to_xml_bytes(tag='SIDD'))
 
-    def _create_sidd_des_segments(self) -> List[DESSubheaderManager]:
+    def _create_sidd_des_segments(self):
         return [self._create_des_segment_for_sidd(index) for index in range(len(self.sidd_meta))]
 
-    def _create_des_segment_for_sicd(self, sicd_index: int) -> DESSubheaderManager:
+    def _create_des_segment_for_sicd(self, sicd_index):
         sicd = self.sicd_meta[sicd_index]
         uh_args = sicd.get_des_details()
 
@@ -871,14 +880,14 @@ class SIDDWritingDetails(NITFWritingDetails):
         return DESSubheaderManager(
             subhead, sicd.to_xml_bytes(tag='SICD', urn=uh_args['DESSHTN']))
 
-    def _create_sicd_des_segments(self) -> List[DESSubheaderManager]:
+    def _create_sicd_des_segments(self):
         if self.sicd_meta is None:
             return []
         return [self._create_des_segment_for_sicd(index) for index in range(len(self.sicd_meta))]
 
     def _create_des_segments(
             self,
-            additional_des: Optional[Sequence[DESSubheaderManager]]) -> Tuple[DESSubheaderManager, ...]:
+            additional_des):
 
         if additional_des is not None:
             des_managers = list(additional_des)
@@ -898,13 +907,12 @@ class SIDDWriter(NITFWriter):
 
     def __init__(
             self,
-            file_object: Union[str, BinaryIO],
-            sidd_meta: Optional[Union[SIDDType3, SIDDType2, SIDDType1, Sequence[SIDDType3],
-                                Sequence[SIDDType2], Sequence[SIDDType1]]] = None,
-            sicd_meta: Optional[Union[SICDType, Sequence[SICDType]]] = None,
-            sidd_writing_details: Optional[SIDDWritingDetails] = None,
-            check_existence: bool = True,
-            in_memory: bool = None):
+            file_object,
+            sidd_meta = None,
+            sicd_meta = None,
+            sidd_writing_details = None,
+            check_existence = True,
+            in_memory = None):
         """
 
         Parameters
@@ -927,7 +935,7 @@ class SIDDWriter(NITFWriter):
             self, file_object, sidd_writing_details, check_existence=check_existence, in_memory=in_memory)
 
     @property
-    def nitf_writing_details(self) -> SIDDWritingDetails:
+    def nitf_writing_details(self):
         """
         SIDDWritingDetails: The SIDD/NITF subheader details.
         """

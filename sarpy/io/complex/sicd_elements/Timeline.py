@@ -1,7 +1,18 @@
 """
 The TimelineType definition.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import round
+from builtins import super
+from builtins import zip
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -50,12 +61,12 @@ class IPPSetType(Serializable):
 
     def __init__(
             self,
-            TStart: float = None,
-            TEnd: float = None,
-            IPPStart: int = None,
-            IPPEnd: int = None,
-            IPPPoly: Union[Poly1DType, numpy.ndarray, list, tuple] = None,
-            index: int = None,
+            TStart = None,
+            TEnd = None,
+            IPPStart = None,
+            IPPEnd = None,
+            IPPPoly = None,
+            index = None,
             **kwargs):
         """
 
@@ -80,7 +91,7 @@ class IPPSetType(Serializable):
         self.index = index
         super(IPPSetType, self).__init__(**kwargs)
 
-    def _basic_validity_check(self) -> bool:
+    def _basic_validity_check(self):
         condition = super(IPPSetType, self)._basic_validity_check()
         if self.TStart >= self.TEnd:
             self.log_validity_error(
@@ -95,23 +106,23 @@ class IPPSetType(Serializable):
         ipp_start_from_poly = round(self.IPPPoly(self.TStart))
         if self.IPPStart != ipp_start_from_poly:
             self.log_validity_error(
-                f'IPPStart ({self.IPPStart}) inconsistent with IPPPoly(TStart) ({ipp_start_from_poly})'
+                'IPPStart ({}) inconsistent with IPPPoly(TStart) ({})'.format(self.IPPStart, ipp_start_from_poly)
             )
             condition = False
 
         ipp_end_from_poly = round(self.IPPPoly(self.TEnd) - 1)
         if self.IPPEnd != ipp_end_from_poly:
             self.log_validity_error(
-                f'IPPEnd ({self.IPPEnd}) inconsistent with IPPPoly(TEnd) - 1 ({ipp_end_from_poly})'
+                'IPPEnd ({}) inconsistent with IPPPoly(TEnd) - 1 ({})'.format(self.IPPEnd, ipp_end_from_poly)
             )
             condition = False
 
         prf = self.IPPPoly.derivative_eval((self.TStart + self.TEnd)/2)
         if prf < 0:
-            self.log_validity_error(f'IPPSet has a negative PRF: {prf}')
+            self.log_validity_error('IPPSet has a negative PRF: {}'.format(prf))
             condition = False
         if prf > 100e3:
-            self.log_validity_warning(f'IPPSet has an unreasonable PRF: {prf}')
+            self.log_validity_warning('IPPSet has an unreasonable PRF: {}'.format(prf))
 
         return condition
 
@@ -138,9 +149,9 @@ class TimelineType(Serializable):
 
     def __init__(
             self,
-            CollectStart: Union[numpy.datetime64, datetime, date, str] = None,
-            CollectDuration: float = None,
-            IPP: Union[None, SerializableArray, List[IPPSetType]] = None,
+            CollectStart = None,
+            CollectDuration = None,
+            IPP = None,
             **kwargs):
         """
 
@@ -162,7 +173,7 @@ class TimelineType(Serializable):
         super(TimelineType, self).__init__(**kwargs)
 
     @property
-    def CollectEnd(self) -> Optional[numpy.datetime64]:
+    def CollectEnd(self):
         """
         None|numpy.datetime64: The collection end time, inferred from `CollectEnd` and `CollectDuration`,
         provided that both are populated.
@@ -173,7 +184,7 @@ class TimelineType(Serializable):
 
         return self.CollectStart + numpy.timedelta64(int(self.CollectDuration*1e6), 'us')
 
-    def _check_ipp_consecutive(self) -> bool:
+    def _check_ipp_consecutive(self):
         if self.IPP is None or len(self.IPP) < 2:
             return True
         cond = True
@@ -184,44 +195,44 @@ class TimelineType(Serializable):
         ippstarts = [x.IPPStart for x in sorted_ipps]
         ippends = [x.IPPEnd for x in sorted_ipps]
         if tstarts != sorted(tstarts):
-            self.log_validity_error(f'The IPPSets are not in start time order. TStart: {tstarts}')
+            self.log_validity_error('The IPPSets are not in start time order. TStart: {}'.format(tstarts))
             cond = False
 
         if tends != sorted(tends):
-            self.log_validity_error(f'The IPPSets are not in end time order. TEnd: {tends}')
+            self.log_validity_error('The IPPSets are not in end time order. TEnd: {}'.format(tends))
             cond = False
 
         actual_indices = [x.index for x in sorted_ipps]
         if not numpy.array_equal(numpy.arange(1, len(self.IPP)+1), actual_indices):
-            self.log_validity_error(f'IPPSets indices ({actual_indices}) are not 1..size; '
-                                    'unable to perform adjacent IPPSet checks')
+            self.log_validity_error('IPPSets indices ({}) are not 1..size; '
+                                    'unable to perform adjacent IPPSet checks'.format(actual_indices))
             return False
 
         tgaps = [ts - te for ts, te in zip(tstarts[1:], tends[:-1])]
         for ig, g in enumerate(tgaps):
             if g > 0:
-                self.log_validity_error(f'There is a gap between IPPSet[index={ig+1}] and '
-                                        f'IPPSet[index={ig+2}] of {g} seconds')
+                self.log_validity_error('There is a gap between IPPSet[index={}] and '
+                                        'IPPSet[index={}] of {} seconds'.format(ig+1, ig+2, g))
                 cond = False
             if g < 0:
-                self.log_validity_error(f'There is overlap between IPPSet[index={ig+1}] and '
-                                        f'IPPSet[index={ig+2}] of {-g} seconds')
+                self.log_validity_error('There is overlap between IPPSet[index={}] and '
+                                        'IPPSet[index={}] of {} seconds'.format(ig+1, ig+2, -g))
                 cond = False
 
         igaps = [i_s - i_e for i_s, i_e in zip(ippstarts[1:], ippends[:-1])]
         for ig, g in enumerate(igaps):
             if g > 1:
-                self.log_validity_error(f'There is a gap between IPPSet[index={ig+1}] and '
-                                        f'IPPSet[index={ig+2}] of {g-1} IPPs')
+                self.log_validity_error('There is a gap between IPPSet[index={}] and '
+                                        'IPPSet[index={}] of {} IPPs'.format(ig+1, ig+2, g-1))
                 cond = False
             if g < 1:
-                self.log_validity_error(f'There is overlap between IPPSet[index={ig+1}] and '
-                                        f'IPPSet[index={ig+2}] of {1-g} IPPs')
+                self.log_validity_error('There is overlap between IPPSet[index={}] and '
+                                        'IPPSet[index={}] of {} IPPs'.format(ig+1, ig+2, 1-g))
                 cond = False
 
         return cond
 
-    def _check_ipp_times(self) -> bool:
+    def _check_ipp_times(self):
         if self.IPP is None:
             return True
 
@@ -229,7 +240,7 @@ class TimelineType(Serializable):
         min_time = min(x.TStart for x in self.IPP)
         max_time = max(x.TEnd for x in self.IPP)
         if min_time < 0:
-            self.log_validity_error(f'Earliest TStart is negative: {min_time}')
+            self.log_validity_error('Earliest TStart is negative: {}'.format(min_time))
             cond = False
         if not numpy.isclose(max_time - min_time, self.CollectDuration, atol=1e-2):
             self.log_validity_error(
@@ -238,7 +249,7 @@ class TimelineType(Serializable):
             cond = False
         return cond
 
-    def _basic_validity_check(self) -> bool:
+    def _basic_validity_check(self):
         condition = super(TimelineType, self)._basic_validity_check()
         condition &= self._check_ipp_consecutive()
         condition &= self._check_ipp_times()

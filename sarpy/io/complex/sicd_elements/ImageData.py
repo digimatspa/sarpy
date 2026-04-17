@@ -1,7 +1,15 @@
 """
 The ImageData definition.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -36,8 +44,8 @@ class FullImageType(Serializable, Arrayable):
 
     def __init__(
             self,
-            NumRows: int = None,
-            NumCols: int = None,
+            NumRows = None,
+            NumCols = None,
             **kwargs):
         """
 
@@ -55,7 +63,7 @@ class FullImageType(Serializable, Arrayable):
         self.NumRows, self.NumCols = NumRows, NumCols
         super(FullImageType, self).__init__(**kwargs)
 
-    def get_array(self, dtype=numpy.int64) -> numpy.ndarray:
+    def get_array(self, dtype=numpy.int64):
         """Gets an array representation of the class instance.
 
         Parameters
@@ -72,7 +80,7 @@ class FullImageType(Serializable, Arrayable):
         return numpy.array([self.NumRows, self.NumCols], dtype=dtype)
 
     @classmethod
-    def from_array(cls, array: Union[numpy.ndarray, list, tuple]):
+    def from_array(cls, array):
         """
         Create from an array type entry.
 
@@ -142,14 +150,14 @@ class ImageDataType(Serializable):
 
     def __init__(
             self,
-            PixelType: str = None,
-            AmpTable: Optional[numpy.ndarray] = None,
-            NumRows: int = None,
-            NumCols: int = None,
-            FirstRow: int = None,
-            FirstCol: int = None,
-            FullImage: Union[FullImageType, numpy.ndarray, list, tuple] = None,
-            SCPPixel: Union[RowColType, numpy.ndarray, list, tuple] = None,
+            PixelType = None,
+            AmpTable = None,
+            NumRows = None,
+            NumCols = None,
+            FirstRow = None,
+            FirstCol = None,
+            FullImage = None,
+            SCPPixel = None,
             ValidData=None,
             **kwargs):
         """
@@ -181,7 +189,7 @@ class ImageDataType(Serializable):
         self.ValidData = ValidData
         super(ImageDataType, self).__init__(**kwargs)
 
-    def _check_valid_data(self) -> bool:
+    def _check_valid_data(self):
         if self.ValidData is None:
             return True
         if len(self.ValidData) < 2:
@@ -206,7 +214,7 @@ class ImageDataType(Serializable):
                 value = False
         return value
 
-    def _basic_validity_check(self) -> bool:
+    def _basic_validity_check(self):
         condition = super(ImageDataType, self)._basic_validity_check()
         if (self.PixelType == 'AMP8I_PHS8I') and (self.AmpTable is None):
             self.log_validity_error(
@@ -223,7 +231,7 @@ class ImageDataType(Serializable):
         condition &= self._check_valid_data()
         return condition
 
-    def get_valid_vertex_data(self, dtype=numpy.int64) -> Optional[numpy.ndarray]:
+    def get_valid_vertex_data(self, dtype=numpy.int64):
         """
         Gets an array of `[row, col]` indices defining the valid data. If this is not viable, then `None`
         will be returned.
@@ -245,7 +253,7 @@ class ImageDataType(Serializable):
             out[i, :] = entry.get_array(dtype=dtype)
         return out
 
-    def get_full_vertex_data(self, dtype=numpy.int64) -> Optional[numpy.ndarray]:
+    def get_full_vertex_data(self, dtype=numpy.int64):
         """
         Gets an array of `[row, col]` indices defining the full vertex data. If this is not viable, then `None`
         will be returned.
@@ -265,7 +273,7 @@ class ImageDataType(Serializable):
         return numpy.array(
             [[0, 0], [0, self.NumCols - 1], [self.NumRows - 1, self.NumCols - 1], [self.NumRows - 1, 0]], dtype=dtype)
 
-    def get_pixel_size(self) -> int:
+    def get_pixel_size(self):
         """
         Gets the size per pixel, in bytes.
 

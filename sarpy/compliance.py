@@ -1,7 +1,17 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
+import sys
+if sys.version_info[0] >= 3:
+    unicode = str
 
 class SarpyError(Exception):
     """A custom base exception class"""
@@ -23,7 +33,7 @@ def bytes_to_string(bytes_in, encoding='utf-8'):
     str
     """
 
-    if isinstance(bytes_in, str):
+    if isinstance(bytes_in, unicode):
         return bytes_in
 
     if not isinstance(bytes_in, bytes):

@@ -5,7 +5,17 @@ operations.
 
 This module introduced in version 1.3.0.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import zip
+from builtins import range
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -32,7 +42,7 @@ logger = logging.getLogger(__name__)
 ####
 # helper functions
 
-def _reverse_slice(slice_in: slice) -> slice:
+def _reverse_slice(slice_in):
     """
     Given a slice with negative step, this returns a slice which will define the
     same elements traversed in the opposite direction. Note that this is not
@@ -60,8 +70,8 @@ def _reverse_slice(slice_in: slice) -> slice:
 
 
 def _find_slice_overlap(
-        slice_in: slice,
-        ref_slice: slice) -> Tuple[Optional[slice], Optional[slice]]:
+        slice_in,
+        ref_slice):
     """
     Finds the overlap of the slice with a contiguous interval slice.
 
@@ -138,10 +148,10 @@ def _find_slice_overlap(
 
 
 def _infer_subscript_for_write(
-        data: numpy.ndarray,
-        start_indices: Union[None, int, Tuple[int, ...]],
-        subscript: Union[None, Sequence[slice]],
-        full_shape: Tuple[int, ...]) -> Tuple[slice, ...]:
+        data,
+        start_indices,
+        subscript,
+        full_shape):
     """
     Helper function, for writing operation, which infers the subscript definition
     between the given start_indices or (possibly partially defined) subscript.
@@ -180,7 +190,7 @@ def _infer_subscript_for_write(
 
 
 def extract_string_from_subscript(
-        subscript: Union[None, int, slice, Tuple]) -> Tuple[Union[None, int, slice, Sequence], Tuple[str, ...]]:
+        subscript):
     """
     Extracts any string elements (stripped and made all lowercase) from subscript entries.
 
@@ -197,13 +207,13 @@ def extract_string_from_subscript(
     """
 
     string_entries = []
-    if isinstance(subscript, str):
+    if isinstance(subscript, string_types):
         string_entries.append(subscript.strip().lower())
         subscript = None
     elif isinstance(subscript, Sequence):
         new_subscript = []
         for entry in subscript:
-            if isinstance(entry, str):
+            if isinstance(entry, string_types):
                 string_entries.append(entry.strip().lower())
             else:
                 new_subscript.append(entry)
@@ -238,14 +248,14 @@ class DataSegment(object):
 
     def __init__(
             self,
-            raw_dtype: Union[str, numpy.dtype],
-            raw_shape: Tuple[int, ...],
-            formatted_dtype: Union[str, numpy.dtype],
-            formatted_shape: Tuple[int, ...],
-            reverse_axes: Union[None, int, Sequence[int]] = None,
-            transpose_axes: Optional[Tuple[int, ...]] = None,
-            format_function: Optional[FormatFunction] = None,
-            mode: str = 'r'):
+            raw_dtype,
+            raw_shape,
+            formatted_dtype,
+            formatted_shape,
+            reverse_axes = None,
+            transpose_axes = None,
+            format_function = None,
+            mode = 'r'):
         """
 
         Parameters
@@ -293,14 +303,14 @@ class DataSegment(object):
         self._validate_shapes()
 
     @property
-    def raw_shape(self) -> Tuple[int, ...]:
+    def raw_shape(self):
         """
         Tuple[int, ...]: The raw shape.
         """
 
         return self._raw_shape
 
-    def _set_raw_shape(self, value: Tuple[int, ...]) -> None:
+    def _set_raw_shape(self, value):
         if not isinstance(value, tuple):
             raise TypeError(
                 'raw_shape must be specified by a tuple of ints, got type `{}`'.format(type(value)))
@@ -314,7 +324,7 @@ class DataSegment(object):
         self._raw_shape = value
 
     @property
-    def raw_ndim(self) -> int:
+    def raw_ndim(self):
         """
         int: The number of raw dimensions.
         """
@@ -322,15 +332,15 @@ class DataSegment(object):
         return len(self._raw_shape)
 
     @property
-    def mode(self) -> str:
+    def mode(self):
         """
         str: The mode.
         """
 
         return self._mode
 
-    def _set_mode(self, value: str) -> None:
-        if not isinstance(value, str):
+    def _set_mode(self, value):
+        if not isinstance(value, string_types):
             raise TypeError('Mode must be a string value')
         value = value.strip().lower()
 
@@ -340,14 +350,14 @@ class DataSegment(object):
         self._mode = value
 
     @property
-    def raw_dtype(self) -> numpy.dtype:
+    def raw_dtype(self):
         """
         numpy.dtype: The data type of the data returned by the :func:`read_raw` function.
         """
 
         return self._raw_dtype
 
-    def _set_raw_dtype(self, value) -> None:
+    def _set_raw_dtype(self, value):
         if not isinstance(value, numpy.dtype):
             try:
                 value = numpy.dtype(value)
@@ -358,14 +368,14 @@ class DataSegment(object):
         self._raw_dtype = value
 
     @property
-    def formatted_shape(self) -> Tuple[int, ...]:
+    def formatted_shape(self):
         """
         Tuple[int, ...]: The formatted data shape.
         """
 
         return self._formatted_shape
 
-    def _set_formatted_shape(self, value: Tuple[int, ...]) -> None:
+    def _set_formatted_shape(self, value):
         if not isinstance(value, tuple):
             raise TypeError(
                 'formatted_shape must be specified by a tuple of ints, got type `{}`'.format(type(value)))
@@ -379,7 +389,7 @@ class DataSegment(object):
         self._formatted_shape = value
 
     @property
-    def formatted_dtype(self) -> numpy.dtype:
+    def formatted_dtype(self):
         """
         numpy.dtype: The data type of the formatted data, which will be returned
         by the :func:`read` function.
@@ -387,7 +397,7 @@ class DataSegment(object):
 
         return self._formatted_dtype
 
-    def _set_formatted_dtype(self, value) -> None:
+    def _set_formatted_dtype(self, value):
         if not isinstance(value, numpy.dtype):
             try:
                 value = numpy.dtype(value)
@@ -398,7 +408,7 @@ class DataSegment(object):
         self._formatted_dtype = value
 
     @property
-    def formatted_ndim(self) -> int:
+    def formatted_ndim(self):
         """
         int: The number of formatted dimensions.
         """
@@ -406,7 +416,7 @@ class DataSegment(object):
         return len(self._formatted_shape)
 
     @property
-    def reverse_axes(self) -> Optional[Tuple[int, ...]]:
+    def reverse_axes(self):
         """
         None|Tuple[int, ...]: The collection of axes (with respect to raw order)
         along which we will reverse as part of transformation to formatted data order.
@@ -415,7 +425,7 @@ class DataSegment(object):
 
         return self._reverse_axes
 
-    def _set_reverse_axes(self, value: Union[None, int, Tuple[int, ...]]) -> None:
+    def _set_reverse_axes(self, value):
         if value is None:
             self._reverse_axes = None
             return
@@ -432,7 +442,7 @@ class DataSegment(object):
         self._reverse_axes = value
 
     @property
-    def transpose_axes(self) -> Tuple[int, ...]:
+    def transpose_axes(self):
         """
         None|Tuple[int, ...]: The transpose order for switching from raw order to
         formatted order, prior to applying any format function.
@@ -442,7 +452,7 @@ class DataSegment(object):
 
         return self._transpose_axes
 
-    def _set_transpose_axes(self, value: Union[None, Tuple[int, ...]]) -> None:
+    def _set_transpose_axes(self, value):
         if value is None:
             self._transpose_axes = None
             return
@@ -452,7 +462,7 @@ class DataSegment(object):
         self._transpose_axes = value
 
     @property
-    def format_function(self) -> FormatFunction:
+    def format_function(self):
         """
         The format function which will be applied to the raw data.
 
@@ -463,7 +473,7 @@ class DataSegment(object):
 
         return self._format_function
 
-    def _set_format_function(self, value: Optional[FormatFunction]) -> None:
+    def _set_format_function(self, value):
         if value is None:
             value = IdentityFunction()
         if not isinstance(value, FormatFunction):
@@ -477,7 +487,7 @@ class DataSegment(object):
         self._format_function = value
 
     @property
-    def can_write_regular(self) -> bool:
+    def can_write_regular(self):
         """
         bool: Can this data segment write regular data, which requires a function
         inverse?
@@ -486,7 +496,7 @@ class DataSegment(object):
         return self.mode == 'w' and self.format_function.has_inverse
 
     @property
-    def closed(self) -> bool:
+    def closed(self):
         """
         bool: Is the data segment closed? Reading or writing will result in a ValueError
         """
@@ -497,7 +507,7 @@ class DataSegment(object):
         if not hasattr(self, '_closed') or self._closed:
             raise ValueError('I/O operation of closed data segment')
 
-    def _validate_shapes(self) -> None:
+    def _validate_shapes(self):
         """
         Validate the raw_shape and formatted_shape values.
         """
@@ -507,7 +517,7 @@ class DataSegment(object):
     # read related methods
     def verify_raw_subscript(
             self,
-            subscript: Union[None, int, slice, Sequence[Union[int, slice, Tuple[int, ...]]]]) -> Tuple[slice, ...]:
+            subscript):
         """
         Verifies that the structure of the subscript is in keeping with the raw
         shape, and fills in any missing dimensions.
@@ -526,7 +536,7 @@ class DataSegment(object):
 
     def verify_formatted_subscript(
             self,
-            subscript: Union[None, int, slice, Sequence[Union[int, slice, Tuple[int, ...]]]]) -> Tuple[slice, ...]:
+            subscript):
         """
         Verifies that the structure of the subscript is in keeping with the formatted
         shape, and fills in any missing dimensions.
@@ -545,8 +555,8 @@ class DataSegment(object):
 
     def _interpret_subscript(
             self,
-            subscript: Union[None, int, slice, Sequence[Union[int, slice, Tuple[int, ...]]]],
-            raw: bool = False) -> Tuple[slice, ...]:
+            subscript,
+            raw = False):
         """
         Restructures the subscript to be a tuple of slices guaranteed to be the same
         length as the dimension of the return.
@@ -570,7 +580,7 @@ class DataSegment(object):
 
     def __getitem__(
             self,
-            subscript: Union[None, int, slice, str, Sequence[Union[None, int, slice, str]]]) -> numpy.ndarray:
+            subscript):
         """
         Fetch the data via slice definition.
 
@@ -597,8 +607,8 @@ class DataSegment(object):
 
     def read(
             self,
-            subscript: Union[None, int, slice, Sequence[Union[int, slice, Tuple[int, ...]]]],
-            squeeze=True) -> numpy.ndarray:
+            subscript,
+            squeeze=True):
         """
         In keeping with data segment mode, read the data slice specified relative
         to the formatted data coordinates. This requires that `mode` is `'r'`.
@@ -626,8 +636,8 @@ class DataSegment(object):
     # noinspection PyTypeChecker
     def read_raw(
             self,
-            subscript: Union[None, int, slice, Sequence[Union[int, slice, Tuple[int, ...]]]],
-            squeeze=True) -> numpy.ndarray:
+            subscript,
+            squeeze=True):
         """
         In keeping with data segment mode, read raw data from the source, without
         reformatting and or applying symmetry operations. This requires that `mode`
@@ -652,7 +662,7 @@ class DataSegment(object):
 
         raise NotImplementedError
 
-    def _verify_write_raw_details(self, data: numpy.ndarray) -> None:
+    def _verify_write_raw_details(self, data):
         if self.mode != 'w':
             raise ValueError('I/O Error, functionality requires mode == "w"')
 
@@ -664,10 +674,10 @@ class DataSegment(object):
 
     def write(
             self,
-            data: numpy.ndarray,
-            start_indices: Union[None, int, Tuple[int, ...]] = None,
-            subscript: Union[None, Sequence[slice]] = None,
-            **kwargs) -> None:
+            data,
+            start_indices = None,
+            subscript = None,
+            **kwargs):
         """
         In keeping with data segment mode, write the data provided in formatted
         form, assuming the slice specified relative to the formatted data coordinates.
@@ -718,10 +728,10 @@ class DataSegment(object):
 
     def write_raw(
             self,
-            data: numpy.ndarray,
-            start_indices: Union[None, int, Tuple[int, ...]] = None,
-            subscript: Union[None, Sequence[slice]] = None,
-            **kwargs) -> None:
+            data,
+            start_indices = None,
+            subscript = None,
+            **kwargs):
         """
         In keeping with data segment mode, write the data provided in raw form,
         assuming the slice specified relative to raw data coordinates. This
@@ -748,7 +758,7 @@ class DataSegment(object):
 
         raise NotImplementedError
 
-    def check_fully_written(self, warn: bool = False) -> bool:
+    def check_fully_written(self, warn = False):
         """
         Checks that all expected pixel data is fully written.
 
@@ -764,7 +774,7 @@ class DataSegment(object):
 
         raise NotImplementedError
 
-    def get_raw_bytes(self, warn: bool = True) -> Union[bytes, Tuple]:
+    def get_raw_bytes(self, warn = True):
         """
         This returns the bytes for the underlying raw data.
 
@@ -791,7 +801,7 @@ class DataSegment(object):
 
         raise NotImplementedError
 
-    def flush(self) -> None:
+    def flush(self):
         """
         Should perform, if possible, any necessary steps to flush any unwritten
         data to the file.
@@ -832,13 +842,13 @@ class ReorientationSegment(DataSegment):
 
     def __init__(
             self,
-            parent: DataSegment,
-            formatted_dtype: Optional[Union[str, numpy.dtype]] = None,
-            formatted_shape: Optional[Tuple[int, ...]] = None,
-            reverse_axes: Optional[Union[int, Sequence[int]]] = None,
-            transpose_axes: Optional[Tuple[int, ...]] = None,
-            format_function: Optional[FormatFunction] = None,
-            close_parent: bool = True):
+            parent,
+            formatted_dtype = None,
+            formatted_shape = None,
+            reverse_axes = None,
+            transpose_axes = None,
+            format_function = None,
+            close_parent = True):
         """
         Parameters
         ----------
@@ -877,12 +887,12 @@ class ReorientationSegment(DataSegment):
             format_function=format_function, mode=mode)
 
     @property
-    def parent(self) -> DataSegment:
+    def parent(self):
         return self._parent
 
     def _set_parent(self,
-                    parent: DataSegment,
-                    transpose_axes: Union[None, Tuple[int, ...]]) -> Tuple[int, ...]:
+                    parent,
+                    transpose_axes):
         if transpose_axes is None:
             trans_axes = tuple(range(parent.formatted_ndim))
         else:
@@ -893,7 +903,7 @@ class ReorientationSegment(DataSegment):
         return tuple([parent.formatted_shape[index] for index in trans_axes])
 
     @property
-    def close_parent(self) -> bool:
+    def close_parent(self):
         """
         bool: Call parent.close() when close is called?
         """
@@ -906,8 +916,8 @@ class ReorientationSegment(DataSegment):
 
     def read_raw(
             self,
-            subscript: Union[None, int, slice, Sequence[Union[int, slice, Tuple[int, ...]]]],
-            squeeze=True) -> numpy.ndarray:
+            subscript,
+            squeeze=True):
 
         self._validate_closed()
         if self.mode != 'r':
@@ -915,14 +925,14 @@ class ReorientationSegment(DataSegment):
 
         return self.parent.read(subscript, squeeze=squeeze)
 
-    def check_fully_written(self, warn: bool = False) -> bool:
+    def check_fully_written(self, warn = False):
         return self.parent.check_fully_written(warn=warn)
 
     def write_raw(
             self,
-            data: numpy.ndarray,
-            start_indices: Union[None, int, Tuple[int, ...]] = None,
-            subscript: Union[None, Sequence[slice]] = None,
+            data,
+            start_indices = None,
+            subscript = None,
             **kwargs):
         """
         In keeping with data segment mode, write the data provided in raw form,
@@ -960,11 +970,11 @@ class ReorientationSegment(DataSegment):
         parent_form_subscript = self.format_function.transform_formatted_slice(subscript)
         self.parent.write(data, subscript=parent_form_subscript, **kwargs)
 
-    def get_raw_bytes(self, warn: bool = True) -> Union[bytes, Tuple]:
+    def get_raw_bytes(self, warn = True):
         self._validate_closed()
         return self.parent.get_raw_bytes(warn=warn)
 
-    def flush(self) -> None:
+    def flush(self):
         self._validate_closed()
         try:
             self.parent.flush()
@@ -1001,11 +1011,11 @@ class SubsetSegment(DataSegment):
 
     def __init__(
             self,
-            parent: DataSegment,
-            subset_definition: Tuple[slice, ...],
-            coordinate_basis: str,
-            squeeze: bool = True,
-            close_parent: bool = True):
+            parent,
+            subset_definition,
+            coordinate_basis,
+            squeeze = True,
+            close_parent = True):
         """
         Parameters
         ----------
@@ -1040,16 +1050,16 @@ class SubsetSegment(DataSegment):
         else:
             self._expected_pixels_written = 0
 
-    def _validate_shapes(self) -> None:
+    def _validate_shapes(self):
         # handled else where
         pass
 
     @property
-    def parent(self) -> DataSegment:
+    def parent(self):
         return self._parent
 
     @property
-    def formatted_subset_definition(self) -> Tuple[slice, ...]:
+    def formatted_subset_definition(self):
         """
         Tuple[slice]: The subset definition, in formatted coordinates.
         """
@@ -1057,7 +1067,7 @@ class SubsetSegment(DataSegment):
         return self._formatted_subset_definition
 
     @property
-    def raw_subset_definition(self) -> Tuple[slice, ...]:
+    def raw_subset_definition(self):
         """
         Tuple[slice]: The subset definition, in raw coordinates.
         """
@@ -1065,7 +1075,7 @@ class SubsetSegment(DataSegment):
         return self._raw_subset_definition
 
     @property
-    def close_parent(self) -> bool:
+    def close_parent(self):
         """
         bool: Call parent.close() when close is called?
         """
@@ -1078,8 +1088,8 @@ class SubsetSegment(DataSegment):
 
     def _validate_subset_definition(
             self,
-            subset_definition: Tuple[slice, ...],
-            coordinate_basis: str) -> Tuple[Tuple[int, ...], Tuple[int, ...]]:
+            subset_definition,
+            coordinate_basis):
         """
         Validates the subset definition.
 
@@ -1135,11 +1145,11 @@ class SubsetSegment(DataSegment):
 
     def _get_parent_subscript(
             self,
-            norm_subscript: Tuple[slice, ...],
-            this_shape: Tuple[int, ...],
-            full_shape: Tuple[int, ...],
-            use_indices: Tuple[int, ...],
-            subset_definition: Tuple[slice, ...]) -> Tuple[slice, ...]:
+            norm_subscript,
+            this_shape,
+            full_shape,
+            use_indices,
+            subset_definition):
         """
         Helper function for defining a parent subscript from the subset subscript definition.
 
@@ -1185,7 +1195,7 @@ class SubsetSegment(DataSegment):
 
     def get_parent_raw_subscript(
             self,
-            subscript: Union[None, int, slice, Sequence[Union[int, slice]]]) -> Tuple[slice, ...]:
+            subscript):
         """
         Gets the raw parent subscript from the raw subset subscript definition.
 
@@ -1204,7 +1214,7 @@ class SubsetSegment(DataSegment):
 
     def get_parent_formatted_subscript(
             self,
-            subscript: Union[None, int, slice, Sequence[Union[int, slice]]]) -> Tuple[slice, ...]:
+            subscript):
         """
         Gets the formatted parent subscript from the formatted subset subscript definition.
 
@@ -1224,8 +1234,8 @@ class SubsetSegment(DataSegment):
 
     def read_raw(
             self,
-            subscript: Union[None, int, slice, Sequence[Union[int, slice, Tuple[int, ...]]]],
-            squeeze=True) -> numpy.ndarray:
+            subscript,
+            squeeze=True):
         self._validate_closed()
         if self.mode != 'r':
             raise ValueError('Requires mode == "r"')
@@ -1246,8 +1256,8 @@ class SubsetSegment(DataSegment):
 
     def read(
             self,
-            subscript: Union[None, int, slice, Sequence[Union[int, slice]]],
-            squeeze=True) -> numpy.ndarray:
+            subscript,
+            squeeze=True):
         self._validate_closed()
         if self.mode != 'r':
             raise ValueError('Requires mode == "r"')
@@ -1266,7 +1276,7 @@ class SubsetSegment(DataSegment):
             else:
                 return numpy.reshape(data, tuple(use_shape))
 
-    def check_fully_written(self, warn: bool = False) -> bool:
+    def check_fully_written(self, warn = False):
         if self.mode == 'r':
             return True
 
@@ -1287,7 +1297,7 @@ class SubsetSegment(DataSegment):
                         self._expected_pixels_written, self._pixels_written))
             return False
 
-    def _update_pixels_written(self, written: int) -> None:
+    def _update_pixels_written(self, written):
         new_pixels_written = self._pixels_written + written
         if self._pixels_written <= self._expected_pixels_written < new_pixels_written:
             logger.error(
@@ -1299,9 +1309,9 @@ class SubsetSegment(DataSegment):
 
     def write_raw(
             self,
-            data: numpy.ndarray,
-            start_indices: Union[None, int, Tuple[int, ...]] = None,
-            subscript: Union[None, Sequence[slice]] = None,
+            data,
+            start_indices = None,
+            subscript = None,
             **kwargs):
         self._validate_closed()
         self._verify_write_raw_details(data)
@@ -1310,7 +1320,7 @@ class SubsetSegment(DataSegment):
         self.parent.write_raw(data, subscript=parent_subscript, **kwargs)
         self._update_pixels_written(data.size)
 
-    def get_raw_bytes(self, warn: bool = True) -> Union[bytes, Tuple]:
+    def get_raw_bytes(self, warn = True):
         """
         This returns the bytes for the underlying raw data **of the parent segment.**
 
@@ -1338,7 +1348,7 @@ class SubsetSegment(DataSegment):
                 'but all pixels are not fully written'.format(self.__class__))
         return self.parent.get_raw_bytes(warn=False)
 
-    def flush(self) -> None:
+    def flush(self):
         self._validate_closed()
         try:
             self.parent.flush()
@@ -1374,14 +1384,14 @@ class BandAggregateSegment(DataSegment):
 
     def __init__(
             self,
-            children: Sequence[DataSegment],
-            band_dimension: int,
-            formatted_dtype: Optional[Union[str, numpy.dtype]] = None,
-            formatted_shape: Optional[Tuple[int, ...]] = None,
-            reverse_axes: Optional[Union[int, Sequence[int]]] = None,
-            transpose_axes: Optional[Tuple[int, ...]] = None,
-            format_function: Optional[FormatFunction] = None,
-            close_children: bool = True):
+            children,
+            band_dimension,
+            formatted_dtype = None,
+            formatted_shape = None,
+            reverse_axes = None,
+            transpose_axes = None,
+            format_function = None,
+            close_children = True):
         """
 
         Parameters
@@ -1423,7 +1433,7 @@ class BandAggregateSegment(DataSegment):
             format_function=format_function, mode=the_mode)
 
     @property
-    def band_dimension(self) -> int:
+    def band_dimension(self):
         """
         int: The band dimension, in raw data after the transpose operation.
         """
@@ -1432,9 +1442,9 @@ class BandAggregateSegment(DataSegment):
 
     def _set_band_dimension(
             self,
-            value: int,
-            reverse_axes: Union[None, int, Sequence[int]],
-            transpose_axes: Union[None, Tuple[int, ...]]) -> None:
+            value,
+            reverse_axes,
+            transpose_axes):
         if not isinstance(value, int):
             raise TypeError('band_dimension must be an integer')
         if value < 0:
@@ -1460,7 +1470,7 @@ class BandAggregateSegment(DataSegment):
         self._band_dimension = value
 
     @property
-    def close_children(self) -> bool:
+    def close_children(self):
         """
         bool: Call child.close() when close is called?
         """
@@ -1472,7 +1482,7 @@ class BandAggregateSegment(DataSegment):
         self._close_children = bool(value)
 
     @property
-    def children(self) -> Tuple[DataSegment, ...]:
+    def children(self):
         """
         The collection of children that we are stacking.
 
@@ -1485,8 +1495,8 @@ class BandAggregateSegment(DataSegment):
 
     def _set_children(
             self,
-            children: Sequence[DataSegment],
-            transpose_axes: Optional[Tuple[int, ...]]) -> Tuple[numpy.dtype, Tuple[int, ...], Tuple[int, ...], str]:
+            children,
+            transpose_axes):
         if len(children) < 2:
             raise ValueError('Cannot define a BandAggregateSegment based on fewer than 2 segments.')
 
@@ -1518,7 +1528,7 @@ class BandAggregateSegment(DataSegment):
         return the_dtype, raw_shape, form_shape, the_mode
 
     @property
-    def bands(self) -> int:
+    def bands(self):
         """
         int: The number of bands (child data segments)
         """
@@ -1527,8 +1537,8 @@ class BandAggregateSegment(DataSegment):
 
     def read_raw(
             self,
-            subscript: Union[None, int, slice, Sequence[Union[int, slice, Tuple[int, ...]]]],
-            squeeze=True) -> numpy.ndarray:
+            subscript,
+            squeeze=True):
         self._validate_closed()
         if self.mode != 'r':
             raise ValueError('Requires mode == "r"')
@@ -1549,7 +1559,7 @@ class BandAggregateSegment(DataSegment):
         else:
             return out
 
-    def check_fully_written(self, warn: bool = False) -> bool:
+    def check_fully_written(self, warn = False):
         if self.mode == 'r':
             return True
 
@@ -1563,9 +1573,9 @@ class BandAggregateSegment(DataSegment):
 
     def write_raw(
             self,
-            data: numpy.ndarray,
-            start_indices: Union[None, int, Tuple[int, ...]] = None,
-            subscript: Union[None, Sequence[slice]] = None,
+            data,
+            start_indices = None,
+            subscript = None,
             **kwargs):
         """
         In keeping with data segment mode, write the data provided in raw form,
@@ -1612,11 +1622,11 @@ class BandAggregateSegment(DataSegment):
             self.children[index].write(
                 data[band_subscript], subscript=child_subscript, **kwargs)
 
-    def get_raw_bytes(self, warn: bool = True) -> Union[bytes, Tuple]:
+    def get_raw_bytes(self, warn = True):
         self._validate_closed()
         return tuple(entry.get_raw_bytes(warn=warn) for entry in self.children)
 
-    def flush(self) -> None:
+    def flush(self):
         self._validate_closed()
         try:
             if self.children is not None:
@@ -1663,17 +1673,17 @@ class BlockAggregateSegment(DataSegment):
 
     def __init__(
             self,
-            children: Sequence[DataSegment],
-            child_arrangement: Sequence[Tuple[slice, ...]],
-            coordinate_basis: str,
+            children,
+            child_arrangement,
+            coordinate_basis,
             missing_data_value,
-            raw_shape: Tuple[int, ...],
-            formatted_dtype: Union[str, numpy.dtype],
-            formatted_shape: Tuple[int, ...],
-            reverse_axes: Optional[Union[int, Sequence[int]]] = None,
-            transpose_axes: Optional[Tuple[int, ...]] = None,
-            format_function: Optional[FormatFunction] = None,
-            close_children: bool = True):
+            raw_shape,
+            formatted_dtype,
+            formatted_shape,
+            reverse_axes = None,
+            transpose_axes = None,
+            format_function = None,
+            close_children = True):
         """
 
         Parameters
@@ -1705,7 +1715,7 @@ class BlockAggregateSegment(DataSegment):
         self._set_children(children, child_arrangement, coordinate_basis)
 
     @property
-    def close_children(self) -> bool:
+    def close_children(self):
         """
         bool: Call child.close() when close is called?
         """
@@ -1717,7 +1727,7 @@ class BlockAggregateSegment(DataSegment):
         self._close_children = bool(value)
 
     @property
-    def children(self) -> Tuple[DataSegment, ...]:
+    def children(self):
         """
         The collection of children that we are stacking together.
 
@@ -1730,9 +1740,9 @@ class BlockAggregateSegment(DataSegment):
 
     def _set_children(
             self,
-            children: Sequence[DataSegment],
-            child_arrangement: Sequence[Tuple[slice, ...]],
-            coordinate_basis: str) -> None:
+            children,
+            child_arrangement,
+            coordinate_basis):
 
         if len(children) != len(child_arrangement):
             raise ValueError('We must have the same number of children as child_arrangement entries')
@@ -1773,8 +1783,8 @@ class BlockAggregateSegment(DataSegment):
 
     def read_raw(
             self,
-            subscript: Union[None, int, slice, Sequence[Union[int, slice, Tuple[int, ...]]]],
-            squeeze=True) -> numpy.ndarray:
+            subscript,
+            squeeze=True):
         self._validate_closed()
         if self.mode != 'r':
             raise ValueError('Requires mode == "r"')
@@ -1803,7 +1813,7 @@ class BlockAggregateSegment(DataSegment):
         else:
             return out
 
-    def check_fully_written(self, warn: bool = False) -> bool:
+    def check_fully_written(self, warn = False):
         if self.mode == 'r':
             return True
 
@@ -1817,9 +1827,9 @@ class BlockAggregateSegment(DataSegment):
 
     def write_raw(
             self,
-            data: numpy.ndarray,
-            start_indices: Union[None, int, Tuple[int, ...]] = None,
-            subscript: Union[None, Sequence[slice]] = None,
+            data,
+            start_indices = None,
+            subscript = None,
             **kwargs):
         """
         In keeping with data segment mode, write the data provided in raw form,
@@ -1879,11 +1889,11 @@ class BlockAggregateSegment(DataSegment):
             if use_block:
                 child.write(data[tuple(data_subscript)], subscript=tuple(child_subscript), **kwargs)
 
-    def get_raw_bytes(self, warn: bool = True) -> Union[bytes, Tuple]:
+    def get_raw_bytes(self, warn = True):
         self._validate_closed()
         return tuple(entry.get_raw_bytes(warn=warn) for entry in self.children)
 
-    def flush(self) -> None:
+    def flush(self):
         self._validate_closed()
         try:
             if self.children is not None:
@@ -1921,13 +1931,13 @@ class NumpyArraySegment(DataSegment):
 
     def __init__(
             self,
-            underlying_array: numpy.ndarray,
-            formatted_dtype: Optional[Union[str, numpy.dtype]] = None,
-            formatted_shape: Optional[Tuple[int, ...]] = None,
-            reverse_axes: Optional[Union[int, Sequence[int]]] = None,
-            transpose_axes: Optional[Tuple[int, ...]] = None,
-            format_function: Optional[FormatFunction] = None,
-            mode: str = 'r'):
+            underlying_array,
+            formatted_dtype = None,
+            formatted_shape = None,
+            reverse_axes = None,
+            transpose_axes = None,
+            format_function = None,
+            mode = 'r'):
         """
 
         Parameters
@@ -1977,7 +1987,7 @@ class NumpyArraySegment(DataSegment):
             self._expected_pixels_written = 0
 
     @property
-    def underlying_array(self) -> numpy.ndarray:
+    def underlying_array(self):
         """
         The underlying data array.
 
@@ -1990,8 +2000,8 @@ class NumpyArraySegment(DataSegment):
 
     def read_raw(
             self,
-            subscript: Union[None, int, slice, Sequence[Union[int, slice, Tuple[int, ...]]]],
-            squeeze=True) -> numpy.ndarray:
+            subscript,
+            squeeze=True):
         self._validate_closed()
         if self.mode != 'r':
             raise ValueError('Requires mode == "r"')
@@ -2004,7 +2014,7 @@ class NumpyArraySegment(DataSegment):
         else:
             return numpy.reshape(out, out_shape)
 
-    def check_fully_written(self, warn: bool = False) -> bool:
+    def check_fully_written(self, warn = False):
         if self.mode == 'r':
             return True
 
@@ -2025,7 +2035,7 @@ class NumpyArraySegment(DataSegment):
                         self._expected_pixels_written, self._pixels_written))
             return False
 
-    def _update_pixels_written(self, written: int) -> None:
+    def _update_pixels_written(self, written):
         new_pixels_written = self._pixels_written + written
         if self._pixels_written <= self._expected_pixels_written < new_pixels_written:
             logger.error(
@@ -2037,9 +2047,9 @@ class NumpyArraySegment(DataSegment):
 
     def write_raw(
             self,
-            data: numpy.ndarray,
-            start_indices: Optional[Union[int, Tuple[int, ...]]] = None,
-            subscript: Optional[Sequence[slice]] = None,
+            data,
+            start_indices = None,
+            subscript = None,
             **kwargs):
         self._validate_closed()
         self._verify_write_raw_details(data)
@@ -2047,7 +2057,7 @@ class NumpyArraySegment(DataSegment):
         self._underlying_array[subscript] = data
         self._update_pixels_written(data.size)
 
-    def get_raw_bytes(self, warn: bool = False) -> Union[bytes, Tuple]:
+    def get_raw_bytes(self, warn = False):
         self._validate_closed()
         if warn and not self.check_fully_written(warn=True):
             logger.error(
@@ -2055,7 +2065,7 @@ class NumpyArraySegment(DataSegment):
                 'but all pixels are not fully written'.format(self.__class__))
         return self.underlying_array.view('B').reshape(-1)
 
-    def flush(self) -> None:
+    def flush(self):
         self._validate_closed()
         try:
             if self.mode == 'w' and hasattr(self._underlying_array, 'flush'):
@@ -2064,7 +2074,7 @@ class NumpyArraySegment(DataSegment):
         except AttributeError:
             return
 
-    def close(self) -> None:
+    def close(self):
         try:
             if self._closed:
                 return
@@ -2089,17 +2099,17 @@ class NumpyMemmapSegment(NumpyArraySegment):
 
     def __init__(
             self,
-            file_object: Union[str, BinaryIO],
-            data_offset: int,
-            raw_dtype: Union[str, numpy.dtype],
-            raw_shape: Tuple[int, ...],
-            formatted_dtype: Optional[Union[str, numpy.dtype]] = None,
-            formatted_shape: Optional[Tuple[int, ...]] = None,
-            reverse_axes: Optional[Union[int, Sequence[int]]] = None,
-            transpose_axes: Optional[Tuple[int, ...]] = None,
-            format_function: Optional[FormatFunction] = None,
-            mode: str = 'r',
-            close_file: bool = False):
+            file_object,
+            data_offset,
+            raw_dtype,
+            raw_shape,
+            formatted_dtype = None,
+            formatted_shape = None,
+            reverse_axes = None,
+            transpose_axes = None,
+            format_function = None,
+            mode = 'r',
+            close_file = False):
         """
 
         Parameters
@@ -2122,7 +2132,7 @@ class NumpyMemmapSegment(NumpyArraySegment):
         """
 
         self._close_file = None
-        if isinstance(file_object, str):
+        if isinstance(file_object, string_types):
             close_file = True
         self.close_file = close_file
         self._file_object = file_object
@@ -2144,7 +2154,7 @@ class NumpyMemmapSegment(NumpyArraySegment):
             format_function=format_function, mode=mode)
 
     @property
-    def close_file(self) -> bool:
+    def close_file(self):
         """
         bool: Close the file object when complete?
         """
@@ -2155,7 +2165,7 @@ class NumpyMemmapSegment(NumpyArraySegment):
     def close_file(self, value):
         self._close_file = bool(value)
 
-    def flush(self) -> None:
+    def flush(self):
         try:
             if self.mode == 'w':
                 self._memory_map.flush()
@@ -2189,14 +2199,14 @@ class HDF5DatasetSegment(DataSegment):
 
     def __init__(
             self,
-            file_object: Union[str, h5pyFile],
-            data_set: Union[str, h5pyDataset],
-            formatted_dtype: Optional[Union[str, numpy.dtype]] = None,
-            formatted_shape: Optional[Tuple[int, ...]] = None,
-            reverse_axes: Optional[Union[int, Sequence[int]]] = None,
-            transpose_axes: Optional[Tuple[int, ...]] = None,
-            format_function: Optional[FormatFunction] = None,
-            close_file: bool = False):
+            file_object,
+            data_set,
+            formatted_dtype = None,
+            formatted_shape = None,
+            reverse_axes = None,
+            transpose_axes = None,
+            format_function = None,
+            close_file = False):
         """
 
         Parameters
@@ -2223,7 +2233,7 @@ class HDF5DatasetSegment(DataSegment):
             raise ValueError(
                 'h5py was not successfully imported, and no hdf5 file can be read')
 
-        if isinstance(file_object, str):
+        if isinstance(file_object, string_types):
             close_file = True
 
         self._set_file_object(file_object)
@@ -2248,7 +2258,7 @@ class HDF5DatasetSegment(DataSegment):
             format_function=format_function, mode='r')
 
     @property
-    def close_file(self) -> bool:
+    def close_file(self):
         """
         bool: Close the file object when complete?
         """
@@ -2260,22 +2270,22 @@ class HDF5DatasetSegment(DataSegment):
         self._close_file = bool(value)
 
     @property
-    def file_object(self) -> h5pyFile:
+    def file_object(self):
         return self._file_object
 
-    def _set_file_object(self, value) -> None:
-        if isinstance(value, str):
+    def _set_file_object(self, value):
+        if isinstance(value, string_types):
             value = h5py.File(value, mode='r')
         if not isinstance(value, h5py.File):
             raise ValueError('Requires a path to a hdf5 file or h5py.File object')
         self._file_object = value
 
     @property
-    def data_set(self) -> h5pyDataset:
+    def data_set(self):
         return self._data_set
 
-    def _set_data_set(self, value) -> None:
-        if isinstance(value, str):
+    def _set_data_set(self, value):
+        if isinstance(value, string_types):
             value = self.file_object[value]
         if not isinstance(value, h5py.Dataset):
             raise ValueError('Requires a dataset path or h5py.Dataset object')
@@ -2283,8 +2293,8 @@ class HDF5DatasetSegment(DataSegment):
 
     def read_raw(
             self,
-            subscript: Union[None, int, slice, Sequence[Union[int, slice, Tuple[int, ...]]]],
-            squeeze=True) -> numpy.ndarray:
+            subscript,
+            squeeze=True):
         self._validate_closed()
         subscript, out_shape = get_subscript_result_size(subscript, self.raw_shape)
 
@@ -2314,19 +2324,19 @@ class HDF5DatasetSegment(DataSegment):
 
     def write_raw(
             self,
-            data: numpy.ndarray,
-            start_indices: Union[None, int, Tuple[int, ...]] = None,
-            subscript: Union[None, Sequence[slice]] = None,
+            data,
+            start_indices = None,
+            subscript = None,
             **kwargs):
         raise NotImplementedError
 
-    def get_raw_bytes(self, warn: bool = True) -> Union[bytes, Tuple]:
+    def get_raw_bytes(self, warn = True):
         raise NotImplementedError
 
-    def check_fully_written(self, warn: bool = False) -> bool:
+    def check_fully_written(self, warn = False):
         return True
 
-    def close(self) -> None:
+    def close(self):
         try:
             if self._closed:
                 return
@@ -2354,16 +2364,16 @@ class FileReadDataSegment(DataSegment):
 
     def __init__(
             self,
-            file_object: BinaryIO,
-            data_offset: int,
-            raw_dtype: Union[str, numpy.dtype],
-            raw_shape: Tuple[int, ...],
-            formatted_dtype: Union[str, numpy.dtype],
-            formatted_shape: Tuple[int, ...],
-            reverse_axes: Optional[Union[int, Sequence[int]]] = None,
-            transpose_axes: Optional[Tuple[int, ...]] = None,
-            format_function: Optional[FormatFunction] = None,
-            close_file: bool = False):
+            file_object,
+            data_offset,
+            raw_dtype,
+            raw_shape,
+            formatted_dtype,
+            formatted_shape,
+            reverse_axes = None,
+            transpose_axes = None,
+            format_function = None,
+            close_file = False):
         """
 
         Parameters
@@ -2396,7 +2406,7 @@ class FileReadDataSegment(DataSegment):
             format_function=format_function, mode='r')
 
     @property
-    def close_file(self) -> bool:
+    def close_file(self):
         """
         bool: Close the file object when complete?
         """
@@ -2408,16 +2418,16 @@ class FileReadDataSegment(DataSegment):
         self._close_file = bool(value)
 
     @property
-    def file_object(self) -> BinaryIO:
+    def file_object(self):
         return self._file_object
 
-    def _set_file_object(self, value) -> None:
+    def _set_file_object(self, value):
         if not is_file_like(value):
             raise ValueError('Requires a file-like object')
         self._file_object = value
 
     @property
-    def data_offset(self) -> int:
+    def data_offset(self):
         """
         int: The offset of the data in bytes from the start of the file-like
         object.
@@ -2425,7 +2435,7 @@ class FileReadDataSegment(DataSegment):
 
         return self._data_offset
 
-    def _set_data_offset(self, value: int) -> None:
+    def _set_data_offset(self, value):
         value = int(value)
         if value < 0:
             raise ValueError('data_offset must be non-negative.')
@@ -2433,8 +2443,8 @@ class FileReadDataSegment(DataSegment):
 
     def read_raw(
             self,
-            subscript: Union[None, int, slice, Sequence[Union[int, slice, Tuple[int, ...]]]],
-            squeeze=True) -> numpy.ndarray:
+            subscript,
+            squeeze=True):
         self._validate_closed()
         subscript, out_shape = get_subscript_result_size(subscript, self.raw_shape)
 
@@ -2479,22 +2489,22 @@ class FileReadDataSegment(DataSegment):
 
     def write_raw(
             self,
-            data: numpy.ndarray,
-            start_indices: Union[None, int, Tuple[int, ...]] = None,
-            subscript: Union[None, Sequence[slice]] = None,
+            data,
+            start_indices = None,
+            subscript = None,
             **kwargs):
 
         if self.mode != 'w':
             raise ValueError('I/O Error, functionality requires mode == "w"')
         raise NotImplementedError
 
-    def get_raw_bytes(self, warn: bool = True) -> Union[bytes, Tuple]:
+    def get_raw_bytes(self, warn = True):
         raise NotImplementedError
 
-    def check_fully_written(self, warn: bool = False) -> bool:
+    def check_fully_written(self, warn = False):
         return True
 
-    def close(self) -> None:
+    def close(self):
         try:
             if self._closed:
                 return

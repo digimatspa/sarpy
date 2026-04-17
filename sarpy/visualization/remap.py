@@ -7,7 +7,16 @@ class based solution which allows state variables associated with the remap
 function, and support for 16-bit versions, as well as an 8-bit MA, RGB or RGBA
 lookup tables.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+#from builtins import str
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = ("Wade Schwartzkopf", "Thomas McCullough")
 
@@ -39,10 +48,10 @@ _REMAP_DICT = OrderedDict()  # type: Dict[str, RemapFunction]
 
 
 def clip_cast(
-        array: numpy.ndarray,
-        dtype: Union[str, numpy.dtype, numpy.number] = 'uint8',
-        min_value: Union[None, int, float] = None,
-        max_value: Union[None, int, float] = None) -> numpy.ndarray:
+        array,
+        dtype = 'uint8',
+        min_value = None,
+        max_value = None):
     """
     Cast by clipping values outside of valid range, rather than truncating.
 
@@ -65,10 +74,10 @@ def clip_cast(
 
 
 def amplitude_to_density(
-        data: numpy.ndarray,
-        dmin: Union[int, float] = 30,
-        mmult: Union[int, float] = 40,
-        data_mean: Union[None, int, float] = None) -> numpy.ndarray:
+        data,
+        dmin = 30,
+        mmult = 40,
+        data_mean = None):
     """
     Convert to density data for remap.
 
@@ -127,9 +136,9 @@ def amplitude_to_density(
 
 
 def _linear_map(
-        data: numpy.ndarray,
-        min_value: float,
-        max_value: float) -> numpy.ndarray:
+        data,
+        min_value,
+        max_value):
     """
     Helper function which maps the input data, assumed to be of the correct from,
     into [0, 1] via a linear mapping (data - min_value)(max_value - min_value)
@@ -150,8 +159,8 @@ def _linear_map(
 
 
 def _nrl_stats(
-        amplitude: numpy.ndarray,
-        percentile: Union[int, float] = 99) -> Tuple[float, float, float]:
+        amplitude,
+        percentile = 99):
     """
     Calculate the statistics for input into the nrl remap.
 
@@ -196,9 +205,9 @@ class RemapFunction(object):
 
     def __init__(
             self,
-            override_name: Optional[str] = None,
-            bit_depth: int = 8,
-            dimension: int = 0):
+            override_name = None,
+            bit_depth = 8,
+            dimension = 0):
         """
 
         Parameters
@@ -218,7 +227,7 @@ class RemapFunction(object):
         self._set_dimension(dimension)
 
     @property
-    def name(self) -> str:
+    def name(self):
         """
         str: The (read-only) name for the remap function. This will be the
         override_name if one has been provided for this instance, otherwise it
@@ -227,14 +236,14 @@ class RemapFunction(object):
 
         return self._name if self._override_name is None else self._override_name
 
-    def _set_name(self, value: Optional[str]):
-        if value is None or isinstance(value, str):
+    def _set_name(self, value):
+        if value is None or isinstance(value, string_types):
             self._override_name = value
         else:
             raise ValueError('Got incompatible name')
 
     @property
-    def bit_depth(self) -> int:
+    def bit_depth(self):
         """
         int: The (read-only) bit depth, which should be either 8 or 16.
         This is expected to be enforced by the implementation directly.
@@ -242,7 +251,7 @@ class RemapFunction(object):
 
         return self._bit_depth
 
-    def _set_bit_depth(self, value: int):
+    def _set_bit_depth(self, value):
         """
         This is intended to be read-only.
 
@@ -259,7 +268,7 @@ class RemapFunction(object):
         self._bit_depth = value
 
     @property
-    def dimension(self) -> int:
+    def dimension(self):
         """
         int: The (read-only) size of the (additional) output final dimension.
         The value 0 is monochromatic, where the retuned output will have identical
@@ -268,7 +277,7 @@ class RemapFunction(object):
 
         return self._dimension
 
-    def _set_dimension(self, value: int):
+    def _set_dimension(self, value):
         """
         The property is intended to be read-only.
 
@@ -284,7 +293,7 @@ class RemapFunction(object):
         self._dimension = value
 
     @property
-    def output_dtype(self) -> numpy.dtype:
+    def output_dtype(self):
         """
         numpy.dtype: The output data type.
         """
@@ -299,7 +308,7 @@ class RemapFunction(object):
             raise ValueError('Unhandled bit_depth `{}`'.format(self._bit_depth))
 
     @property
-    def are_global_parameters_set(self) -> bool:
+    def are_global_parameters_set(self):
         """
         bool: Are (all) global parameters used for applying this remap function
         set? This should return `True` if there are no global parameters.
@@ -309,8 +318,8 @@ class RemapFunction(object):
 
     def raw_call(
             self,
-            data: numpy.ndarray,
-            **kwargs) -> numpy.ndarray:
+            data,
+            **kwargs):
         """
         This performs the mapping from input data to output floating point
         version, this is directly used by the :func:`call` method.
@@ -332,8 +341,8 @@ class RemapFunction(object):
 
     def call(
             self,
-            data: numpy.ndarray,
-            **kwargs) -> numpy.ndarray:
+            data,
+            **kwargs):
         """
         This performs the mapping from input data to output discrete version.
 
@@ -359,15 +368,15 @@ class RemapFunction(object):
 
     def __call__(
             self,
-            data: numpy.ndarray,
-            **kwargs) -> numpy.ndarray:
+            data,
+            **kwargs):
         return self.call(data, **kwargs)
 
     @staticmethod
     def _validate_pixel_bounds(
-            reader: SICDTypeReader,
-            index: int,
-            pixel_bounds: Union[None, Tuple, List, numpy.ndarray]):
+            reader,
+            index,
+            pixel_bounds):
         data_size = reader.get_data_size_as_tuple()[index]
         if pixel_bounds is None:
             return 0, data_size[0], 0, data_size[1]
@@ -382,9 +391,9 @@ class RemapFunction(object):
 
     def calculate_global_parameters_from_reader(
             self,
-            reader: SICDTypeReader,
-            index: int = 0,
-            pixel_bounds: Union[None, Tuple, List, numpy.ndarray] = None):
+            reader,
+            index = 0,
+            pixel_bounds = None):
         """
         Calculates any useful global bounds for the specified reader, the given
         index, and inside the given pixel bounds.
@@ -417,9 +426,9 @@ class MonochromaticRemap(RemapFunction):
 
     def __init__(
             self,
-            override_name: Optional[str] = None,
-            bit_depth: int = 8,
-            max_output_value: Optional[int] = None):
+            override_name = None,
+            bit_depth = 8,
+            max_output_value = None):
         r"""
 
         Parameters
@@ -437,14 +446,14 @@ class MonochromaticRemap(RemapFunction):
         self._set_max_output_value(max_output_value)
 
     @property
-    def max_output_value(self) -> int:
+    def max_output_value(self):
         """
         int: The (read-only) maximum output value size.
         """
 
         return self._max_output_value
 
-    def _set_max_output_value(self, value: Optional[int]):
+    def _set_max_output_value(self, value):
         max_possible = numpy.iinfo(self.output_dtype).max
         if value is None:
             value = max_possible
@@ -482,13 +491,13 @@ class Density(MonochromaticRemap):
 
     def __init__(
             self,
-            override_name: Optional[str] = None,
-            bit_depth: int = 8,
-            max_output_value: Optional[int] = None,
-            dmin: Union[float, int] = 30,
-            mmult: Union[float, int] = 40,
-            eps: float = 1e-5,
-            data_mean: Union[None, int, float] = None):
+            override_name = None,
+            bit_depth = 8,
+            max_output_value = None,
+            dmin = 30,
+            mmult = 40,
+            eps = 1e-5,
+            data_mean = None):
         r"""
 
         Parameters
@@ -525,41 +534,41 @@ class Density(MonochromaticRemap):
         self.data_mean = data_mean
 
     @property
-    def dmin(self) -> float:
+    def dmin(self):
         """
         float: The dynamic range parameter. This is read-only.
         """
 
         return self._dmin
 
-    def _set_dmin(self, value: Union[int, float]):
+    def _set_dmin(self, value):
         value = float(value)
         if not (0 <= value < 255):
             raise ValueError('dmin must be in the interval [0, 255), got value {}'.format(value))
         self._dmin = value
 
     @property
-    def mmult(self) -> float:
+    def mmult(self):
         """
         float: The contrast parameter. This is read only.
         """
         return self._mmult
 
-    def _set_mmult(self, value: Union[int, float]):
+    def _set_mmult(self, value):
         value = float(value)
         if value < 1:
             raise ValueError('mmult must be < 1, got {}'.format(value))
         self._mmult = value
 
     @property
-    def data_mean(self) -> Optional[float]:
+    def data_mean(self):
         """
         None|float: The data mean for global use.
         """
         return self._data_mean
 
     @data_mean.setter
-    def data_mean(self, value: Optional[float]):
+    def data_mean(self, value):
         if value is None:
             self._data_mean = None
             return
@@ -567,7 +576,7 @@ class Density(MonochromaticRemap):
         self._data_mean = float(value)
 
     @property
-    def are_global_parameters_set(self) -> bool:
+    def are_global_parameters_set(self):
         """
         bool: Is the global parameters used for applying this remap function
         set? In this case, this is the `data_mean` property.
@@ -577,8 +586,8 @@ class Density(MonochromaticRemap):
 
     def raw_call(
             self,
-            data: numpy.ndarray,
-            data_mean: Optional[float] = None) -> numpy.ndarray:
+            data,
+            data_mean = None):
         """
         This performs the mapping from input data to output floating point
         version, this is directly used by the :func:`call` method.
@@ -605,8 +614,8 @@ class Density(MonochromaticRemap):
 
     def call(
             self,
-            data: numpy.ndarray,
-            data_mean: Optional[float] = None) -> numpy.ndarray:
+            data,
+            data_mean = None):
         """
         This performs the mapping from input data to output discrete version.
 
@@ -636,9 +645,9 @@ class Density(MonochromaticRemap):
 
     def calculate_global_parameters_from_reader(
             self,
-            reader: SICDTypeReader,
-            index: int = 0,
-            pixel_bounds: Union[None, tuple, list, numpy.ndarray] = None):
+            reader,
+            index = 0,
+            pixel_bounds = None):
         pixel_bounds = self._validate_pixel_bounds(reader, index, pixel_bounds)
         self.data_mean = get_data_mean_magnitude(pixel_bounds, reader, index, 25*1024*1024)
 
@@ -652,11 +661,11 @@ class Brighter(Density):
 
     def __init__(
             self,
-            override_name: Optional[str] = None,
-            bit_depth: int = 8,
-            max_output_value: Optional[int] = None,
-            eps: float = 1e-5,
-            data_mean: Union[None, int, float] = None):
+            override_name = None,
+            bit_depth = 8,
+            max_output_value = None,
+            eps = 1e-5,
+            data_mean = None):
         Density.__init__(
             self,
             override_name=override_name,
@@ -677,11 +686,11 @@ class Darker(Density):
 
     def __init__(
             self,
-            override_name: Optional[str] = None,
-            bit_depth: int = 8,
-            max_output_value: Optional[int] = None,
-            eps: float = 1e-5,
-            data_mean: Union[None, int, float] = None):
+            override_name = None,
+            bit_depth = 8,
+            max_output_value = None,
+            eps = 1e-5,
+            data_mean = None):
         Density.__init__(
             self,
             override_name=override_name,
@@ -702,11 +711,11 @@ class High_Contrast(Density):
 
     def __init__(
             self,
-            override_name: Optional[str] = None,
-            bit_depth: int = 8,
-            max_output_value: Optional[int] = None,
-            eps: float = 1e-5,
-            data_mean: Union[None, int, float] = None):
+            override_name = None,
+            bit_depth = 8,
+            max_output_value = None,
+            eps = 1e-5,
+            data_mean = None):
         Density.__init__(
             self,
             override_name=override_name,
@@ -729,14 +738,14 @@ class GDM(MonochromaticRemap):
 
     def __init__(
             self,
-            override_name: Optional[str] = None,
-            bit_depth: int = 8,
-            max_output_value: Optional[int] = None,
-            weighting: Optional[str] = 'UNIFORM',
-            graze_deg: Union[None, int, float] = None,
-            slope_deg: Union[None, int, float] = None,
-            data_mean: Union[None, int, float] = None,
-            data_median: Union[None, int, float] = None
+            override_name = None,
+            bit_depth = 8,
+            max_output_value = None,
+            weighting = 'UNIFORM',
+            graze_deg = None,
+            slope_deg = None,
+            data_mean = None,
+            data_median = None
     ):
         """
 
@@ -775,14 +784,14 @@ class GDM(MonochromaticRemap):
         self._slope_rad = numpy.radians(slope_deg)
 
     @property
-    def data_mean(self) -> Optional[float]:
+    def data_mean(self):
         """
         None|float: The data mean for global use.
         """
         return self._data_mean
 
     @data_mean.setter
-    def data_mean(self, value: Optional[float]):
+    def data_mean(self, value):
         if value is None:
             self._data_mean = None
             return
@@ -790,14 +799,14 @@ class GDM(MonochromaticRemap):
         self._data_mean = float(value)
 
     @property
-    def data_median(self) -> Optional[float]:
+    def data_median(self):
         """
         None|float: The data median for global use.
         """
         return self._data_median
 
     @data_mean.setter
-    def data_median(self, value: Optional[float]):
+    def data_median(self, value):
         self._data_median = None if value is None else float(value)
 
     def _cutoff_values(self, data_mean, data_median):
@@ -829,9 +838,9 @@ class GDM(MonochromaticRemap):
 
     def raw_call(
             self,
-            data: numpy.ndarray,
-            data_mean: Optional[float] = None,
-            data_median: Optional[float] = None) -> numpy.ndarray:
+            data,
+            data_mean = None,
+            data_median = None):
         """
         This performs the mapping from input data to output floating point
         version, this is directly used by the :func:`call` method.
@@ -872,9 +881,9 @@ class GDM(MonochromaticRemap):
 
     def call(
             self,
-            data: numpy.ndarray,
-            data_mean: Optional[float] = None,
-            data_median: Optional[float] = None) -> numpy.ndarray:
+            data,
+            data_mean = None,
+            data_median = None):
         """
         This performs the mapping from input data to output discrete version.
 
@@ -917,11 +926,11 @@ class Linear(MonochromaticRemap):
 
     def __init__(
             self,
-            override_name: Optional[str] = None,
-            bit_depth: int = 8,
-            max_output_value: Optional[int] = None,
-            min_value: Union[None, int, float] = None,
-            max_value: Union[None, int, float] = None):
+            override_name = None,
+            bit_depth = 8,
+            max_output_value = None,
+            min_value = None,
+            max_value = None):
         """
 
         Parameters
@@ -947,14 +956,14 @@ class Linear(MonochromaticRemap):
         self._max_value = max_value
 
     @property
-    def min_value(self) -> Optional[float]:
+    def min_value(self):
         """
         None|float: The minimum value allowed (clipped below this)
         """
         return self._min_value
 
     @min_value.setter
-    def min_value(self, value: Optional[float]):
+    def min_value(self, value):
         if value is None:
             self._min_value = None
         else:
@@ -964,7 +973,7 @@ class Linear(MonochromaticRemap):
             self._min_value = value
 
     @property
-    def max_value(self) -> Optional[float]:
+    def max_value(self):
         """
         None|float:  The maximum value allowed (clipped above this)
         """
@@ -972,7 +981,7 @@ class Linear(MonochromaticRemap):
         return self._max_value
 
     @max_value.setter
-    def max_value(self, value: Optional[float]):
+    def max_value(self, value):
         if value is None:
             self._max_value = None
         else:
@@ -982,7 +991,7 @@ class Linear(MonochromaticRemap):
             self._max_value = value
 
     @property
-    def are_global_parameters_set(self) -> bool:
+    def are_global_parameters_set(self):
         """
         bool: Are (all) global parameters used for applying this remap function
         set? In this case, this is the `min_value` and `max_value` properties.
@@ -992,9 +1001,9 @@ class Linear(MonochromaticRemap):
 
     def _get_extrema(
             self,
-            amplitude: numpy.ndarray,
-            min_value: Optional[float],
-            max_value: Optional[float]) -> Tuple[float, float]:
+            amplitude,
+            min_value,
+            max_value):
         if min_value is not None:
             min_value = float(min_value)
         if max_value is not None:
@@ -1018,9 +1027,9 @@ class Linear(MonochromaticRemap):
 
     def raw_call(
             self,
-            data: numpy.ndarray,
-            min_value: Optional[float] = None,
-            max_value: Optional[float] = None) -> numpy.ndarray:
+            data,
+            min_value = None,
+            max_value = None):
         """
         This performs the mapping from input data to output floating point
         version, this is directly used by the :func:`call` method.
@@ -1069,9 +1078,9 @@ class Linear(MonochromaticRemap):
 
     def call(
             self,
-            data: numpy.ndarray,
-            min_value: Optional[float] = None,
-            max_value: Optional[float] = None) -> numpy.ndarray:
+            data,
+            min_value = None,
+            max_value = None):
         """
         This performs the mapping from input data to output discrete version.
 
@@ -1107,9 +1116,9 @@ class Linear(MonochromaticRemap):
 
     def calculate_global_parameters_from_reader(
             self,
-            reader: SICDTypeReader,
-            index: int = 0,
-            pixel_bounds: Union[tuple, list, numpy.ndarray] = None) -> None:
+            reader,
+            index = 0,
+            pixel_bounds = None):
         pixel_bounds = self._validate_pixel_bounds(reader, index, pixel_bounds)
         self.min_value, self.max_value = get_data_extrema(
             pixel_bounds, reader, index, 25*1024*1024, percentile=None)
@@ -1125,11 +1134,11 @@ class Logarithmic(MonochromaticRemap):
 
     def __init__(
             self,
-            override_name: Optional[str] = None,
-            bit_depth: int = 8,
-            max_output_value: Optional[int] = None,
-            min_value: Optional[float] = None,
-            max_value: Optional[float] = None):
+            override_name = None,
+            bit_depth = 8,
+            max_output_value = None,
+            min_value = None,
+            max_value = None):
         """
 
         Parameters
@@ -1151,14 +1160,14 @@ class Logarithmic(MonochromaticRemap):
         self._max_value = max_value
 
     @property
-    def min_value(self) -> Optional[float]:
+    def min_value(self):
         """
         None|float: The minimum value allowed (clipped below this)
         """
         return self._min_value
 
     @min_value.setter
-    def min_value(self, value: Optional[float]):
+    def min_value(self, value):
         if value is None:
             self._min_value = None
         else:
@@ -1168,7 +1177,7 @@ class Logarithmic(MonochromaticRemap):
             self._min_value = value
 
     @property
-    def max_value(self) -> Optional[float]:
+    def max_value(self):
         """
         None|float:  The minimum value allowed (clipped above this)
         """
@@ -1176,7 +1185,7 @@ class Logarithmic(MonochromaticRemap):
         return self._max_value
 
     @max_value.setter
-    def max_value(self, value: Optional[float]):
+    def max_value(self, value):
         if value is None:
             self._max_value = None
         else:
@@ -1186,7 +1195,7 @@ class Logarithmic(MonochromaticRemap):
             self._max_value = value
 
     @property
-    def are_global_parameters_set(self) -> bool:
+    def are_global_parameters_set(self):
         """
         bool: Are (all) global parameters used for applying this remap function
         set? In this case, this is the `min_value` and `max_value` properties.
@@ -1196,9 +1205,9 @@ class Logarithmic(MonochromaticRemap):
 
     def _get_extrema(
             self,
-            amplitude: numpy.ndarray,
-            min_value: Optional[float],
-            max_value: Optional[float]) -> Tuple[float, float]:
+            amplitude,
+            min_value,
+            max_value):
         if min_value is not None:
             min_value = float(min_value)
         if max_value is not None:
@@ -1222,9 +1231,9 @@ class Logarithmic(MonochromaticRemap):
 
     def raw_call(
             self,
-            data: numpy.ndarray,
-            min_value: Optional[float] = None,
-            max_value: Optional[float] = None) -> numpy.ndarray:
+            data,
+            min_value = None,
+            max_value = None):
         """
         This performs the mapping from input data to output floating point
         version, this is directly used by the :func:`call` method.
@@ -1274,9 +1283,9 @@ class Logarithmic(MonochromaticRemap):
 
     def call(
             self,
-            data: numpy.ndarray,
-            min_value: Optional[float] = None,
-            max_value: Optional[float] = None) -> numpy.ndarray:
+            data,
+            min_value = None,
+            max_value = None):
         """
         This performs the mapping from input data to output discrete version.
 
@@ -1312,9 +1321,9 @@ class Logarithmic(MonochromaticRemap):
 
     def calculate_global_parameters_from_reader(
             self,
-            reader: SICDTypeReader,
-            index: int = 0,
-            pixel_bounds: Union[None, tuple, list, numpy.ndarray] = None) -> None:
+            reader,
+            index = 0,
+            pixel_bounds = None):
         pixel_bounds = self._validate_pixel_bounds(reader, index, pixel_bounds)
         self.min_value, self.max_value = get_data_extrema(
             pixel_bounds, reader, index, 25*1024*1024, percentile=None)
@@ -1330,13 +1339,13 @@ class PEDF(MonochromaticRemap):
 
     def __init__(
             self,
-            override_name: Optional[str] = None,
-            bit_depth: int = 8,
-            max_output_value: Optional[int] = None,
-            dmin: Union[int, float] = 30,
-            mmult: Union[int, float] = 40,
-            eps: float = 1e-5,
-            data_mean: Union[None, int, float] = None):
+            override_name = None,
+            bit_depth = 8,
+            max_output_value = None,
+            dmin = 30,
+            mmult = 40,
+            eps = 1e-5,
+            data_mean = None):
         """
 
         Parameters
@@ -1366,7 +1375,7 @@ class PEDF(MonochromaticRemap):
             dmin=dmin, mmult=mmult, eps=eps, data_mean=data_mean)
 
     @property
-    def are_global_parameters_set(self) -> bool:
+    def are_global_parameters_set(self):
         """
         bool: Are (all) global parameters used for applying this remap function
         set? In this case, this is the `data_mean` property.
@@ -1376,8 +1385,8 @@ class PEDF(MonochromaticRemap):
 
     def raw_call(
             self,
-            data: numpy.ndarray,
-            data_mean: Optional[float] = None) -> numpy.ndarray:
+            data,
+            data_mean = None):
         """
         This performs the mapping from input data to output floating point
         version, this is directly used by the :func:`call` method.
@@ -1404,8 +1413,8 @@ class PEDF(MonochromaticRemap):
 
     def call(
             self,
-            data: numpy.ndarray,
-            data_mean: Optional[float] = None) -> numpy.ndarray:
+            data,
+            data_mean = None):
         """
         This performs the mapping from input data to output discrete version.
 
@@ -1435,9 +1444,9 @@ class PEDF(MonochromaticRemap):
 
     def calculate_global_parameters_from_reader(
             self,
-            reader: SICDTypeReader,
-            index: int = 0,
-            pixel_bounds: Union[None, tuple, list, numpy.ndarray] = None) -> None:
+            reader,
+            index = 0,
+            pixel_bounds = None):
         self._density.calculate_global_parameters_from_reader(
             reader, index=index, pixel_bounds=pixel_bounds)
 
@@ -1453,12 +1462,12 @@ class NRL(MonochromaticRemap):
 
     def __init__(
             self,
-            override_name: Optional[str] = None,
-            bit_depth: int = 8,
-            max_output_value: Optional[int] = None,
-            knee: Optional[int] = None,
-            percentile: Union[int, float] = 99,
-            stats: Optional[Tuple[float, float, float]] = None):
+            override_name = None,
+            bit_depth = 8,
+            max_output_value = None,
+            knee = None,
+            percentile = 99,
+            stats = None):
         """
         Parameters
         ----------
@@ -1484,14 +1493,14 @@ class NRL(MonochromaticRemap):
         self._set_stats(stats)
 
     @property
-    def knee(self) -> float:
+    def knee(self):
         """
         float: The for switching from linear to logarithmic occurs in the colormap regime
         """
 
         return self._knee
 
-    def _set_knee(self, knee: Optional[float]):
+    def _set_knee(self, knee):
         max_value = self.max_output_value
         if knee is None:
             knee = 0.8*max_value
@@ -1503,7 +1512,7 @@ class NRL(MonochromaticRemap):
         self._knee = knee
 
     @property
-    def percentile(self) -> float:
+    def percentile(self):
         """
         float: In the event that we are calculating the stats, which percentile
         is the cut-off for lin-log switch-over?
@@ -1511,7 +1520,7 @@ class NRL(MonochromaticRemap):
 
         return self._percentile
 
-    def _set_percentile(self, percentile: Union[None, int, float]):
+    def _set_percentile(self, percentile):
         if percentile is None:
             percentile = 99.0
         else:
@@ -1522,14 +1531,14 @@ class NRL(MonochromaticRemap):
         self._percentile = percentile
 
     @property
-    def stats(self) -> Optional[Tuple[float, float, float]]:
+    def stats(self):
         """
         None|tuple: If populated, this is a tuple of the form `(minimum, maximum, changeover)`.
         """
 
         return self._stats
 
-    def _set_stats(self, value: Optional[Tuple[float, float, float]]):
+    def _set_stats(self, value):
         if value is None:
             self._stats = None
         else:
@@ -1537,8 +1546,8 @@ class NRL(MonochromaticRemap):
 
     def _validate_stats(
             self,
-            amplitude: Optional[numpy.ndarray],
-            stats: Optional[Tuple[float, float, float]]) -> Optional[Tuple[float, float, float]]:
+            amplitude,
+            stats):
         if stats is None:
             stats = self.stats
         if stats is None and amplitude is not None:
@@ -1553,7 +1562,7 @@ class NRL(MonochromaticRemap):
         return stats
 
     @property
-    def are_global_parameters_set(self) -> bool:
+    def are_global_parameters_set(self):
         """
         bool: Are (all) global parameters used for applying this remap function
         set? In this case, this is the `stats` property.
@@ -1563,8 +1572,8 @@ class NRL(MonochromaticRemap):
 
     def raw_call(
             self,
-            data: numpy.ndarray,
-            stats: Optional[Tuple[float, float, float]] = None) -> numpy.ndarray:
+            data,
+            stats = None):
         """
         This performs the mapping from input data to output floating point
         version, this is directly used by the :func:`call` method.
@@ -1618,8 +1627,8 @@ class NRL(MonochromaticRemap):
 
     def call(
             self,
-            data: numpy.ndarray,
-            stats: Optional[Tuple[float, float, float]] = None) -> numpy.ndarray:
+            data,
+            stats = None):
         """
         This performs the mapping from input data to output discrete version.
 
@@ -1650,9 +1659,9 @@ class NRL(MonochromaticRemap):
 
     def calculate_global_parameters_from_reader(
             self,
-            reader: SICDTypeReader,
-            index: int = 0,
-            pixel_bounds: Union[None, tuple, list, numpy.ndarray] = None) -> None:
+            reader,
+            index = 0,
+            pixel_bounds = None):
         pixel_bounds = self._validate_pixel_bounds(reader, index, pixel_bounds)
         self._set_stats(
             get_data_extrema(
@@ -1671,10 +1680,10 @@ class LUT8bit(RemapFunction):
 
     def __init__(
             self,
-            mono_remap: MonochromaticRemap,
-            lookup_table: Union[str, numpy.ndarray],
-            override_name: Optional[str] = None,
-            use_alpha: bool = False):
+            mono_remap,
+            lookup_table,
+            override_name = None,
+            use_alpha = False):
         """
 
         Parameters
@@ -1696,7 +1705,7 @@ class LUT8bit(RemapFunction):
 
         self._mono_remap = None
         self._lookup_table = None
-        if override_name is None and isinstance(lookup_table, str):
+        if override_name is None and isinstance(lookup_table, string_types):
             override_name = lookup_table
         RemapFunction.__init__(
             self,
@@ -1707,7 +1716,7 @@ class LUT8bit(RemapFunction):
         self._set_mono_remap(mono_remap)
         self._set_lookup_table(lookup_table, use_alpha)
 
-    def _set_dimension(self, value: int):
+    def _set_dimension(self, value):
         """
         The property is intended to be read-only.
 
@@ -1719,19 +1728,19 @@ class LUT8bit(RemapFunction):
         self._dimension = value
 
     @property
-    def mono_remap(self) -> MonochromaticRemap:
+    def mono_remap(self):
         """
         MonochromaticRemap: The monochromatic remap being used.
         """
         return self._mono_remap
 
-    def _set_mono_remap(self, value: MonochromaticRemap):
+    def _set_mono_remap(self, value):
         if not isinstance(value, MonochromaticRemap):
             raise ValueError('mono_remap requires a monochromatic remap instance')
         self._mono_remap = value
 
     @property
-    def lookup_table(self) -> numpy.ndarray:
+    def lookup_table(self):
         """
         numpy.ndarray: The 8-bit lookup table.
         """
@@ -1740,10 +1749,10 @@ class LUT8bit(RemapFunction):
 
     def _set_lookup_table(
             self,
-            value: Union[str, numpy.ndarray],
-            use_alpha: bool) -> None:
+            value,
+            use_alpha):
         max_out_size = self.mono_remap.max_output_value
-        if isinstance(value, str):
+        if isinstance(value, string_types):
             if plt is None:
                 raise ImportError(
                     'The lookup_table has been specified by providing a matplotlib '
@@ -1764,7 +1773,7 @@ class LUT8bit(RemapFunction):
         self._dimension = value.shape[1]
 
     @property
-    def are_global_parameters_set(self) -> bool:
+    def are_global_parameters_set(self):
         """
         bool: Are (all) global parameters used for applying this remap function set?
         """
@@ -1773,8 +1782,8 @@ class LUT8bit(RemapFunction):
 
     def raw_call(
             self,
-            data: numpy.ndarray,
-            **kwargs) -> numpy.ndarray:
+            data,
+            **kwargs):
         """
         Contrary to monochromatic remaps, this is identical to :func:`call`.
 
@@ -1793,15 +1802,15 @@ class LUT8bit(RemapFunction):
 
     def call(
             self,
-            data: numpy.ndarray,
-            **kwargs) -> numpy.ndarray:
+            data,
+            **kwargs):
         return self.raw_call(data, **kwargs)
 
     def calculate_global_parameters_from_reader(
             self,
-            reader: SICDTypeReader,
-            index: int = 0,
-            pixel_bounds: Union[None, tuple, list, numpy.ndarray] = None) -> None:
+            reader,
+            index = 0,
+            pixel_bounds = None):
         self.mono_remap.calculate_global_parameters_from_reader(
             reader, index=index, pixel_bounds=pixel_bounds)
 
@@ -1810,8 +1819,8 @@ class LUT8bit(RemapFunction):
 # registration function for maintaining the list
 
 def register_remap(
-        remap_function: Union[RemapFunction, Type],
-        overwrite: bool = False) -> None:
+        remap_function,
+        overwrite = False):
     """
     Register a remap function for general usage.
 
@@ -1891,7 +1900,7 @@ def _register_defaults():
     _DEFAULTS_REGISTERED = True
 
 
-def get_remap_names() -> List[str]:
+def get_remap_names():
     """
     Gets a list of currently registered remap function names.
 
@@ -1905,7 +1914,7 @@ def get_remap_names() -> List[str]:
     return list( _REMAP_DICT.keys())
 
 
-def get_remap_list() -> List[Tuple[str, RemapFunction]]:
+def get_remap_list():
     """
     Gets a list of currently registered remaps.
 
@@ -1924,9 +1933,9 @@ def get_remap_list() -> List[Tuple[str, RemapFunction]]:
     return [(the_key, the_value) for the_key, the_value in _REMAP_DICT.items()]
 
 def get_registered_remap(
-        remap_name: str,
-        default: Optional[RemapFunction] = None,
-        bit_depth=8)             -> RemapFunction:
+        remap_name,
+        default = None,
+        bit_depth=8):
     """
     Gets a remap instance via its registered name.
     

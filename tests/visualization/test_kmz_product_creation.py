@@ -4,7 +4,10 @@
 # Licensed under MIT License.  See LICENSE.
 #
 import json
-import pathlib
+try:
+    import pathlib
+except ImportError:
+    import pathlib2 as pathlib
 import xml.etree.ElementTree
 import zipfile
 

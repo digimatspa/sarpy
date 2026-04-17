@@ -1,7 +1,16 @@
 """
 This module provides structures for performing data labelling on a background image
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import open
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -44,13 +53,13 @@ class LabelSchema(object):
 
     def __init__(
             self,
-            version: Optional[str] = '1.0',
-            labels: Optional[Dict[str, str]] = None,
-            version_date: Optional[str] = None,
-            classification: str = "UNCLASSIFIED",
-            subtypes: Optional[Dict[str, List[str]]] = None,
-            confidence_values: Optional[List[Union[int, str]]] = None,
-            permitted_geometries: Optional[List[str]] = None):
+            version = '1.0',
+            labels = None,
+            version_date = None,
+            classification = "UNCLASSIFIED",
+            subtypes = None,
+            confidence_values = None,
+            permitted_geometries = None):
         """
 
         Parameters
@@ -94,7 +103,7 @@ class LabelSchema(object):
         self.set_labels_and_subtypes(labels, subtypes)
 
     @property
-    def version(self) -> str:
+    def version(self):
         """
         The version of the schema.
 
@@ -106,7 +115,7 @@ class LabelSchema(object):
         return self._version
 
     @property
-    def version_date(self) -> str:
+    def version_date(self):
         """
         The date for this schema version - this should be a viable datetime format,
         but this is unenforced.
@@ -118,14 +127,14 @@ class LabelSchema(object):
 
         return self._version_date
 
-    def update_version_date(self, value: Optional[str] = None):
-        if isinstance(value, str):
+    def update_version_date(self, value = None):
+        if isinstance(value, string_types):
             self._version_date = value
         else:
             self._version_date = datetime.utcnow().isoformat('T')+'Z'
 
     @property
-    def classification(self) -> str:
+    def classification(self):
         """
         str: The classification for the contents of this schema.
         """
@@ -133,7 +142,7 @@ class LabelSchema(object):
         return self._classification
 
     @property
-    def suggested_next_id(self) -> Optional[int]:
+    def suggested_next_id(self):
         """
         None|int: If all ids are integer type, this returns max_id+1. Otherwise, this
         yields None.
@@ -142,7 +151,7 @@ class LabelSchema(object):
         return None if self._maximum_id is None else self._maximum_id + 1
 
     @property
-    def labels(self) -> Dict[str, str]:
+    def labels(self):
         """
         The complete label dictionary of the form `{label_id : label_name}`.
 
@@ -154,7 +163,7 @@ class LabelSchema(object):
         return self._labels
 
     @property
-    def subtypes(self) -> Dict[str, List[str]]:
+    def subtypes(self):
         """
         The complete dictionary of subtypes of the form `{parent_id : <subids list>}`.
 
@@ -166,7 +175,7 @@ class LabelSchema(object):
         return self._subtypes
 
     @property
-    def parent_types(self) -> Dict[str, List[str]]:
+    def parent_types(self):
         """
         The dictionary of parent types of the form `{child_id : <set of parent ids>}`.
         It is canonically defined that an id is a parent of itself. The order of
@@ -181,7 +190,7 @@ class LabelSchema(object):
         return self._parent_types
 
     @property
-    def confidence_values(self) -> List[Union[int, str]]:
+    def confidence_values(self):
         """
         The list of confidence values.
 
@@ -204,7 +213,7 @@ class LabelSchema(object):
         self._confidence_values = conf_values
 
     @property
-    def permitted_geometries(self) -> Optional[List[str]]:
+    def permitted_geometries(self):
         """
         The collection of permitted geometry types. None corresponds to all.
         Entries should be one of `{'point', 'line', 'polygon'}`.
@@ -222,7 +231,7 @@ class LabelSchema(object):
             self._permitted_geometries = None
             return
 
-        if isinstance(values, str):
+        if isinstance(values, string_types):
             values = [values.lower().strip(), ]
         else:
             values = [entry.lower().strip() for entry in values]
@@ -241,7 +250,7 @@ class LabelSchema(object):
 
         self._permitted_geometries = temp_values
 
-    def get_id_from_name(self, the_name: str) -> Optional[str]:
+    def get_id_from_name(self, the_name):
         """
         Determine the id from the given name. Get `None` if this fails.
 
@@ -261,7 +270,7 @@ class LabelSchema(object):
                 break
         return prospective
 
-    def get_parent(self, the_id: str) -> str:
+    def get_parent(self, the_id):
         """
         Get the parent id for the given element id. The empty string is returned
         for elements with no parent.
@@ -278,16 +287,16 @@ class LabelSchema(object):
         parents = self.parent_types[the_id]
         return parents[1] if len(parents) > 1 else ''
 
-    def __str__(self) -> str:
+    def __str__(self):
         return json.dumps(self.to_dict(), indent=1)
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return json.dumps(self.to_dict())
 
-    def _inspect_new_id_for_integer(self, the_id: Union[int, str]) -> None:
+    def _inspect_new_id_for_integer(self, the_id):
         if not self._integer_ids:
             return  # nothing to do
-        if isinstance(the_id, str):
+        if isinstance(the_id, string_types):
             # noinspection PyBroadException
             try:
                 the_id = int(the_id)
@@ -303,14 +312,14 @@ class LabelSchema(object):
             self._integer_ids = False
             self._maximum_id = None
 
-    def _inspect_ids_for_integer(self) -> None:
+    def _inspect_ids_for_integer(self):
         for the_id in self._labels:
             self._inspect_new_id_for_integer(the_id)
 
     @staticmethod
     def _find_inverted_fork(
-            subtypes: Dict[str, List[str]],
-            labels: Dict[str, str]) -> Dict[str, List[str]]:
+            subtypes,
+            labels):
         """
         Look for parents claiming the same child. This assigns all unclaimed children
         to '' parent.
@@ -331,7 +340,7 @@ class LabelSchema(object):
         # ensure that every key of subtypes is a string and every value is a list,
         # also that inclusion makes sense
         for key, value in subtypes.items():
-            if not isinstance(key, str):
+            if not isinstance(key, string_types):
                 raise TypeError(
                     'All keys of subtypes must be of type string. Got key `{}` of '
                     'type {}.'.format(key, type(key)))
@@ -364,7 +373,7 @@ class LabelSchema(object):
         return subtypes
 
     @staticmethod
-    def _find_cycle(subtypes: Dict[str, List[str]]) -> None:
+    def _find_cycle(subtypes):
         """
         Find any cycles in the data.
 
@@ -395,8 +404,8 @@ class LabelSchema(object):
 
     def set_labels_and_subtypes(
             self,
-            labels: Dict[str, str],
-            subtypes: Dict[str, List[str]]) -> None:
+            labels,
+            subtypes):
         """
         Set the labels and subtypes. **Note that subtypes may be modified in place.**
 
@@ -422,14 +431,14 @@ class LabelSchema(object):
 
         # ensure that every key and value of labels are strings
         for key in labels:
-            if not isinstance(key, str):
+            if not isinstance(key, string_types):
                 raise TypeError(
                     'All keys of labels must be of type string. Got key `{}` of '
                     'type {}'.format(key, type(key)))
             if key == '':
                 raise ValueError('The empty string is not a valid label id.')
             value = labels[key]
-            if not isinstance(value, str):
+            if not isinstance(value, string_types):
                 raise TypeError(
                     'All values of labels must be of type string. Got value {} '
                     'for key `{}` of type {}'.format(value, key, type(value)))
@@ -445,7 +454,7 @@ class LabelSchema(object):
         self._construct_parent_types()
         self._inspect_ids_for_integer()
 
-    def _construct_parent_types(self) -> None:
+    def _construct_parent_types(self):
         def iterate(t_key, parents):
             entry = [t_key, ]
             # noinspection PyUnresolvedReferences
@@ -463,9 +472,9 @@ class LabelSchema(object):
 
     def _validate_entry(
             self,
-            the_id: str,
-            the_name: str,
-            the_parent: str) -> Tuple[str, str, str]:
+            the_id,
+            the_name,
+            the_parent):
         """
         Validate the basics for the given entry.
 
@@ -483,7 +492,7 @@ class LabelSchema(object):
         """
 
         # validate inputs
-        if not (isinstance(the_id, str) and isinstance(the_name, str) and isinstance(the_parent, str)):
+        if not (isinstance(the_id, string_types) and isinstance(the_name, string_types) and isinstance(the_parent, string_types)):
             raise TypeError(
                 'the_id, the_name, and the_parent must all be string type, got '
                 'types {}, {}, {}'.format(type(the_id), type(the_name), type(the_parent)))
@@ -510,9 +519,9 @@ class LabelSchema(object):
 
     def add_entry(
             self,
-            the_id: str,
-            the_name: str,
-            the_parent: str = '') -> None:
+            the_id,
+            the_name,
+            the_parent = ''):
         """
         Adds a new entry. Note that leading or trailing blanks will be trimmed
         from all input values.
@@ -564,9 +573,9 @@ class LabelSchema(object):
 
     def change_entry(
             self,
-            the_id: str,
-            the_name: str,
-            the_parent: str) -> bool:
+            the_id,
+            the_name,
+            the_parent):
         """
         Modify the values for a schema element.
 
@@ -631,8 +640,8 @@ class LabelSchema(object):
 
     def delete_entry(
             self,
-            the_id: str,
-            recursive: bool = False) -> None:
+            the_id,
+            recursive = False):
         """
         Deletes the entry from the schema.
 
@@ -668,8 +677,8 @@ class LabelSchema(object):
 
     def reorder_child_element(
             self,
-            the_id: str,
-            spaces: int = 1) -> bool:
+            the_id,
+            spaces = 1):
         """
         Move the one space (forward or backward) in the list of children for the
         current parent. This is explicitly changes no actual parent/child
@@ -708,7 +717,7 @@ class LabelSchema(object):
         return True
 
     @classmethod
-    def from_file(cls, file_name: str):
+    def from_file(cls, file_name):
         """
         Read schema from a file.
 
@@ -726,7 +735,7 @@ class LabelSchema(object):
         return cls.from_dict(input_dict)
 
     @classmethod
-    def from_dict(cls, input_dict: Dict):
+    def from_dict(cls, input_dict):
         """
         Construct from a dictionary.
 
@@ -750,7 +759,7 @@ class LabelSchema(object):
             version, labels, version_date=version_date, classification=classification,
             subtypes=subtypes, confidence_values=conf_values, permitted_geometries=perm_geometries)
 
-    def to_dict(self) -> Dict:
+    def to_dict(self):
         """
         Serialize to a dictionary representation.
 
@@ -771,7 +780,7 @@ class LabelSchema(object):
         out['subtypes'] = self._subtypes
         return out
 
-    def to_file(self, file_name: str) -> None:
+    def to_file(self, file_name):
         """
         Write to a (json) file.
 
@@ -784,10 +793,19 @@ class LabelSchema(object):
         None
         """
 
-        with open(file_name, 'w') as fi:
-            json.dump(self.to_dict(), fi, indent=1)
+        import sys
+        if sys.version_info[0] >= 3:
+            # Python 3: comportamento standard
+            with open(filename, 'w') as fi:
+                json.dump(self.to_dict(), fi, indent=1)
+        else:
+            # Python 2.7: usa io.open per gestire correttamente Unicode
+            import io
+            with io.open(filename, 'w', encoding='utf-8') as fi:
+                # Usa ensure_ascii=False per scrivere direttamente Unicode
+                json.dump(self.to_dict(), fi, indent=1, ensure_ascii=False)
 
-    def is_valid_confidence(self, value: List) -> bool:
+    def is_valid_confidence(self, value):
         """
         Is the given value a valid confidence (i.e. is in `confidence_values`)?
         Note that `None` is always considered valid here.
@@ -806,7 +824,7 @@ class LabelSchema(object):
         else:
             return value in self._confidence_values
 
-    def is_valid_geometry(self, value: List) -> bool:
+    def is_valid_geometry(self, value):
         """
         Is the given geometry type allowed (i.e. is in `permitted_geometries`)?
         Note that `None` is always considered valid here.
@@ -847,7 +865,7 @@ class LabelSchema(object):
         if self._permitted_geometries is None or value is None:
             return True
 
-        if isinstance(value, str):
+        if isinstance(value, string_types):
             return value.lower().strip() in self._permitted_geometries
         if not isinstance(value, Geometry):
             raise TypeError('Got unexpected geometry type `{}`'.format(type(value)))
@@ -867,11 +885,11 @@ class LabelMetadata(Jsonable):
 
     def __init__(
             self,
-            label_id: Optional[str] = None,
-            user_id: Optional[str] = None,
-            comment: Optional[str] = None,
-            confidence: Union[None, int, str] = None,
-            timestamp: Union[None, int, float] = None):
+            label_id = None,
+            user_id = None,
+            comment = None,
+            confidence = None,
+            timestamp = None):
         """
 
         Parameters
@@ -901,7 +919,7 @@ class LabelMetadata(Jsonable):
         self.timestamp = timestamp  # type: float
 
     @classmethod
-    def from_dict(cls, the_json: Dict):
+    def from_dict(cls, the_json):
         typ = the_json['type']
         if typ != cls._type:
             raise ValueError('LabelMetadata cannot be constructed from {}'.format(the_json))
@@ -912,7 +930,7 @@ class LabelMetadata(Jsonable):
             confidence=the_json.get('confidence', None),
             timestamp=the_json.get('timestamp', None))
 
-    def to_dict(self, parent_dict: Optional[Dict] = None):
+    def to_dict(self, parent_dict = None):
         if parent_dict is None:
             parent_dict = OrderedDict()
         parent_dict['type'] = self.type
@@ -937,7 +955,7 @@ class LabelMetadataList(Jsonable):
     __slots__ = ('_elements', )
     _type = 'LabelMetadataList'
 
-    def __init__(self, elements: Union[None, List[LabelMetadata], Dict] = None):
+    def __init__(self, elements = None):
         """
 
         Parameters
@@ -961,7 +979,7 @@ class LabelMetadataList(Jsonable):
         return self._elements[item]
 
     @property
-    def elements(self) -> Optional[List[LabelMetadata]]:
+    def elements(self):
         """
         The LabelMetadata elements.
 
@@ -982,7 +1000,7 @@ class LabelMetadataList(Jsonable):
         for element in elements:
             self.insert_new_element(element)
 
-    def insert_new_element(self, element: LabelMetadata) -> None:
+    def insert_new_element(self, element):
         """
         Inserts an element at the head of the elements list.
 
@@ -1018,7 +1036,7 @@ class LabelMetadataList(Jsonable):
             raise ValueError('LabelMetadataList cannot be constructed from {}'.format(the_json))
         return cls(elements=the_json.get('elements', None))
 
-    def to_dict(self, parent_dict: Optional[Dict] = None):
+    def to_dict(self, parent_dict = None):
         if parent_dict is None:
             parent_dict = OrderedDict()
         parent_dict['type'] = self.type
@@ -1036,7 +1054,7 @@ class LabelMetadataList(Jsonable):
         the_type = self.__class__
         return the_type(**kwargs)
 
-    def get_label_id(self) -> Optional[str]:
+    def get_label_id(self):
         """
         Gets the current label id.
 
@@ -1202,7 +1220,7 @@ class LabelCollection(AnnotationCollection):
         if self._features is None:
             raise StopIteration
 
-        if isinstance(item, str):
+        if isinstance(item, string_types):
             index = self._feature_dict[item]
             return self._features[index]
         return self._features[item]
@@ -1225,7 +1243,7 @@ class FileLabelCollection(FileAnnotationCollection):
         if version is None:
             version = _LABEL_VERSION
 
-        if isinstance(label_schema, str):
+        if isinstance(label_schema, string_types):
             label_schema = LabelSchema.from_file(label_schema)
         elif isinstance(label_schema, dict):
             label_schema = LabelSchema.from_dict(label_schema)

@@ -1,5 +1,8 @@
 """Make a simple NITF 2.1 with two bands (I/Q) stored as band interleave by block."""
-import pathlib
+try:
+    import pathlib
+except ImportError:
+    import pathlib2 as pathlib
 
 import numpy as np
 from osgeo import gdal

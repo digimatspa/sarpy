@@ -1,7 +1,15 @@
 """
 The main NITF header definitions.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -352,9 +360,9 @@ class NITFHeader0(NITFElement):
 
     @FVER.setter
     def FVER(self, value):
-        if isinstance(value, bytes) and not isinstance(value, str):
+        if isinstance(value, bytes) and not isinstance(value, string_types):
             value = value.decode('utf-8')
-        if not isinstance(value, str):
+        if not isinstance(value, string_types):
             raise TypeError('FVER is required to be a string')
         if len(value) != 5:
             raise ValueError('FVER must have length 5')

@@ -1,7 +1,17 @@
 """
 General purpose rational polynomial tools
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+#from builtins import str
+from builtins import int
+from builtins import range
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -24,7 +34,7 @@ class SarpyRatPolyError(SarpyError):
 #################
 # helper functions
 
-def _get_num_variables(coeff_list: Sequence[Union[int, Tuple[int, ...]]]) -> int:
+def _get_num_variables(coeff_list):
     """
     Determine the number of variables by inspection of the coefficient list
 
@@ -54,7 +64,7 @@ def _get_num_variables(coeff_list: Sequence[Union[int, Tuple[int, ...]]]) -> int
     return variables
 
 
-def _map_list_to_poly_matrix(coeffs: Sequence[float], coeff_list: Sequence[Tuple[int, ...]]) -> numpy.ndarray:
+def _map_list_to_poly_matrix(coeffs, coeff_list):
     """
     Maps the coefficients and coefficient listing to corresponding
     numpy polynomial coefficient matrix.
@@ -81,7 +91,7 @@ def _map_list_to_poly_matrix(coeffs: Sequence[float], coeff_list: Sequence[Tuple
     return coefficient_array
 
 
-def get_default_coefficient_ordering(variables: int, order: int) -> Sequence[Tuple[int, ...]]:
+def get_default_coefficient_ordering(variables, order):
     """
     Gets a sensible coefficient ordering of a polynomial of given number of
     variables and order.
@@ -118,10 +128,10 @@ def get_default_coefficient_ordering(variables: int, order: int) -> Sequence[Tup
 # base rational polynomial fitting functions
 
 def rational_poly_fit_1d(
-        x: numpy.ndarray,
-        data: numpy.ndarray,
-        coeff_list: Sequence[Union[int, Tuple[int]]],
-        cond: Optional[float] = None) -> Tuple[numpy.ndarray, numpy.ndarray]:
+        x,
+        data,
+        coeff_list,
+        cond = None):
     """
     Fits a one variable rational polynomial according to the input coefficient
     listing order.
@@ -196,11 +206,11 @@ def rational_poly_fit_1d(
 
 
 def rational_poly_fit_2d(
-        x: numpy.ndarray,
-        y: numpy.ndarray,
-        data: numpy.ndarray,
-        coeff_list: Sequence[Tuple[int, int]],
-        cond: Optional[float] = None) -> Tuple[numpy.ndarray, numpy.ndarray]:
+        x,
+        y,
+        data,
+        coeff_list,
+        cond = None):
     """
     Fits a two variable rational polynomial according to the input coefficient
     listing order.
@@ -277,12 +287,12 @@ def rational_poly_fit_2d(
 
 
 def rational_poly_fit_3d(
-        x: numpy.ndarray,
-        y: numpy.ndarray,
-        z: numpy.ndarray,
-        data: numpy.ndarray,
-        coeff_list: Sequence[Tuple[int, int, int]],
-        cond: Optional[float] = None) -> Tuple[numpy.ndarray, numpy.ndarray]:
+        x,
+        y,
+        z,
+        data,
+        coeff_list,
+        cond = None):
     """
     Fits a three variable rational polynomial according to the input coefficient
     listing order.
@@ -394,13 +404,13 @@ class RationalPolynomial(object):
 
     def __init__(
             self,
-            numerator: Union[Sequence[float], numpy.ndarray],
-            denominator: Union[Sequence[float], numpy.ndarray],
-            coeff_list: Sequence[Tuple[int, ...]],
-            input_offsets: Sequence[float],
-            input_scales: Sequence[float],
-            output_offset: float,
-            output_scale: float):
+            numerator,
+            denominator,
+            coeff_list,
+            input_offsets,
+            input_scales,
+            output_offset,
+            output_scale):
         """
 
         Parameters
@@ -441,7 +451,7 @@ class RationalPolynomial(object):
         self._denominator_array = _map_list_to_poly_matrix(denominator, coeff_list)
 
     @property
-    def variables(self) -> int:
+    def variables(self):
         """
         The number of independent variables.
 
@@ -453,7 +463,7 @@ class RationalPolynomial(object):
         return self._variables
 
     @property
-    def coefficient_list(self) -> Sequence[Tuple[int, ...]]:
+    def coefficient_list(self):
         """
         The coefficient list.
 
@@ -465,7 +475,7 @@ class RationalPolynomial(object):
         return self._coeff_list
 
     @property
-    def numerator(self) -> Sequence[float]:
+    def numerator(self):
         """
         The numerator coefficients.
 
@@ -477,7 +487,7 @@ class RationalPolynomial(object):
         return self._numerator
 
     @property
-    def denominator(self) -> Sequence[float]:
+    def denominator(self):
         """
         The denominator coefficients.
 
@@ -488,7 +498,7 @@ class RationalPolynomial(object):
 
         return self._denominator
 
-    def __call__(self, *input_variables: List[numpy.ndarray]) -> numpy.ndarray:
+    def __call__(self, *input_variables):
         def ensure_the_type(data):
             if isinstance(data, (numpy.number, int, float, numpy.ndarray)):
                 return data
@@ -542,7 +552,7 @@ class RationalPolynomial(object):
         return value*self._output_scale + self._output_offset
 
 
-def _get_scale_and_offset(array: numpy.ndarray) -> Tuple[float, float]:
+def _get_scale_and_offset(array):
     min_value = numpy.min(array)
     max_value = numpy.max(array)
     scale_value = 0.5*(max_value - min_value)
@@ -551,11 +561,11 @@ def _get_scale_and_offset(array: numpy.ndarray) -> Tuple[float, float]:
 
 
 def get_rational_poly_1d(
-        x: numpy.ndarray,
-        data: numpy.ndarray,
-        coeff_list: Optional[Sequence[Union[int, Tuple[int]]]] = None,
-        order: Optional[int] = None,
-        cond: Optional[float] = None) -> RationalPolynomial:
+        x,
+        data,
+        coeff_list = None,
+        order = None,
+        cond = None):
     """
     Gets the RationalPolynomial instance that comes from fitting the provided data.
 
@@ -602,12 +612,12 @@ def get_rational_poly_1d(
 
 
 def get_rational_poly_2d(
-        x: numpy.ndarray,
-        y: numpy.ndarray,
-        data: numpy.ndarray,
-        coeff_list: Optional[Sequence[Tuple[int, int]]] = None,
-        order: Optional[int] = None,
-        cond: Optional[float] = None) -> RationalPolynomial:
+        x,
+        y,
+        data,
+        coeff_list = None,
+        order = None,
+        cond = None):
     """
     Gets the RationalPolynomial instance that comes from fitting the provided data.
 
@@ -656,13 +666,13 @@ def get_rational_poly_2d(
 
 
 def get_rational_poly_3d(
-        x: numpy.ndarray,
-        y: numpy.ndarray,
-        z: numpy.ndarray,
-        data: numpy.ndarray,
-        coeff_list: Optional[Sequence[Tuple[int, int]]] = None,
-        order: Optional[int] = None,
-        cond: Optional[float] = None) -> RationalPolynomial:
+        x,
+        y,
+        z,
+        data,
+        coeff_list = None,
+        order = None,
+        cond = None):
     """
     Gets the RationalPolynomial instance that comes from fitting the provided data.
 
@@ -723,7 +733,7 @@ class CombinedRationalPolynomial(object):
 
     __slots__ = ('_collection', )
 
-    def __init__(self, *collection: List[RationalPolynomial]):
+    def __init__(self, *collection):
         if len(collection) == 1 and isinstance(collection[0], Sequence):
             collection = collection[0]
         if len(collection) < 2:
@@ -747,8 +757,9 @@ class CombinedRationalPolynomial(object):
 
     def __call__(
             self,
-            *args: List[numpy.ndarray],
-            combine: bool = True) -> Union[Tuple[numpy.ndarray, ...], numpy.ndarray]:
+            *args, **_3to2kwargs):
+        if 'combine' in _3to2kwargs: combine = _3to2kwargs['combine']; del _3to2kwargs['combine']
+        else: combine =  True
         out = tuple([entry(*args) for entry in self._collection])
         if combine:
             return numpy.stack(out, axis=-1)

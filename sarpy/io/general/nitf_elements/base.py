@@ -1,6 +1,18 @@
 """
 Base NITF Header functionality definition.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
+from builtins import zip
+from builtins import range
+#from builtins import str
+from builtins import super
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -95,7 +107,7 @@ def _get_bytes(val, length):
     elif isinstance(val, int):
         frm_str = '{0:0' + str(length) + 'd}'
         return frm_str.format(val).encode('utf-8')
-    elif isinstance(val, str):
+    elif isinstance(val, string_types):
         frm_str = '{0:' + str(length) + 's}'
         return frm_str.format(val).encode('utf-8')
     elif isinstance(val, bytes):
@@ -174,7 +186,7 @@ def _parse_str(val, length, default, name, instance):
 
     if isinstance(val, bytes):
         val = bytes_to_string(val)
-    elif not isinstance(val, str):
+    elif not isinstance(val, string_types):
         val = str(val)
 
     val = val.rstrip()
@@ -656,7 +668,7 @@ class NITFElement(BaseNITFElement):
             value = getattr(self, fld)
             if value is None:
                 out[fld] = ''
-            elif isinstance(value, (str, bytes, int)):
+            elif isinstance(value, (string_types, bytes, int)):
                 out[fld] = value
             elif isinstance(value, BaseNITFElement):
                 out[fld] = value.to_json()
@@ -1011,7 +1023,7 @@ class UnknownTRE(TRE):
         if isinstance(TAG, bytes):
             TAG = TAG.decode('utf-8')
 
-        if not isinstance(TAG, str):
+        if not isinstance(TAG, string_types):
             raise TypeError('TAG must be a string. Got {}'.format(type(TAG)))
         if len(TAG) > 6:
             raise ValueError('TAG must be 6 or fewer characters')
@@ -1129,7 +1141,7 @@ class TREList(NITFElement):
         # type: (Union[int, slice, str]) -> Union[None, TRE, List[TRE]]
         if isinstance(item, (int, slice)):
             return self._tres[item]
-        elif isinstance(item, str):
+        elif isinstance(item, string_types):
             for entry in self.tres:
                 if entry.TAG == item:
                     return entry

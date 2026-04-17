@@ -1,7 +1,15 @@
 """
 The CollectionInfo object definition.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -33,8 +41,8 @@ class RadarModeType(Serializable):
 
     def __init__(
             self,
-            ModeType: str = None,
-            ModeID: Optional[str] = None,
+            ModeType = None,
+            ModeID = None,
             **kwargs):
         """
 
@@ -53,7 +61,7 @@ class RadarModeType(Serializable):
         self.ModeType = ModeType
         super(RadarModeType, self).__init__(**kwargs)
 
-    def get_mode_abbreviation(self) -> str:
+    def get_mode_abbreviation(self):
         """
         Get the mode abbreviation for the suggested name.
 
@@ -116,14 +124,14 @@ class CollectionInfoType(Serializable):
 
     def __init__(
             self,
-            CollectorName: str = None,
-            IlluminatorName: Optional[str] = None,
-            CoreName: str = None,
-            CollectType: Optional[str] = None,
-            RadarMode: RadarModeType = None,
-            Classification: str = "UNCLASSIFIED",
-            CountryCodes: Union[str, List[str]] = None,
-            Parameters: Union[ParametersCollection, Dict] = None,
+            CollectorName = None,
+            IlluminatorName = None,
+            CoreName = None,
+            CollectType = None,
+            RadarMode = None,
+            Classification = "UNCLASSIFIED",
+            CountryCodes = None,
+            Parameters = None,
             **kwargs):
         """
 

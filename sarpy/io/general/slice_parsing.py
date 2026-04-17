@@ -1,7 +1,16 @@
 """
 Utilities for parsing slice input.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import int
+from builtins import range
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = 'Thomas McCullough'
 
@@ -9,7 +18,7 @@ from typing import Union, Tuple, Sequence
 import numpy
 
 
-def validate_slice_int(the_int: int, bound: int, include: bool = True) -> int:
+def validate_slice_int(the_int, bound, include = True):
     """
     Ensure that the given integer makes sense as a slice entry, and move to
     a normalized form.
@@ -39,7 +48,7 @@ def validate_slice_int(the_int: int, bound: int, include: bool = True) -> int:
     return the_int
 
 
-def verify_slice(item: Union[None, int, slice, Tuple[int, ...]], max_element: int) -> slice:
+def verify_slice(item, max_element):
     """
     Verify a given slice against a bound.
 
@@ -57,7 +66,7 @@ def verify_slice(item: Union[None, int, slice, Tuple[int, ...]], max_element: in
         populated unless `step < 0` and `stop` must be `None`.
     """
 
-    def check_bound(entry: Union[None, int]) -> Union[None, int]:
+    def check_bound(entry):
         if entry is None:
             return entry
         elif -max_element <= entry < 0:
@@ -100,8 +109,8 @@ def verify_slice(item: Union[None, int, slice, Tuple[int, ...]], max_element: in
 
 
 def verify_subscript(
-        subscript: Union[None, int, slice, Sequence[Union[int, slice, Tuple[int, ...]]]],
-        corresponding_shape: Tuple[int, ...]) -> Tuple[slice, ...]:
+        subscript,
+        corresponding_shape):
     """
     Verify a subscript like item against a corresponding shape.
 
@@ -165,7 +174,7 @@ def verify_subscript(
         raise ValueError('Got unhandled subscript {}'.format(subscript))
 
 
-def get_slice_result_size(slice_in: slice) -> int:
+def get_slice_result_size(slice_in):
     """
     Gets the size of the slice result. This assumes a normalized slice definition.
 
@@ -190,8 +199,8 @@ def get_slice_result_size(slice_in: slice) -> int:
 
 
 def get_subscript_result_size(
-        subscript: Union[None, int, slice, Sequence[Union[int, slice, Tuple[int, ...]]]],
-        corresponding_shape: Tuple[int, ...]) -> Tuple[Tuple[slice, ...], Tuple[int, ...]]:
+        subscript,
+        corresponding_shape):
     """
     Validate the given subscript against the corresponding shape, and also determine
     the shape of the resultant data reading result.

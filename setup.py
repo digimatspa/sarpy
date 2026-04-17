@@ -45,10 +45,13 @@ def my_package_data():
 
 
 def my_test_suite():
-    import unittest
-    test_loader = unittest.TestLoader()
-    test_suite = test_loader.discover('tests', top_level_dir='.')
-    return test_suite
+    try:
+        import unittest2 as unittest
+    except ImportError:
+        import unittest
+        test_loader = unittest.TestLoader()
+        test_suite = test_loader.discover('tests', top_level_dir='.')
+        return test_suite
 
 
 setup(name=parameters['__title__'],
@@ -62,11 +65,11 @@ setup(name=parameters['__title__'],
       url=parameters['__url__'],
       author=parameters['__author__'],
       author_email=parameters['__email__'],  # The primary POC
-      install_requires=['h5py', 'numpy>=1.19.0', 'pillow', 'scipy', 'matplotlib', 'shapely>=1.6.4', 'lxml>=4.1.1', 'deprecated'],
+      install_requires=['h5py', 'numpy', 'pillow', 'scipy', 'matplotlib', 'shapely', 'lxml', 'deprecated', 'importlib_metadata', 'pathlib2'],
       zip_safe=False,  # Use of __file__ and __path__ in some code makes it unusable from zip
       test_suite="setup.my_test_suite",
       extras_require={
-        "all": ['smart_open[http]', 'pytest>=3.3.2', 'networkx>=2.5'],
+        "all": ['smart_open[http]', 'pytest>=3.3.2', 'networkx>=2.5', 'mock'],
       },
       classifiers=[
           'Development Status :: 4 - Beta',

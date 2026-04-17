@@ -1,7 +1,15 @@
 """
 Definition for the ObjectInfo NGA modified RDE/AFRL labeling object
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __authors__ = "Thomas McCullough"
 
@@ -799,7 +807,7 @@ class TheObjectType(Serializable):
         self.Size = Size
         self.Orientation = Orientation
 
-        if isinstance(Articulation, (str, dict)):
+        if isinstance(Articulation, (string_types, dict)):
             self.add_articulation(Articulation)
         elif isinstance(Articulation, list):
             for entry in Articulation:
@@ -807,7 +815,7 @@ class TheObjectType(Serializable):
         else:
             self.Articulation = Articulation
 
-        if isinstance(Configuration, (str, dict)):
+        if isinstance(Configuration, (string_types, dict)):
             self.add_configuration(Configuration)
         elif isinstance(Configuration, list):
             for entry in Configuration:
@@ -1165,7 +1173,7 @@ class TheObjectType(Serializable):
         if value is None:
             return
 
-        if isinstance(value, str):
+        if isinstance(value, string_types):
             value = StringWithComponentType(Value=value)
         elif isinstance(value, dict):
             value = StringWithComponentType(**value)
@@ -1182,7 +1190,7 @@ class TheObjectType(Serializable):
         if value is None:
             return
 
-        if isinstance(value, str):
+        if isinstance(value, string_types):
             value = StringWithComponentType(Value=value)
         elif isinstance(value, dict):
             value = StringWithComponentType(**value)

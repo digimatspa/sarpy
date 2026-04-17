@@ -1,4 +1,7 @@
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 import numpy
 from sarpy.io.general.format_function import IdentityFunction, ComplexFormatFunction, SingleLUTFormatFunction
@@ -178,11 +181,10 @@ class TestComplexFunction(unittest.TestCase):
 class TestSingleLUTFormatFunction(unittest.TestCase):
     def test_forward(self):
         lut_sizes = ((24248,), (1<<16, 3))
-        rng = numpy.random.default_rng()
         for lut_size in lut_sizes:
-            with self.subTest(msg=f'LUT size:{lut_size}'):
-                base_data = rng.integers(lut_size[0], size=(51, 49), dtype=numpy.uint16)
-                lut = rng.integers(1<<8, size=lut_size, dtype=numpy.uint8)
+            with self.subTest(msg='LUT size:{}'.format(lut_size)):
+                base_data = numpy.random.randint(lut_size[0], size=(51, 49), dtype=numpy.uint16)
+                lut = numpy.random.randint(1<<8, size=lut_size, dtype=numpy.uint8)
                 out_shape = base_data.shape if len(lut_size) == 1 else base_data.shape + (lut_size[1],)
                 func = SingleLUTFormatFunction(lut, base_data.shape, out_shape)
                 out_data = func(base_data, (slice(0, 51, 1), slice(0, 49, 1)))

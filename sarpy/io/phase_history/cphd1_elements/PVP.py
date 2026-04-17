@@ -1,7 +1,15 @@
 """
 The Per Vector parameters (PVP) definition.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -239,9 +247,9 @@ class TxAntennaType(Serializable):
 
     def __init__(
             self,
-            TxACX: PerVectorParameterXYZ = None,
-            TxACY: PerVectorParameterXYZ = None,
-            TxEB: PerVectorParameterEB = None,
+            TxACX = None,
+            TxACY = None,
+            TxEB = None,
             **kwargs):
         """
         Parameters
@@ -276,9 +284,9 @@ class RcvAntennaType(Serializable):
 
     def __init__(
             self,
-            RcvACX: Optional[PerVectorParameterXYZ] = None,
-            RcvACY: Optional[PerVectorParameterXYZ] = None,
-            RcvEB: Optional[PerVectorParameterEB] = None,
+            RcvACX = None,
+            RcvACY = None,
+            RcvEB = None,
             **kwargs):
         """
         Parameters
@@ -395,33 +403,33 @@ class PVPType(Serializable):
 
     def __init__(
             self,
-            TxTime: PerVectorParameterF8 = None,
-            TxPos: PerVectorParameterXYZ = None,
-            TxVel: PerVectorParameterXYZ = None,
-            RcvTime: PerVectorParameterF8 = None,
-            RcvPos: PerVectorParameterXYZ = None,
-            RcvVel: PerVectorParameterXYZ = None,
-            SRPPos: PerVectorParameterXYZ = None,
-            AmpSF: Optional[PerVectorParameterF8] = None,
-            aFDOP: PerVectorParameterF8 = None,
-            aFRR1: PerVectorParameterF8 = None,
-            aFRR2: PerVectorParameterF8 = None,
-            FX1: PerVectorParameterF8 = None,
-            FX2: PerVectorParameterF8 = None,
-            FXN1: Optional[PerVectorParameterF8] = None,
-            FXN2: Optional[PerVectorParameterF8] = None,
-            TOA1: PerVectorParameterF8 = None,
-            TOA2: PerVectorParameterF8 = None,
-            TOAE1: Optional[PerVectorParameterF8] = None,
-            TOAE2: Optional[PerVectorParameterF8] = None,
-            TDTropoSRP: PerVectorParameterF8 = None,
-            TDIonoSRP: Optional[PerVectorParameterF8] = None,
-            SC0: PerVectorParameterF8 = None,
-            SCSS: PerVectorParameterF8 = None,
-            SIGNAL: Optional[PerVectorParameterI8] = None,
-            TxAntenna: Optional[TxAntennaType] = None,
-            RcvAntenna: Optional[RcvAntennaType] = None,
-            AddedPVP: Optional[List[UserDefinedPVPType]] = None,
+            TxTime = None,
+            TxPos = None,
+            TxVel = None,
+            RcvTime = None,
+            RcvPos = None,
+            RcvVel = None,
+            SRPPos = None,
+            AmpSF = None,
+            aFDOP = None,
+            aFRR1 = None,
+            aFRR2 = None,
+            FX1 = None,
+            FX2 = None,
+            FXN1 = None,
+            FXN2 = None,
+            TOA1 = None,
+            TOA2 = None,
+            TOAE1 = None,
+            TOAE2 = None,
+            TDTropoSRP = None,
+            TDIonoSRP = None,
+            SC0 = None,
+            SCSS = None,
+            SIGNAL = None,
+            TxAntenna = None,
+            RcvAntenna = None,
+            AddedPVP = None,
             **kwargs):
         """
 
@@ -529,7 +537,7 @@ class PVPType(Serializable):
         None|Tuple[int, int, str]
         """
 
-        def get_return(the_val) -> Union[None, Tuple[int, int, str]]:
+        def get_return(the_val):
             if the_val is None:
                 return None
             return the_val.Offset*8, the_val.Size*8, homogeneous_dtype(the_val.Format).char
@@ -598,7 +606,7 @@ class PVPType(Serializable):
                 offsets.append(val.Offset*bytes_per_word)
         return numpy.dtype({'names': names, 'formats': formats, 'offsets': offsets})
 
-    def version_required(self) -> Tuple[int, int, int]:
+    def version_required(self):
         required = (1, 0, 1)
         if self.TxAntenna is not None or self.RcvAntenna is not None:
             required = max(required, (1, 1, 0))

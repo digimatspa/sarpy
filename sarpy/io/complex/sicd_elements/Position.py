@@ -1,7 +1,15 @@
 """
 The PositionType definition.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -44,9 +52,9 @@ class PositionType(Serializable):
 
     def __init__(
             self,
-            ARPPoly: XYZPolyType = None,
-            GRPPoly: Optional[XYZPolyType] = None,
-            TxAPCPoly: Optional[XYZPolyType] = None,
+            ARPPoly = None,
+            GRPPoly = None,
+            TxAPCPoly = None,
             RcvAPC=None,
             **kwargs):
         """
@@ -107,7 +115,7 @@ class PositionType(Serializable):
         coefs[:, 2] = acc
         self.ARPPoly = XYZPolyType(X=coefs[0, :], Y=coefs[1, :], Z=coefs[2, :])
 
-    def _basic_validity_check(self) -> bool:
+    def _basic_validity_check(self):
         condition = super(PositionType, self)._basic_validity_check()
         if self.ARPPoly is not None and \
                 (self.ARPPoly.X.order1 < 1 or self.ARPPoly.Y.order1 < 1 or self.ARPPoly.Z.order1 < 1):

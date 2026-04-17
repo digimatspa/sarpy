@@ -2,7 +2,17 @@
 This module provides structures for annotating a given SICD type file for RCS
 calculations
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import open
+from builtins import int
+from builtins import dict
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -638,7 +648,7 @@ class RCSCollection(AnnotationCollection):
         if self._features is None:
             raise StopIteration
 
-        if isinstance(item, str):
+        if isinstance(item, string_types):
             index = self._feature_dict[item]
             return self._features[index]
         return self._features[item]

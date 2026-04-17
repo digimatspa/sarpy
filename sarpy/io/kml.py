@@ -1,7 +1,19 @@
 """
 Functionality for exporting certain data elements to a kml document
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import range
+from builtins import zip
+from builtins import open
+from builtins import int
+#from builtins import str
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -67,13 +79,13 @@ class Document(object):
 
     def __str__(self):
         xml = self._doc.toprettyxml(encoding='utf-8')
-        if not isinstance(xml, str):
+        if not isinstance(xml, string_types):
             return xml.decode('utf-8')
         else:
             return xml
 
     def _set_file(self, file_name):
-        if isinstance(file_name, str):
+        if isinstance(file_name, string_types):
             fext = os.path.splitext(file_name)[1]
             if fext not in ['.kml', '.kmz']:
                 logger.warning('file extension should be one of .kml or .kmz, got {}. This will be treated as a kml file.'.format(fext))
@@ -189,7 +201,7 @@ class Document(object):
             return None
 
         nod = self._doc.createElement(tag)
-        if isinstance(value, str):
+        if isinstance(value, string_types):
             nod.appendChild(self._doc.createTextNode(value))
         else:
             nod.appendChild(self._doc.createTextNode(str(value)))
@@ -202,7 +214,7 @@ class Document(object):
             return None
 
         nod = self._doc.createElement(tag)
-        if isinstance(value, str):
+        if isinstance(value, string_types):
             nod.appendChild(self._doc.createCDATASection(value))
         else:
             nod.appendChild(self._doc.createCDATASection(str(value)))
@@ -259,7 +271,7 @@ class Document(object):
             ts = self._create_new_node(container, 'TimeStamp')
             self._add_text_node(ts, 'when', params['when'])
         elif 'visibility' in params:
-            if isinstance(params['visibility'], str):
+            if isinstance(params['visibility'], string_types):
                 visibility = params['visibility']
             else:
                 visibility = '1' if params['visibility'] else '0'
@@ -970,7 +982,7 @@ class Document(object):
             llq = self._create_new_node(overlay, 'gx:LatLonQuad')
             coords = ''
             for entry in lat_lon_quad:
-                if isinstance(entry, str):
+                if isinstance(entry, string_types):
                     coords += entry.strip() + ' '
                 elif len(entry) >= 2:
                     coords += '{0:0.8f},{1:0.8f} '.format(entry[1], entry[0])

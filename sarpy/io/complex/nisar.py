@@ -1,7 +1,15 @@
 """
 Functionality for reading NISAR data into a SICD model.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import round
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -54,7 +62,7 @@ logger = logging.getLogger(__name__)
 ###########
 # parser and interpreter for hdf5 attributes
 
-def _stringify(val: Union[str, bytes]) -> str:
+def _stringify(val):
     """
     Decode the value as necessary, for hdf5 string support issues.
 
@@ -70,7 +78,7 @@ def _stringify(val: Union[str, bytes]) -> str:
     return bytes_to_string(val).strip()
 
 
-def _get_ref_time(str_in: Union[str, bytes]) -> numpy.datetime64:
+def _get_ref_time(str_in):
     """
     Extract the given reference time.
 
@@ -90,7 +98,7 @@ def _get_ref_time(str_in: Union[str, bytes]) -> numpy.datetime64:
     return parse_timestring(str_in[len(prefix):], precision='ns')
 
 
-def _get_string_list(array: Sequence[bytes]) -> List[str]:
+def _get_string_list(array):
     return [bytes_to_string(el) for el in array]
 
 
@@ -101,7 +109,7 @@ class NISARDetails(object):
 
     __slots__ = ('_file_name', )
 
-    def __init__(self, file_name: str):
+    def __init__(self, file_name):
         """
 
         Parameters
@@ -126,7 +134,7 @@ class NISARDetails(object):
         self._file_name = file_name
 
     @property
-    def file_name(self) -> str:
+    def file_name(self):
         """
         str: the file name
         """
@@ -134,7 +142,7 @@ class NISARDetails(object):
         return self._file_name
 
     @staticmethod
-    def _get_frequency_list(hf: h5pyFile) -> List[str]:
+    def _get_frequency_list(hf):
         """
         Gets the list of frequencies.
 
@@ -150,7 +158,7 @@ class NISARDetails(object):
         return _get_string_list(hf['/science/LSAR/identification/listOfFrequencies'][:])
 
     @staticmethod
-    def _get_collection_times(hf: h5pyFile) -> Tuple[numpy.datetime64, numpy.datetime64, float]:
+    def _get_collection_times(hf):
         """
         Gets the collection start and end times, and inferred duration.
 
@@ -177,8 +185,8 @@ class NISARDetails(object):
 
     @staticmethod
     def _get_zero_doppler_data(
-            hf: h5pyFile,
-            base_sicd: SICDType) -> Tuple[numpy.ndarray, float, numpy.ndarray, numpy.ndarray]:
+            hf,
+            base_sicd):
         """
         Gets zero-doppler parameters.
 
@@ -212,7 +220,7 @@ class NISARDetails(object):
         grid_zd_time = ds[:] + get_seconds(ref_time, base_sicd.Timeline.CollectStart, precision='ns')
         return zd_time, ss_az_s, grid_r, grid_zd_time
 
-    def _get_base_sicd(self, hf: h5pyFile) -> SICDType:
+    def _get_base_sicd(self, hf):
         """
         Defines the base SICD object, to be refined with further details.
 
@@ -221,7 +229,7 @@ class NISARDetails(object):
         SICDType
         """
 
-        def get_collection_info() -> CollectionInfoType:
+        def get_collection_info():
             gp = hf['/science/LSAR/identification']
             return CollectionInfoType(
                 CollectorName=_stringify(hf.attrs['mission_name']),
@@ -231,7 +239,7 @@ class NISARDetails(object):
                 Classification='UNCLASSIFIED',
                 RadarMode=RadarModeType(ModeType='STRIPMAP'))
 
-        def get_image_creation() -> ImageCreationType:
+        def get_image_creation():
             application = 'ISCE'
             # noinspection PyBroadException
             try:
@@ -249,7 +257,7 @@ class NISARDetails(object):
                 Site='Unknown',
                 Profile='sarpy {}'.format(__version__))
 
-        def get_geo_data() -> GeoDataType:
+        def get_geo_data():
             # seeds a rough SCP for projection usage
             poly_str = _stringify(hf['/science/LSAR/identification/boundingPolygon'][()])
             beg_str = 'POLYGON (('
@@ -271,7 +279,7 @@ class NISARDetails(object):
                 hf['/science/LSAR/SLC/metadata/processingInformation/parameters/referenceTerrainHeight'][:])
             return GeoDataType(SCP=SCPType(LLH=llh))
 
-        def get_grid() -> GridType:
+        def get_grid():
 
             # TODO: Future Change Required - JPL states that uniform weighting in data simulated
             #  from UAVSAR is a placeholder, not an accurate description of the data.
@@ -297,14 +305,14 @@ class NISARDetails(object):
 
             return GridType(ImagePlane='SLANT', Type='RGZERO', Row=row, Col=col)
 
-        def get_timeline() -> TimelineType:
+        def get_timeline():
             # NB: IPPEnd must be set, but will be replaced
             return TimelineType(
                 CollectStart=collect_start,
                 CollectDuration=duration,
                 IPP=[IPPSetType(index=0, TStart=0, TEnd=duration, IPPStart=0, IPPEnd=0), ])
 
-        def get_position() -> PositionType:
+        def get_position():
             gp = hf['/science/LSAR/SLC/metadata/orbit']
             ref_time = _get_ref_time(gp['time'].attrs['units'])
             T = gp['time'][:] + get_seconds(ref_time, collect_start, precision='ns')
@@ -313,12 +321,12 @@ class NISARDetails(object):
             P_x, P_y, P_z = fit_position_xvalidation(T, Pos, Vel, max_degree=8)
             return PositionType(ARPPoly=XYZPolyType(X=P_x, Y=P_y, Z=P_z))
 
-        def get_scpcoa() -> SCPCOAType:
+        def get_scpcoa():
             # remaining fields set later
             sot = _stringify(hf['/science/LSAR/identification/lookDirection'][()])[0].upper()
             return SCPCOAType(SideOfTrack=sot)
 
-        def get_image_formation() -> ImageFormationType:
+        def get_image_formation():
             return ImageFormationType(
                 ImageFormAlgo='RMA',
                 TStartProc=0,
@@ -329,7 +337,7 @@ class NISARDetails(object):
                 RgAutofocus='NO',
                 RcvChanProc=RcvChanProcType(NumChanProc=1, PRFScaleFactor=1))
 
-        def get_rma() -> RMAType:
+        def get_rma():
             return RMAType(RMAlgoType='OMEGA_K', INCA=INCAType(DopCentroidCOA=True))
 
         collect_start, collect_end, duration = self._get_collection_times(hf)
@@ -356,8 +364,8 @@ class NISARDetails(object):
 
     @staticmethod
     def _get_freq_specific_sicd(
-            gp: h5pyGroup,
-            base_sicd: SICDType) -> Tuple[SICDType, List[str], List[str], float]:
+            gp,
+            base_sicd):
         """
         Gets the frequency specific sicd.
 
@@ -374,19 +382,19 @@ class NISARDetails(object):
         center_frequency : float
         """
 
-        def update_grid() -> None:
+        def update_grid():
             row_imp_resp_bw = 2*gp['processedRangeBandwidth'][()]/speed_of_light
             t_sicd.Grid.Row.SS = gp['slantRangeSpacing'][()]
             t_sicd.Grid.Row.ImpRespBW = row_imp_resp_bw
             t_sicd.Grid.Row.DeltaK1 = -0.5*row_imp_resp_bw
             t_sicd.Grid.Row.DeltaK2 = -t_sicd.Grid.Row.DeltaK1
 
-        def update_timeline() -> None:
+        def update_timeline():
             prf = gp['nominalAcquisitionPRF'][()]
             t_sicd.Timeline.IPP[0].IPPEnd = round(prf*t_sicd.Timeline.CollectDuration) - 1
             t_sicd.Timeline.IPP[0].IPPPoly = [0, prf]
 
-        def define_radar_collection() -> List[str]:
+        def define_radar_collection():
             tx_rcv_pol_t = []
             tx_pol = []
             for entry in pols:
@@ -411,7 +419,7 @@ class NISARDetails(object):
                 TxSequence=tx_sequence)
             return tx_rcv_pol_t
 
-        def update_image_formation() -> float:
+        def update_image_formation():
             center_freq_t = gp['processedCenterFrequency'][()]
             bw = gp['processedRangeBandwidth'][()]
             t_sicd.ImageFormation.TxFrequencyProc = (center_freq_t - 0.5*bw, center_freq_t + 0.5*bw)
@@ -428,25 +436,25 @@ class NISARDetails(object):
 
     @staticmethod
     def _get_pol_specific_sicd(
-            hf: h5pyFile,
-            ds: h5pyDataset,
-            base_sicd: SICDType,
-            pol_name: str,
-            freq_name: str,
-            j: int,
-            pol: str,
-            r_ca_sampled: numpy.ndarray,
-            zd_time: numpy.ndarray,
-            grid_zd_time: numpy.ndarray,
-            grid_r: numpy.ndarray,
-            doprate_sampled: numpy.ndarray,
-            dopcentroid_sampled: numpy.ndarray,
-            center_freq: float,
-            ss_az_s: float,
-            dop_bw: float,
+            hf,
+            ds,
+            base_sicd,
+            pol_name,
+            freq_name,
+            j,
+            pol,
+            r_ca_sampled,
+            zd_time,
+            grid_zd_time,
+            grid_r,
+            doprate_sampled,
+            dopcentroid_sampled,
+            center_freq,
+            ss_az_s,
+            dop_bw,
             beta0,
             gamma0,
-            sigma0) -> Tuple[SICDType, Tuple[int, ...], numpy.dtype]:
+            sigma0):
         """
         Gets the frequency/polarization specific sicd.
 
@@ -476,7 +484,7 @@ class NISARDetails(object):
         numpy.dtype
         """
 
-        def define_image_data() -> None:
+        def define_image_data():
             if dtype.name in ('float32', 'complex64'):
                 pixel_type = 'RE32F_IM32F'
             elif dtype.name == 'int16':
@@ -492,11 +500,11 @@ class NISARDetails(object):
                 SCPPixel=[0.5*shape[0], 0.5*shape[1]],
                 FullImage=[shape[1], shape[0]])
 
-        def update_image_formation() -> None:
+        def update_image_formation():
             t_sicd.ImageFormation.RcvChanProc.ChanIndices = [j, ]
             t_sicd.ImageFormation.TxRcvPolarizationProc = pol
 
-        def update_inca_and_grid() -> Tuple[numpy.ndarray, numpy.ndarray]:
+        def update_inca_and_grid():
             t_sicd.RMA.INCA.R_CA_SCP = r_ca_sampled[t_sicd.ImageData.SCPPixel.Row]
             scp_ca_time = zd_time[t_sicd.ImageData.SCPPixel.Col]
 
@@ -553,8 +561,8 @@ class NISARDetails(object):
 
             return coords_rg_2d_t, coords_az_2d_t
 
-        def define_radiometric() -> None:
-            def get_poly(ds: h5pyDataset, name: str) -> Optional[Poly2DType]:
+        def define_radiometric():
+            def get_poly(ds, name):
                 array = ds[:]
                 fill = ds.attrs['_FillValue']
                 boolc = (array != fill)
@@ -603,7 +611,7 @@ class NISARDetails(object):
                 NoiseLevel=NoiseLevelType_(
                     NoiseLevelType='ABSOLUTE', NoisePoly=Poly2DType(Coefs=coefs)))
 
-        def update_geodata() -> None:
+        def update_geodata():
             ecf = point_projection.image_to_ground(
                 [t_sicd.ImageData.SCPPixel.Row, t_sicd.ImageData.SCPPixel.Col], t_sicd)
             t_sicd.GeoData.SCP = SCPType(ECF=ecf)  # LLH will be populated
@@ -621,11 +629,7 @@ class NISARDetails(object):
         t_sicd.populate_rniirs(override=False)
         return t_sicd, shape, dtype
 
-    def get_sicd_collection(self) -> Tuple[
-            Dict[str, SICDType],
-            Dict[str, Tuple[Tuple[int, ...], numpy.dtype]],
-            Optional[Tuple[int, ...]],
-            Optional[Tuple[int, ...]]]:
+    def get_sicd_collection(self):
         """
         Get the sicd collection for the bands.
 
@@ -699,7 +703,7 @@ class NISARReader(SICDTypeReader):
 
     __slots__ = ('_nisar_details', )
 
-    def __init__(self, nisar_details: Union[str, NISARDetails]):
+    def __init__(self, nisar_details):
         """
 
         Parameters
@@ -708,7 +712,7 @@ class NISARReader(SICDTypeReader):
             file name or NISARDetails object
         """
 
-        if isinstance(nisar_details, str):
+        if isinstance(nisar_details, string_types):
             nisar_details = NISARDetails(nisar_details)
         if not isinstance(nisar_details, NISARDetails):
             raise TypeError('The input argument for NISARReader must be a '
@@ -740,7 +744,7 @@ class NISARReader(SICDTypeReader):
         self._check_sizes()
 
     @property
-    def nisar_details(self) -> NISARDetails:
+    def nisar_details(self):
         """
         NISARDetails: The nisar details object.
         """
@@ -748,7 +752,7 @@ class NISARReader(SICDTypeReader):
         return self._nisar_details
 
     @property
-    def file_name(self) -> str:
+    def file_name(self):
         return self.nisar_details.file_name
 
 
@@ -756,7 +760,7 @@ class NISARReader(SICDTypeReader):
 # base expected functionality for a module with an implemented Reader
 
 
-def is_a(file_name: str) -> Optional[NISARReader]:
+def is_a(file_name):
     """
     Tests whether a given file_name corresponds to a NISAR file. Returns a reader instance, if so.
 

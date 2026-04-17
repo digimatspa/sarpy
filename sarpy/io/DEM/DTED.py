@@ -1,13 +1,27 @@
 """
 Classes and methods for parsing and using digital elevation models in DTED format.
 """
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import open
+from builtins import int
+from builtins import range
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
 import logging
 import os
-import pathlib
+
+try:
+    import pathlib
+except ImportError:
+    import pathlib2 as pathlib
 import struct
 
 import numpy
@@ -221,11 +235,11 @@ class DTEDList(DEMList):
         # validate the dem types list
         if dem_type is None:
             dem_type = get_default_prioritization()
-        elif isinstance(dem_type, str):
+        elif isinstance(dem_type, string_types):
             dem_type = [dem_type, ]
         # loop over the prioritized list of types and check
         for entry in dem_type:
-            if not isinstance(entry, str):
+            if not isinstance(entry, string_types):
                 raise TypeError(
                     'Got entry {} of dem_type, this is required to be of string type'.format(entry))
             # validate dem_type options
@@ -360,30 +374,29 @@ class DTEDReader(object):
             data = self._mem_map[item, 4:-2]
         return self._repair_values(data)
 
-    @staticmethod
-    def _repair_values(elevations):
-        """
-        Convert 2-bytes signed magnitude to twos complement.
+@staticmethod
+def _repair_values(elevations):
+    """
+    Convert 2-bytes signed magnitude to twos complement.
 
-        Parameters
-        ----------
-        elevations : numpy.ndarray
+    Parameters
+    ----------
+    elevations : numpy.ndarray
 
-        Returns
-        -------
-        numpy.ndarray
+    Returns
+    -------
+    numpy.ndarray
 
-        Notes
-        -----
-        Per MIL-PRF-89020B Section 3.11.1:
+    Notes
+    -----
+    Per MIL-PRF-89020B Section 3.11.1:
 
-            All elevation values are signed magnitude binary integers, right justified,
-            16 bits (2 bytes). The sign bit is in the high order position.
-
-        """              
-        out = (elevations & 0x7f_ff).astype(numpy.int16)
-        out *= (-1) ** ((elevations & 0x80_00) != 0)
-        return out
+        All elevation values are signed magnitude binary integers, right justified,
+        16 bits (2 bytes). The sign bit is in the high order position.
+    """
+    out = (elevations & 0x7fff).astype(numpy.int16)
+    out *= (-1) ** ((elevations & 0x8000) != 0)
+    return out
 
     def _linear(self, ix, dx, iy, dy):
         # type: (numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray) -> numpy.ndarray
@@ -563,14 +576,14 @@ class DTEDInterpolator(DEMInterpolator):
     __slots__ = ('_readers', '_geoid', '_ref_geoid')
 
     def __init__(self, files, geoid_file, lat_lon_box=None, ignore_voids=False):
-        if isinstance(files, str):
+        if isinstance(files, string_types):
             files = [files, ]
         # get a reader object for each file
         self._readers = [DTEDReader(fil, ignore_voids) for fil in files]
 
         # get the geoid object - we should prefer egm96 .pgm files, since that's the DTED spec
         #   in reality, it makes very little difference, though
-        if isinstance(geoid_file, (str, pathlib.Path)):
+        if isinstance(geoid_file, (string_types, pathlib.Path)):
             if os.path.isdir(geoid_file):
                 geoid_file = GeoidHeight.from_directory(geoid_file, search_files=('egm96-5.pgm', 'egm96-15.pgm'))
             else:
@@ -621,7 +634,7 @@ class DTEDInterpolator(DEMInterpolator):
         DTEDInterpolator
         """
 
-        if isinstance(dted_list, str):
+        if isinstance(dted_list, string_types):
             dted_list = DTEDList(dted_list)
         if not isinstance(dted_list, DTEDList):
             raise ValueError(

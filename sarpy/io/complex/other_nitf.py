@@ -1,7 +1,17 @@
 """
 Work in progress for reading some other kind of complex NITF.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import zip
+from builtins import range
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -54,9 +64,9 @@ _iso_date_format = '{}-{}-{}T{}:{}:{}'
 # Define sicd structure from image sub-header information
 
 def extract_sicd(
-        img_header: Union[ImageSegmentHeader, ImageSegmentHeader0],
-        transpose: True,
-        nitf_header: Optional[Union[NITFHeader, NITFHeader0]] = None) -> SICDType:
+        img_header,
+        transpose,
+        nitf_header = None):
     """
     Extract the best available SICD structure from relevant nitf header structures.
 
@@ -71,7 +81,7 @@ def extract_sicd(
     SICDType
     """
 
-    def get_collection_info() -> CollectionInfoType:
+    def get_collection_info():
         isorce = img_header.ISORCE.strip()
         collector_name = None if len(isorce) < 1 else isorce
 
@@ -101,7 +111,7 @@ def extract_sicd(
             CoreName=core_name,
             Classification=classification)
 
-    def get_image_data() -> ImageDataType:
+    def get_image_data():
         pvtype = img_header.PVTYPE
         if pvtype == 'C':
             if img_header.NBPP != 64:
@@ -136,7 +146,7 @@ def extract_sicd(
             FullImage=(rows, cols),
             SCPPixel=(0.5 * rows, 0.5 * cols))
 
-    def append_country_code(cc) -> None:
+    def append_country_code(cc):
         if len(cc) > 0:
             if the_sicd.CollectionInfo is None:
                 the_sicd.CollectionInfo = CollectionInfoType(CountryCodes=[cc, ])
@@ -145,20 +155,20 @@ def extract_sicd(
             elif cc not in the_sicd.CollectionInfo.CountryCodes:
                 the_sicd.CollectionInfo.CountryCodes.append(cc)
 
-    def set_image_corners(icps: numpy.ndarray, override: bool = False) -> None:
+    def set_image_corners(icps, override = False):
         if the_sicd.GeoData is None:
             the_sicd.GeoData = GeoDataType(ImageCorners=icps)
         elif the_sicd.GeoData.ImageCorners is None or override:
             the_sicd.GeoData.ImageCorners = icps
 
-    def set_arp_position(arp_ecf: numpy.ndarray, override: bool = False) -> None:
+    def set_arp_position(arp_ecf, override = False):
         if the_sicd.SCPCOA is None:
             the_sicd.SCPCOA = SCPCOAType(ARPPos=arp_ecf)
         elif override:
             # prioritize this information first - it should be more reliable than other sources
             the_sicd.SCPCOA.ARPPos = arp_ecf
 
-    def set_scp(scp_ecf: numpy.ndarray, scp_pixel: Union[numpy.ndarray, list, tuple], override: bool = False) -> None:
+    def set_scp(scp_ecf, scp_pixel, override = False):
         def set_scppixel():
             if the_sicd.ImageData is None:
                 the_sicd.ImageData = ImageDataType(SCPPixel=scp_pixel)
@@ -172,13 +182,13 @@ def extract_sicd(
             set_scppixel()
 
     def set_collect_start(
-            collect_start: Union[str, datetime, numpy.datetime64], override: bool = False) -> None:
+            collect_start, override = False):
         if the_sicd.Timeline is None:
             the_sicd.Timeline = TimelineType(CollectStart=collect_start)
         elif the_sicd.Timeline.CollectStart is None or override:
             the_sicd.Timeline.CollectStart = collect_start
 
-    def set_uvects(row_unit: numpy.ndarray, col_unit: numpy.ndarray) -> None:
+    def set_uvects(row_unit, col_unit):
         if the_sicd.Grid is None:
             the_sicd.Grid = GridType(
                 Row=DirParamType(UVectECF=row_unit),
@@ -195,7 +205,7 @@ def extract_sicd(
         elif the_sicd.Grid.Col.UVectECF is None:
             the_sicd.Grid.Col.UVectECF = col_unit
 
-    def try_CMETAA() -> None:
+    def try_CMETAA():
         # noinspection PyTypeChecker
         tre = None if tres is None else tres['CMETAA']  # type: CMETAA
         if tre is None:
@@ -340,7 +350,7 @@ def extract_sicd(
         the_sicd.ImageFormation.AzAutofocus = 'NO' if cmetaa.AF_TYPE[0] == 'N' else 'SV'
         the_sicd.ImageFormation.RgAutofocus = 'NO'
 
-    def try_AIMIDA() -> None:
+    def try_AIMIDA():
         tre = None if tres is None else tres['AIMIDA']
         if tre is None:
             return
@@ -357,7 +367,7 @@ def extract_sicd(
         collect_start = datetime.strptime(aimida.MISSION_DATE+aimida.TIME, '%d%b%y%H%M')
         set_collect_start(collect_start, override=False)
 
-    def try_AIMIDB() -> None:
+    def try_AIMIDB():
         tre = None if tres is None else tres['AIMIDB']
         if tre is None:
             return
@@ -374,7 +384,7 @@ def extract_sicd(
             date_str[8:10], date_str[10:12], date_str[12:14]), 'us')
         set_collect_start(collect_start, override=False)
 
-    def try_ACFT() -> None:
+    def try_ACFT():
         if tres is None:
             return
         tre = tres['ACFTA']
@@ -421,7 +431,7 @@ def extract_sicd(
         elif the_sicd.Grid.Col.SS is None:
             the_sicd.Grid.Col.SS = col_ss
 
-    def try_BLOCKA() -> None:
+    def try_BLOCKA():
         tre = None if tres is None else tres['BLOCKA']
         if tre is None:
             return
@@ -441,7 +451,7 @@ def extract_sicd(
             icps.append([lat_val, lon_val])
         set_image_corners(numpy.array(icps, dtype='float64'), override=False)
 
-    def try_MPDSRA() -> None:
+    def try_MPDSRA():
         def valid_array(arr):
             return numpy.all(numpy.isfinite(arr)) and numpy.any(arr != 0)
 
@@ -478,7 +488,7 @@ def extract_sicd(
             if valid_array(fpn_ecf):
                 the_sicd.PFA.FPN = fpn_ecf
 
-    def try_MENSRB() -> None:
+    def try_MENSRB():
         tre = None if tres is None else tres['MENSRB']
         if tre is None:
             return
@@ -507,7 +517,7 @@ def extract_sicd(
         set_uvects(ned_to_ecf(row_unit_ned, scp_ecf, absolute_coords=False),
                    ned_to_ecf(col_unit_ned, scp_ecf, absolute_coords=False))
 
-    def try_MENSRA() -> None:
+    def try_MENSRA():
         tre = None if tres is None else tres['MENSRA']
         if tre is None:
             return
@@ -537,14 +547,14 @@ def extract_sicd(
         set_uvects(ned_to_ecf(row_unit_ned, scp_ecf, absolute_coords=False),
                    ned_to_ecf(col_unit_ned, scp_ecf, absolute_coords=False))
 
-    def extract_corners() -> None:
+    def extract_corners():
         icps = extract_image_corners(img_header)
         if icps is None:
             return
         # TODO: include symmetry transform issue
         set_image_corners(icps, override=False)
 
-    def extract_start() -> None:
+    def extract_start():
         # noinspection PyBroadException
         try:
             date_str = img_header.IDATIM
@@ -584,7 +594,7 @@ def extract_sicd(
 
 # Helper methods for transforming data
 
-def get_linear_magnitude_scaling(scale_factor: float):
+def get_linear_magnitude_scaling(scale_factor):
     """
     Get a linear magnitude scaling function, to correct magnitude.
 
@@ -706,14 +716,14 @@ class ApplyAmplitudeScalingFunction(ComplexFormatFunction):
 
     def __init__(
             self,
-            raw_dtype: Union[str, numpy.dtype],
-            order: str,
-            scaling_function: Optional[Callable] = None,
-            raw_shape: Optional[Tuple[int, ...]] = None,
-            formatted_shape: Optional[Tuple[int, ...]] = None,
-            reverse_axes: Optional[Tuple[int, ...]] = None,
-            transpose_axes: Optional[Tuple[int, ...]] = None,
-            band_dimension: int = -1):
+            raw_dtype,
+            order,
+            scaling_function = None,
+            raw_shape = None,
+            formatted_shape = None,
+            reverse_axes = None,
+            transpose_axes = None,
+            band_dimension = -1):
         """
 
         Parameters
@@ -739,7 +749,7 @@ class ApplyAmplitudeScalingFunction(ComplexFormatFunction):
         self._set_scaling_function(scaling_function)
 
     @property
-    def scaling_function(self) -> Optional[Callable]:
+    def scaling_function(self):
         """
         The magnitude scaling function.
 
@@ -750,7 +760,7 @@ class ApplyAmplitudeScalingFunction(ComplexFormatFunction):
 
         return self._scaling_function
 
-    def _set_scaling_function(self, value: Optional[Callable]):
+    def _set_scaling_function(self, value):
         if value is None:
             self._scaling_function = None
             return
@@ -760,11 +770,11 @@ class ApplyAmplitudeScalingFunction(ComplexFormatFunction):
 
     def _forward_magnitude_theta(
             self,
-            data: numpy.ndarray,
-            out: numpy.ndarray,
-            magnitude: numpy.ndarray,
-            theta: numpy.ndarray,
-            subscript: Tuple[slice, ...]) -> None:
+            data,
+            out,
+            magnitude,
+            theta,
+            subscript):
         if self._scaling_function is not None:
             magnitude = self._scaling_function(magnitude)
         ComplexFormatFunction._forward_magnitude_theta(
@@ -772,8 +782,8 @@ class ApplyAmplitudeScalingFunction(ComplexFormatFunction):
 
 
 def _extract_transform_data(
-        image_header: Union[ImageSegmentHeader, ImageSegmentHeader0],
-        band_dimension: int):
+        image_header,
+        band_dimension):
     """
     Helper function for defining necessary transform_data definition for
     interpreting image segment data.
@@ -872,9 +882,9 @@ class ComplexNITFDetails(NITFDetails):
 
     def __init__(
             self,
-            file_name: str,
-            reverse_axes: Union[None, int, Sequence[int]] = None,
-            transpose_axes: Optional[Tuple[int, ...]] = None):
+            file_name,
+            reverse_axes = None,
+            transpose_axes = None):
         """
 
         Parameters
@@ -901,15 +911,15 @@ class ComplexNITFDetails(NITFDetails):
                 'No complex valued image segments found in file {}'.format(file_name))
 
     @property
-    def reverse_axes(self) -> Union[None, int, Sequence[int]]:
+    def reverse_axes(self):
         return self._reverse_axes
 
     @property
-    def transpose_axes(self) -> Optional[Tuple[int, ...]]:
+    def transpose_axes(self):
         return self._transpose_axes
 
     @property
-    def segment_status(self) -> Tuple[bool, ...]:
+    def segment_status(self):
         """
         Tuple[bool, ...]: Where each image segment is viable for use.
         """
@@ -917,7 +927,7 @@ class ComplexNITFDetails(NITFDetails):
         return self._segment_status
 
     @property
-    def sicd_meta(self) -> Tuple[SICDType, ...]:
+    def sicd_meta(self):
         """
         Tuple[SICDType, ...]: The best inferred sicd structures.
         """
@@ -925,7 +935,7 @@ class ComplexNITFDetails(NITFDetails):
         return self._sicd_meta
 
     @property
-    def segment_bands(self) -> Tuple[Tuple[int, Optional[int]], ...]:
+    def segment_bands(self):
         """
         This describes the structure for the output data segments from the NITF,
         with each entry of the form `(image_segment, output_band)`, where
@@ -942,10 +952,10 @@ class ComplexNITFDetails(NITFDetails):
 
     def _check_band_details(
             self,
-            index: int,
-            sicd_meta: List,
-            segment_status: List,
-            segment_bands: List):
+            index,
+            sicd_meta,
+            segment_status,
+            segment_bands):
         if len(segment_status) != index:
             raise ValueError('Inconsistent status checking state')
         image_header = self.img_headers[index]
@@ -1046,9 +1056,9 @@ class ComplexNITFReader(NITFReader, SICDTypeReader):
 
     def __init__(
             self,
-            nitf_details: Union[str, ComplexNITFDetails],
-            reverse_axes: Union[None, int, Sequence[int]] = None,
-            transpose_axes: Optional[Tuple[int, ...]] = None):
+            nitf_details,
+            reverse_axes = None,
+            transpose_axes = None):
         """
 
         Parameters
@@ -1062,7 +1072,7 @@ class ComplexNITFReader(NITFReader, SICDTypeReader):
             If presented this should be only `(1, 0)`.
         """
 
-        if isinstance(nitf_details, str):
+        if isinstance(nitf_details, string_types):
             nitf_details = ComplexNITFDetails(
                 nitf_details, reverse_axes=reverse_axes, transpose_axes=transpose_axes)
         if not isinstance(nitf_details, ComplexNITFDetails):
@@ -1079,7 +1089,7 @@ class ComplexNITFReader(NITFReader, SICDTypeReader):
         self._check_sizes()
 
     @property
-    def nitf_details(self) -> ComplexNITFDetails:
+    def nitf_details(self):
         """
         ComplexNITFDetails: The NITF details object.
         """
@@ -1133,12 +1143,12 @@ class ComplexNITFReader(NITFReader, SICDTypeReader):
 
     def get_format_function(
             self,
-            raw_dtype: numpy.dtype,
-            complex_order: Optional[str],
-            lut: Optional[numpy.ndarray],
-            band_dimension: int,
-            image_segment_index: Optional[int] = None,
-            **kwargs) -> Optional[FormatFunction]:
+            raw_dtype,
+            complex_order,
+            lut,
+            band_dimension,
+            image_segment_index = None,
+            **kwargs):
         image_header = self.nitf_details.img_headers[image_segment_index]
         bands = len(image_header.Bands)
         if complex_order is not None and bands == 2:
@@ -1149,14 +1159,14 @@ class ComplexNITFReader(NITFReader, SICDTypeReader):
 
     def _check_image_segment_for_compliance(
             self,
-            index: int,
-            img_header: Union[ImageSegmentHeader, ImageSegmentHeader0]) -> bool:
+            index,
+            img_header):
         return self.nitf_details.segment_status[index]
 
-    def find_image_segment_collections(self) -> Tuple[Tuple[int, ...]]:
+    def find_image_segment_collections(self):
         return tuple((entry[0], ) for entry in self.nitf_details.segment_bands)
 
-    def create_data_segment_for_collection_element(self, collection_index: int) -> DataSegment:
+    def create_data_segment_for_collection_element(self, collection_index):
         the_index, the_band = self.nitf_details.segment_bands[collection_index]
         if the_index not in self._image_segment_data_segments:
             data_segment = self.create_data_segment_for_image_segment(the_index, apply_format=True)
@@ -1171,7 +1181,7 @@ class ComplexNITFReader(NITFReader, SICDTypeReader):
                 'formatted', close_parent=True)
 
 
-def final_attempt(file_name: str) -> Optional[ComplexNITFReader]:
+def final_attempt(file_name):
     """
     Contingency check to open for some other complex NITF type file.
     Returns a reader instance, if so.

@@ -1,7 +1,14 @@
 """
 Base structures for phase history readers and usage
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -25,10 +32,10 @@ class CPHDTypeReader(BaseReader):
 
     def __init__(
             self,
-            data_segment: Union[None, DataSegment, Sequence[DataSegment]],
-            cphd_meta: Union[None, CPHDType1_0, CPHDType0_3],
-            close_segments: bool = True,
-            delete_files: Union[None, str, Sequence[str]] = None):
+            data_segment,
+            cphd_meta,
+            close_segments = True,
+            delete_files = None):
         """
 
         Parameters
@@ -55,7 +62,7 @@ class CPHDTypeReader(BaseReader):
             self, data_segment, reader_type='CPHD', close_segments=close_segments, delete_files=delete_files)
 
     @property
-    def cphd_meta(self) -> Union[None, CPHDType1_0, CPHDType0_3]:
+    def cphd_meta(self):
         """
         None|CPHDType1_0|CPHDType0_3: the cphd meta_data.
         """
@@ -64,8 +71,8 @@ class CPHDTypeReader(BaseReader):
 
     def read_support_array(
             self,
-            index: Union[int, str],
-            *ranges: Sequence[Union[None, int, Tuple[int, ...], slice]]) -> numpy.ndarray:
+            index,
+            *ranges):
         """
         Read the support array.
 
@@ -88,7 +95,7 @@ class CPHDTypeReader(BaseReader):
 
         raise TypeError('Class {} does not provide support arrays'.format(type(self)))
 
-    def read_support_block(self) -> Dict[str, numpy.ndarray]:
+    def read_support_block(self):
         """
         Reads the entirety of support block(s).
 
@@ -102,9 +109,9 @@ class CPHDTypeReader(BaseReader):
 
     def read_pvp_variable(
             self,
-            variable: str,
-            index: Union[int, str],
-            the_range: Union[None, int, Tuple[int, ...], slice] = None) -> Optional[numpy.ndarray]:
+            variable,
+            index,
+            the_range = None):
         """
         Read the vector parameter for the given `variable` and CPHD channel.
 
@@ -128,8 +135,8 @@ class CPHDTypeReader(BaseReader):
 
     def read_pvp_array(
             self,
-            index: Union[int, str],
-            the_range: Union[None, int, Tuple[int, ...], slice] = None) -> numpy.ndarray:
+            index,
+            the_range = None):
         """
         Read the PVP array from the requested channel.
 
@@ -149,7 +156,7 @@ class CPHDTypeReader(BaseReader):
 
         raise NotImplementedError
 
-    def read_pvp_block(self) -> Dict[Union[int, str], numpy.ndarray]:
+    def read_pvp_block(self):
         """
         Reads the entirety of the PVP block(s).
 
@@ -161,7 +168,7 @@ class CPHDTypeReader(BaseReader):
 
         raise NotImplementedError
 
-    def read_signal_block(self) -> Dict[Union[int, str], numpy.ndarray]:
+    def read_signal_block(self):
         """
         Reads the entirety of signal block(s), with data formatted as complex64
         (after accounting for AmpSF).
@@ -174,7 +181,7 @@ class CPHDTypeReader(BaseReader):
 
         raise NotImplementedError
 
-    def read_signal_block_raw(self) -> Dict[Union[int, str], numpy.ndarray]:
+    def read_signal_block_raw(self):
         """
         Reads the entirety of signal block(s), with data formatted in file
         storage format (no converting to complex, no consideration of AmpSF).

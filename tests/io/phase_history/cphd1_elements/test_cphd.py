@@ -30,7 +30,7 @@ NAMESPACE_MAPPING = {  # get_schema_path doesn't use the actual namespace
 )
 def cphd_xml(request, tests_path):
     cphd_path = tests_path / request.param
-    cphd_con = cphd_consistency.CphdConsistency.from_file(cphd_path)
+    cphd_con = cphd_consistency.CphdConsistency.from_file(str(cphd_path))
     cphd_con.check("check_against_schema")
     assert not cphd_con.failures()
     assert cphd_con.passes()

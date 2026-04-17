@@ -1,7 +1,14 @@
 """
 This package contains the CPHD schema
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = 'UNCLASSIFIED'
 __author__ = "Thomas McCullough"
 
@@ -42,7 +49,7 @@ for key, entry in urn_mapping.items():
         raise ValueError('`{}` has nonexistent schema path {}'.format(key, schema_path))
 
 
-def get_default_tuple() -> Tuple[int, int, int]:
+def get_default_tuple():
     """
     Get the default CPHD version tuple.
 
@@ -54,7 +61,7 @@ def get_default_tuple() -> Tuple[int, int, int]:
     return _CPHD_DEFAULT_TUPLE
 
 
-def get_default_version_string() -> str:
+def get_default_version_string():
     """
     Get the default CPHD version string.
 
@@ -66,13 +73,13 @@ def get_default_version_string() -> str:
     return '{}.{}.{}'.format(*_CPHD_DEFAULT_TUPLE)
 
 
-def get_namespace(version: Union[str, Tuple[int, int, int]]) -> str:
+def get_namespace(version):
     if isinstance(version, (list, tuple)):
         version = '{}.{}.{}'.format(version[0], version[1], version[2])
     return 'http://api.nsgreg.nga.mil/schema/cphd/{}'.format(version)
 
 
-def check_urn(urn_string: str) -> str:
+def check_urn(urn_string):
     """
     Checks that the urn string follows the correct pattern.
 
@@ -86,7 +93,7 @@ def check_urn(urn_string: str) -> str:
         This raises an exception for a poorly formed or unmapped CPHD urn.
     """
 
-    if not isinstance(urn_string, str):
+    if not isinstance(urn_string, string_types):
         raise TypeError(
             'Expected a urn input of string type, got type {}'.format(type(urn_string)))
 
@@ -102,7 +109,7 @@ def check_urn(urn_string: str) -> str:
     return urn_string
 
 
-def get_urn_details(urn_string: str) -> Dict[str, str]:
+def get_urn_details(urn_string):
     """
     Gets the associated details for the given CPHD urn, or raise an exception for
     poorly formatted or unrecognized urn.
@@ -125,7 +132,7 @@ def get_urn_details(urn_string: str) -> Dict[str, str]:
     return out
 
 
-def get_schema_path(the_urn: str) -> str:
+def get_schema_path(the_urn):
     """
     Gets the path to the proper schema file for the given urn.
 
@@ -142,7 +149,7 @@ def get_schema_path(the_urn: str) -> str:
     return result.get('schema', None)
 
 
-def get_versions() -> List[str]:
+def get_versions():
     """
     Gets a list of recognized CPHD urns.
 

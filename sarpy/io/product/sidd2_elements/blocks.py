@@ -1,7 +1,18 @@
 """
 Multipurpose basic SIDD elements
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from builtins import range
+from builtins import int
+#from builtins import str
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -530,7 +541,7 @@ class _CustomType(Serializable, Arrayable):
             node = create_new_node(doc, tag, parent=parent)
         else:
             node = create_new_node(doc, '{}:{}'.format(ns_key, tag), parent=parent)
-        fc_tag = "FilterCoefficients" if ns_key is None else f"{ns_key}:FilterCoefficients"
+        fc_tag = "FilterCoefficients" if ns_key is None else "{}:FilterCoefficients".format(ns_key)
         filter_coefs_node = create_new_node(doc, fc_tag, parent=node)
 
         if 'Coefs' in self._child_xml_ns_key:

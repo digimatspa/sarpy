@@ -1,6 +1,9 @@
 import mmap
 import os
-import pathlib
+try:
+    import pathlib
+except ImportError:
+    import pathlib2 as pathlib
 
 # From https://nsgreg.nga.mil/doc/view?i=5516
 nitf_with_tres = '07APR2005_Hyperion_331406N0442000E_SWIR172_1p2B_L1R-BIP.ntf'

@@ -69,7 +69,15 @@ Examples
     with hopefully helpful details about what information is missing.
 
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = ("Thomas McCullough", "Wade Schwartzkopf")
 
@@ -97,8 +105,8 @@ _unsupported_text = 'Got unsupported projection type `{}`'
 # COA Projection definition
 
 def _validate_adj_param(
-        value: Union[None, numpy.ndarray, list, tuple],
-        name: str) -> numpy.ndarray:
+        value,
+        name):
     """
     Validate the aperture adjustment vector parameters.
 
@@ -122,9 +130,9 @@ def _validate_adj_param(
 
 
 def _ric_ecf_mat(
-        rarp: numpy.ndarray,
-        varp: numpy.ndarray,
-        frame_type: str) -> numpy.ndarray:
+        rarp,
+        varp,
+        frame_type):
     """
     Computes the ECF transformation matrix for RIC frame.
 
@@ -154,7 +162,7 @@ def _ric_ecf_mat(
     return numpy.stack([r, i, c], axis=-1).astype('float64')
 
 
-def _get_sicd_type_specific_projection(sicd) -> Callable:
+def _get_sicd_type_specific_projection(sicd):
     """
     Gets an intermediate method specific projection method with six required
     calling arguments (self, row_transform, col_transform, time_coa, arp_coa, varp_coa).
@@ -336,9 +344,9 @@ def _get_sicd_type_specific_projection(sicd) -> Callable:
 
 def _get_sicd_adjustment_params(
         sicd,
-        delta_arp: Union[None, numpy.ndarray, list, tuple],
-        delta_varp: Union[None, numpy.ndarray, list, tuple],
-        adj_params_frame: str) -> Tuple[numpy.ndarray, numpy.ndarray]:
+        delta_arp,
+        delta_varp,
+        adj_params_frame):
     """
     Gets the SICD adjustment params.
 
@@ -370,7 +378,7 @@ def _get_sicd_adjustment_params(
     return delta_arp, delta_varp
 
 
-def _get_sidd_type_projection(sidd) -> Union[Poly2DType, Callable]:
+def _get_sidd_type_projection(sidd):
     """
     Gets an intermediate method specific projection method with six required
     calling arguments (self, row_transform, col_transform, time_coa, arp_coa, varp_coa).
@@ -436,9 +444,9 @@ def _get_sidd_type_projection(sidd) -> Union[Poly2DType, Callable]:
 
 def _get_sidd_adjustment_params(
         sidd,
-        delta_arp: Union[None, numpy.ndarray, list, tuple],
-        delta_varp: Union[None, numpy.ndarray, list, tuple],
-        adj_params_frame: str) -> Tuple[numpy.ndarray, numpy.ndarray]:
+        delta_arp,
+        delta_varp,
+        adj_params_frame):
     """
     Get the SIDD adjustment parameters.
 
@@ -489,16 +497,16 @@ class COAProjection(object):
 
     def __init__(
             self,
-            time_coa_poly: Poly2DType,
-            arp_poly: XYZPolyType,
-            method_projection: Callable,
-            row_shift: Union[int, float] = 0,
-            row_mult: Union[int, float] = 1,
-            col_shift: Union[int, float] = 0,
-            col_mult: Union[int, float] = 1,
-            delta_arp: Union[None, numpy.ndarray, list, tuple] = None,
-            delta_varp: Union[None, numpy.ndarray, list, tuple] = None,
-            range_bias: Optional[float] = None):
+            time_coa_poly,
+            arp_poly,
+            method_projection,
+            row_shift = 0,
+            row_mult = 1,
+            col_shift = 0,
+            col_mult = 1,
+            delta_arp = None,
+            delta_varp = None,
+            range_bias = None):
         """
 
         Parameters
@@ -558,7 +566,7 @@ class COAProjection(object):
         self._range_bias = 0.0 if range_bias is None else float(range_bias)  # type: float
 
     @property
-    def delta_arp(self) -> numpy.ndarray:
+    def delta_arp(self):
         """
         numpy.ndarray: The delta arp adjustable parameter
         """
@@ -566,7 +574,7 @@ class COAProjection(object):
         return self._delta_arp
 
     @property
-    def delta_varp(self) -> numpy.ndarray:
+    def delta_varp(self):
         """
         numpy.ndarray: The delta varp adjustable parameter
         """
@@ -574,7 +582,7 @@ class COAProjection(object):
         return self._delta_varp
 
     @property
-    def range_bias(self) -> float:
+    def range_bias(self):
         """
         float: The range bias adjustable parameter
         """
@@ -582,7 +590,7 @@ class COAProjection(object):
         return self._range_bias
 
     @property
-    def delta_range(self) -> float:
+    def delta_range(self):
         """
         float: Alias to the range bias adjustable parameter
         """
@@ -593,10 +601,10 @@ class COAProjection(object):
     def from_sicd(
             cls,
             sicd,
-            delta_arp: Union[None, numpy.ndarray, list, tuple] = None,
-            delta_varp: Union[None, numpy.ndarray, list, tuple] = None,
-            range_bias: Optional[float] = None,
-            adj_params_frame: str = 'ECF'):
+            delta_arp = None,
+            delta_varp = None,
+            range_bias = None,
+            adj_params_frame = 'ECF'):
         """
         Construct from a SICD structure.
 
@@ -643,10 +651,10 @@ class COAProjection(object):
     def from_sidd(
             cls,
             sidd,
-            delta_arp: Union[None, numpy.ndarray, list, tuple] = None,
-            delta_varp: Union[None, numpy.ndarray, list, tuple] = None,
-            range_bias: Optional[float] = None,
-            adj_params_frame: str = 'ECF'):
+            delta_arp = None,
+            delta_varp = None,
+            range_bias = None,
+            adj_params_frame = 'ECF'):
         """
         Construct from the SIDD structure.
 
@@ -677,8 +685,7 @@ class COAProjection(object):
 
     def _init_proj(
             self,
-            im_points: numpy.ndarray) -> Tuple[
-                numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray]:
+            im_points):
         """
 
         Parameters
@@ -704,8 +711,7 @@ class COAProjection(object):
 
     def projection(
             self,
-            im_points: numpy.ndarray) -> Tuple[
-                numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray]:
+            im_points):
         """
         Perform the projection from image coordinates to R/Rdot coordinates.
 
@@ -739,8 +745,8 @@ class COAProjection(object):
 
 def _get_coa_projection(
         structure,
-        use_structure_coa: bool,
-        **coa_args) -> COAProjection:
+        use_structure_coa,
+        **coa_args):
     """
 
     Parameters
@@ -770,7 +776,7 @@ def _get_coa_projection(
 ###############
 # General helper methods for extracting params from the sicd or sidd
 
-def _get_reference_point(structure) -> numpy.ndarray:
+def _get_reference_point(structure):
     """
     Gets the reference point in ECF coordinates.
 
@@ -796,7 +802,7 @@ def _get_reference_point(structure) -> numpy.ndarray:
     raise TypeError(_unhandled_text.format(type(structure)))
 
 
-def _get_outward_norm(structure, gref: numpy.ndarray) -> numpy.ndarray:
+def _get_outward_norm(structure, gref):
     """
     Gets the default outward unit norm.
 
@@ -834,8 +840,7 @@ def _get_outward_norm(structure, gref: numpy.ndarray) -> numpy.ndarray:
     raise TypeError(_unhandled_text.format(type(structure)))
 
 
-def _extract_plane_params(structure) -> Tuple[
-        numpy.ndarray, numpy.ndarray, float, float, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray]:
+def _extract_plane_params(structure):
     """
     Extract the required parameters for projection from ground to plane for a SICD.
 
@@ -913,7 +918,7 @@ def _extract_plane_params(structure) -> Tuple[
 #############
 # Ground-to-Image (aka Scene-to-Image) projection.
 
-def _validate_coords(coords: numpy.ndarray) -> Tuple[numpy.ndarray, Tuple[int, ...]]:
+def _validate_coords(coords):
     if not isinstance(coords, numpy.ndarray):
         coords = numpy.array(coords, dtype='float64')
 
@@ -930,20 +935,20 @@ def _validate_coords(coords: numpy.ndarray) -> Tuple[numpy.ndarray, Tuple[int, .
 
 
 def _ground_to_image(
-        coords: numpy.ndarray,
-        coa_proj: COAProjection,
-        uGPN: numpy.ndarray,
-        ref_point: numpy.ndarray,
-        ref_pixel: numpy.ndarray,
-        uIPN: numpy.ndarray,
-        sf: float,
-        row_ss: float,
-        col_ss: float,
-        uProj: numpy.ndarray,
-        row_col_transform: numpy.ndarray,
-        ipp_transform: numpy.ndarray,
-        tolerance: float,
-        max_iterations: int) -> Tuple[numpy.ndarray, numpy.ndarray, int]:
+        coords,
+        coa_proj,
+        uGPN,
+        ref_point,
+        ref_pixel,
+        uIPN,
+        sf,
+        row_ss,
+        col_ss,
+        uProj,
+        row_col_transform,
+        ipp_transform,
+        tolerance,
+        max_iterations):
     """
     Basic level helper function.
 
@@ -1007,13 +1012,13 @@ def _ground_to_image(
 
 
 def ground_to_image(
-        coords: Union[numpy.ndarray, list, tuple],
+        coords,
         structure,
-        tolerance: float = 1e-2,
-        max_iterations: int = 10,
-        block_size: Optional[int] = 50000,
-        use_structure_coa: bool = True,
-        **coa_args) -> Tuple[numpy.ndarray, Union[numpy.ndarray, float], Union[numpy.ndarray, int]]:
+        tolerance = 1e-2,
+        max_iterations = 10,
+        block_size = 50000,
+        use_structure_coa = True,
+        **coa_args):
     """
     Transforms a 3D ECF point to pixel (row/column) coordinates. This is
     implemented in accordance with the SICD Image Projections Description Document.
@@ -1111,7 +1116,7 @@ def ground_to_image_geo(
         coords,
         structure,
         ordering='latlong',
-        **kwargs) -> Tuple[numpy.ndarray, Union[numpy.ndarray, float], Union[numpy.ndarray, int]]:
+        **kwargs):
     """
     Transforms a 3D Lat/Lon/HAE point to pixel (row/column) coordinates.
     This is implemented in accordance with the SICD Image Projections Description Document.
@@ -1147,7 +1152,7 @@ def ground_to_image_geo(
 # Image-To-Ground projections
 
 def _validate_im_points(
-        im_points: Union[numpy.ndarray, list, tuple]) -> Tuple[numpy.ndarray, Tuple[int, ...]]:
+        im_points):
     """
 
     Parameters
@@ -1179,12 +1184,12 @@ def _validate_im_points(
 
 
 def image_to_ground(
-        im_points: Union[numpy.ndarray, list, tuple],
+        im_points,
         structure,
-        block_size: Optional[int] = 50000,
-        projection_type: str = 'HAE',
-        use_structure_coa: bool = True,
-        **kwargs) -> numpy.ndarray:
+        block_size = 50000,
+        projection_type = 'HAE',
+        use_structure_coa = True,
+        **kwargs):
     """
     Transforms image coordinates to ground plane ECF coordinate via the algorithm(s)
     described in SICD Image Projections document.
@@ -1228,13 +1233,13 @@ def image_to_ground(
 
 
 def image_to_ground_geo(
-        im_points: Union[numpy.ndarray, list, tuple],
+        im_points,
         structure,
-        ordering: str = 'latlong',
-        block_size: Optional[int] = 50000,
-        projection_type: str = 'HAE',
-        use_structure_coa: bool = True,
-        **kwargs) -> numpy.ndarray:
+        ordering = 'latlong',
+        block_size = 50000,
+        projection_type = 'HAE',
+        use_structure_coa = True,
+        **kwargs):
     """
     Transforms image coordinates to ground plane Lat/Lon/HAE coordinate via the algorithm(s)
     described in SICD Image Projections document.
@@ -1276,12 +1281,12 @@ def image_to_ground_geo(
 # Image-to-Ground Plane
 
 def _image_to_ground_plane_perform(
-        r_tgt_coa: numpy.ndarray,
-        r_dot_tgt_coa: numpy.ndarray,
-        arp_coa: numpy.ndarray,
-        varp_coa: numpy.ndarray,
-        gref: numpy.ndarray,
-        uZ: numpy.ndarray) -> numpy.ndarray:
+        r_tgt_coa,
+        r_dot_tgt_coa,
+        arp_coa,
+        varp_coa,
+        gref,
+        uZ):
     """
 
     Parameters
@@ -1329,10 +1334,10 @@ def _image_to_ground_plane_perform(
 
 
 def _image_to_ground_plane(
-        im_points: numpy.ndarray,
-        coa_projection: COAProjection,
-        gref: numpy.ndarray,
-        uZ: numpy.ndarray) -> numpy.ndarray:
+        im_points,
+        coa_projection,
+        gref,
+        uZ):
     """
 
     Parameters
@@ -1353,12 +1358,12 @@ def _image_to_ground_plane(
 
 
 def image_to_ground_plane(
-        im_points: Union[numpy.ndarray, list, tuple],
+        im_points,
         structure,
-        block_size: Optional[int] = 50000,
-        gref: Union[None, numpy.ndarray, list, tuple] = None,
-        ugpn: Union[None, numpy.ndarray, list, tuple] = None,
-        use_structure_coa: bool = True,
+        block_size = 50000,
+        gref = None,
+        ugpn = None,
+        use_structure_coa = True,
         **coa_args):
     """
     Transforms image coordinates to ground plane ECF coordinate via the algorithm(s)
@@ -1437,16 +1442,16 @@ def image_to_ground_plane(
 # Image-to-HAE
 
 def _image_to_ground_hae_perform(
-        r_tgt_coa: numpy.ndarray,
-        r_dot_tgt_coa: numpy.ndarray,
-        arp_coa: numpy.ndarray,
-        varp_coa: numpy.ndarray,
-        ref_point: numpy.ndarray,
-        ugpn: numpy.ndarray,
-        hae0: float,
-        tolerance: float,
-        max_iterations: int,
-        ref_hae: float) -> numpy.ndarray:
+        r_tgt_coa,
+        r_dot_tgt_coa,
+        arp_coa,
+        varp_coa,
+        ref_point,
+        ugpn,
+        hae0,
+        tolerance,
+        max_iterations,
+        ref_hae):
     """
     Intermediate helper method.
 
@@ -1505,13 +1510,13 @@ def _image_to_ground_hae_perform(
 
 
 def _image_to_ground_hae(
-        im_points: numpy.ndarray,
-        coa_projection: COAProjection,
-        hae0: float,
-        tolerance: float,
-        max_iterations: int,
-        ref_hae: float,
-        ref_point: numpy.ndarray) -> numpy.ndarray:
+        im_points,
+        coa_projection,
+        hae0,
+        tolerance,
+        max_iterations,
+        ref_hae,
+        ref_point):
     """
     Intermediate helper function for projection.
 
@@ -1540,14 +1545,14 @@ def _image_to_ground_hae(
 
 
 def image_to_ground_hae(
-        im_points: Union[numpy.ndarray, list, tuple],
+        im_points,
         structure,
-        block_size: Optional[int] = 50000,
-        hae0: Optional[float] = None,
-        tolerance: float = 1e-3,
-        max_iterations: int = 10,
-        use_structure_coa: bool = True,
-        **coa_args) -> numpy.ndarray:
+        block_size = 50000,
+        hae0 = None,
+        tolerance = 1e-3,
+        max_iterations = 10,
+        use_structure_coa = True,
+        **coa_args):
     """
     Transforms image coordinates to ground plane ECF coordinate via the algorithm(s)
     described in SICD Image Projections document.
@@ -1633,10 +1638,10 @@ def image_to_ground_hae(
 # Image-to-DEM
 
 def _do_dem_iteration(
-        previous_ecf: numpy.ndarray,
-        previous_diff: numpy.ndarray,
-        this_ecf: numpy.ndarray,
-        this_diff: numpy.ndarray) -> Optional[Tuple[numpy.ndarray, numpy.ndarray]]:
+        previous_ecf,
+        previous_diff,
+        this_ecf,
+        this_diff):
     mask = numpy.isfinite(this_diff) & (this_diff < 0)
     if numpy.any(mask):
         d0 = (previous_diff[mask])
@@ -1647,14 +1652,14 @@ def _do_dem_iteration(
 
 
 def _image_to_ground_dem(
-        im_points: numpy.ndarray,
-        coa_projection: COAProjection,
-        dem_interpolator: DEMInterpolator,
-        min_dem: float,
-        max_dem: float,
-        vertical_step_size: Union[float, int],
-        ref_hae: float,
-        ref_point: numpy.ndarray) -> numpy.ndarray:
+        im_points,
+        coa_projection,
+        dem_interpolator,
+        min_dem,
+        max_dem,
+        vertical_step_size,
+        ref_hae,
+        ref_point):
     """
 
     Parameters
@@ -1721,14 +1726,14 @@ def _image_to_ground_dem(
 
 
 def _image_to_ground_dem_block(
-        im_points: numpy.ndarray,
-        coa_projection: COAProjection,
-        dem_interpolator: DEMInterpolator,
-        horizontal_step: float,
-        lat_lon_box: numpy.ndarray,
-        block_size: Optional[int],
-        lat_pad: float,
-        lon_pad: float) -> numpy.ndarray:
+        im_points,
+        coa_projection,
+        dem_interpolator,
+        horizontal_step,
+        lat_lon_box,
+        block_size,
+        lat_pad,
+        lon_pad):
     """
 
     Parameters
@@ -1780,16 +1785,16 @@ def _image_to_ground_dem_block(
 
 
 def image_to_ground_dem(
-        im_points: Union[numpy.ndarray, list, tuple],
+        im_points,
         structure,
-        block_size: Optional[int] = 50000,
-        dem_interpolator: Union[str, DEMInterpolator] = None,
-        dem_type: Union[None, str, List[str]] = None,
-        geoid_file: Union[None, str, GeoidHeight] = None,
-        pad_value: float = 0.2,
-        vertical_step_size: Union[int, float] = 10,
-        use_structure_coa: bool = True,
-        **coa_args) -> numpy.ndarray:
+        block_size = 50000,
+        dem_interpolator = None,
+        dem_type = None,
+        geoid_file = None,
+        pad_value = 0.2,
+        vertical_step_size = 10,
+        use_structure_coa = True,
+        **coa_args):
     """
     Transforms image coordinates to ground plane ECF coordinate via the algorithm(s)
     described in SICD Image Projections document.
@@ -1881,7 +1886,7 @@ def image_to_ground_dem(
     # validate the dem_interpolator
     if dem_interpolator is None:
         raise ValueError('dem_interpolator is None, this is unhandled.')
-    if isinstance(dem_interpolator, str):
+    if isinstance(dem_interpolator, string_types):
         dted_list = DTEDList(dem_interpolator)
         dem_interpolator = DTEDInterpolator.from_reference_point(
             ref_llh, dted_list, dem_type=dem_type, geoid_file=geoid_file, pad_value=pad_value)
@@ -1979,12 +1984,13 @@ def image_to_slant_sensitivity(sicd_meta, delta_xrow, delta_ycol):
     delta_r = r[1:] - r[0]
     delta_rdot = rdot[1:] - rdot[0]
 
-    delta_arp_components = delta_arp @ numpy.stack((u_spx, u_spy), axis=-1)
-    delta_vm = delta_varp @ u_vm
-    delta_vc = delta_varp @ u_vc
+    # Sostituito l'operatore @ con numpy.dot
+    delta_arp_components = numpy.dot(delta_arp, numpy.stack((u_spx, u_spy), axis=-1))
+    delta_vm = numpy.dot(delta_varp, u_vm)
+    delta_vc = numpy.dot(delta_varp, u_vc)
 
-    delta_cos_dca = (-1/vm0) * (delta_rdot + delta_vm * (-rdot[0]/vm0))
-    delta_dca = (-1/sin_dca0) * delta_cos_dca
+    delta_cos_dca = (-1.0 / vm0) * (delta_rdot + delta_vm * (-rdot[0] / vm0))
+    delta_dca = (-1.0 / sin_dca0) * delta_cos_dca
 
     delta_vdir = delta_vc / vm0
     delta_ang = delta_vdir + look * delta_dca

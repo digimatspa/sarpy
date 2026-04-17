@@ -1,3 +1,11 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
+from builtins import open
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Tex Peterson"
 # Written on: 2025-10
@@ -115,19 +123,18 @@ class SIOReader(object):
         Private function: Given the data type code from the header, set the 
         numpy data type and size.
         """
-        match self._data_type_code:
-            case 1:
-                self._data_type_str = 'u1'
-            case 2:
-                self._data_type_str = 'i2'
-                if self._data_size == 4:
-                    self._data_type_str = 'c4'
-            case 3:
-                self._data_type_str = 'f4'
-            case 12:
+        if self._data_type_code == 1:
+            self._data_type_str = 'u1'
+        elif self._data_type_code == 2:
+            self._data_type_str = 'i2'
+            if self._data_size == 4:
                 self._data_type_str = 'c4'
-            case 13:
-                self._data_type_str = 'c8'
-            case _ : #Default if other cases don't match
-                raise TypeError('Reader only recognizes floats, complex and ' + \
-                                'signed or unsigned integers')        
+        elif self._data_type_code == 3:
+            self._data_type_str = 'f4'
+        elif self._data_type_code == 12:
+            self._data_type_str = 'c4'
+        elif self._data_type_code == 13:
+            self._data_type_str = 'c8'
+        else:
+            raise TypeError('Reader only recognizes floats, complex and ' +
+                            'signed or unsigned integers')

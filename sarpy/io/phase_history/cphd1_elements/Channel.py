@@ -1,7 +1,15 @@
 """
 The Channel definition.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -38,9 +46,9 @@ class PolarizationRefType(Serializable, Arrayable):
 
     def __init__(
             self,
-            AmpH: float = None,
-            AmpV: float = None,
-            PhaseV: float = None,
+            AmpH = None,
+            AmpV = None,
+            PhaseV = None,
             **kwargs):
         if '_xml_ns' in kwargs:
             self._xml_ns = kwargs['_xml_ns']
@@ -51,7 +59,7 @@ class PolarizationRefType(Serializable, Arrayable):
         self.PhaseV = PhaseV
         super(PolarizationRefType, self).__init__(**kwargs)
 
-    def get_array(self, dtype=numpy.float64) -> numpy.ndarray:
+    def get_array(self, dtype=numpy.float64):
         """
         Gets an array representation of the class instance.
 
@@ -69,7 +77,7 @@ class PolarizationRefType(Serializable, Arrayable):
         return numpy.array([self.AmpH, self.AmpV, self.PhaseV], dtype=dtype)
 
     @classmethod
-    def from_array(cls, array: numpy.ndarray):
+    def from_array(cls, array):
         """
         Construct from an iterable.
 
@@ -118,10 +126,10 @@ class PolarizationType(Serializable):
 
     def __init__(
             self,
-            TxPol: str = None,
-            RcvPol: str = None,
-            TxPolRef: Union[None, PolarizationRefType, numpy.ndarray, tuple, list] = None,
-            RcvPolRef: Union[None, PolarizationRefType, numpy.ndarray, tuple, list] = None,
+            TxPol = None,
+            RcvPol = None,
+            TxPolRef = None,
+            RcvPolRef = None,
             **kwargs):
         """
 
@@ -143,7 +151,7 @@ class PolarizationType(Serializable):
         self.RcvPolRef = RcvPolRef
         super(PolarizationType, self).__init__(**kwargs)
 
-    def version_required(self) -> Tuple[int, int, int]:
+    def version_required(self):
         required = (1, 0, 1)
         for fld in ['TxPol', 'RcvPol']:
             val = getattr(self, fld)
@@ -287,7 +295,7 @@ class DwellTimesType(Serializable):
         self.UseDTA = UseDTA
         super(DwellTimesType, self).__init__(**kwargs)
 
-    def version_required(self) -> Tuple[int, int, int]:
+    def version_required(self):
         if self.DTAId is not None or self.UseDTA is not None:
             return (1, 1, 0)
         else:
@@ -636,7 +644,7 @@ class ChannelParametersType(Serializable):
         self.NoiseLevel = NoiseLevel
         super(ChannelParametersType, self).__init__(**kwargs)
 
-    def version_required(self) -> Tuple[int, int, int]:
+    def version_required(self):
         required = (1, 0, 1)
         if self.Polarization is not None:
             required = max(required, self.Polarization.version_required())
@@ -685,12 +693,12 @@ class ChannelType(Serializable):
 
     def __init__(
             self,
-            RefChId: str = None,
-            FXFixedCPHD: bool = None,
-            TOAFixedCPHD: bool = None,
-            SRPFixedCPHD: bool = None,
-            Parameters: List[ChannelParametersType] = None,
-            AddedParameters: Optional[AddedParametersType] = None,
+            RefChId = None,
+            FXFixedCPHD = None,
+            TOAFixedCPHD = None,
+            SRPFixedCPHD = None,
+            Parameters = None,
+            AddedParameters = None,
             **kwargs):
         """
 
@@ -717,7 +725,7 @@ class ChannelType(Serializable):
         self.AddedParameters = AddedParameters
         super(ChannelType, self).__init__(**kwargs)
 
-    def version_required(self) -> Tuple[int, int, int]:
+    def version_required(self):
         required = (1, 0, 1)
         if self.Parameters is not None:
             for entry in self.Parameters:

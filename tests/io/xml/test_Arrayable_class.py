@@ -3,7 +3,10 @@ __author__ = "Tex Peterson"
 
 # Written using Copilot
 
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 import numpy as np
 
 from sarpy.io.xml.base import Arrayable

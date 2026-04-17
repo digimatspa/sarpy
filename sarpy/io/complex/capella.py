@@ -3,7 +3,17 @@ Functionality for reading Capella SAR data into a SICD model.
 
 **This functionality is really onl partially complete**
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import int
+#from builtins import str
+from builtins import round
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = ("Thomas McCullough", "Wade Schwartzkopf")
 
@@ -68,7 +78,7 @@ class CapellaDetails(object):
 
     __slots__ = ('_tiff_details', '_img_desc_tags')
 
-    def __init__(self, file_name: str):
+    def __init__(self, file_name):
         """
 
         Parameters
@@ -97,7 +107,7 @@ class CapellaDetails(object):
         self._tiff_details.check_tiled()
 
     @property
-    def file_name(self) -> str:
+    def file_name(self):
         """
         str: the file name
         """
@@ -105,14 +115,14 @@ class CapellaDetails(object):
         return self._tiff_details.file_name
 
     @property
-    def tiff_details(self) -> TiffDetails:
+    def tiff_details(self):
         """
         TiffDetails: The tiff details object.
         """
 
         return self._tiff_details
 
-    def get_symmetry(self) -> (Union[None, Tuple[int, ...]], Tuple[int, ...]):
+    def get_symmetry(self):
         """
         Gets the symmetry operations definition.
 
@@ -130,7 +140,7 @@ class CapellaDetails(object):
         else:
             raise ValueError('Got unhandled pointing value {}'.format(pointing))
 
-    def get_sicd(self) -> SICDType:
+    def get_sicd(self):
         """
         Get the SICD metadata for the image.
 
@@ -139,10 +149,10 @@ class CapellaDetails(object):
         SICDType
         """
 
-        def convert_string_dict(dict_in: dict) -> dict:
+        def convert_string_dict(dict_in):
             dict_out = OrderedDict()
             for key, val in dict_in.items():
-                if isinstance(val, str):
+                if isinstance(val, string_types):
                     dict_out[key] = val
                 elif isinstance(val, int):
                     dict_out[key] = str(val)
@@ -152,7 +162,7 @@ class CapellaDetails(object):
                     raise TypeError('Got unhandled type {}'.format(type(val)))
             return dict_out
 
-        def extract_state_vector() -> (numpy.ndarray, numpy.ndarray, numpy.ndarray):
+        def extract_state_vector():
             vecs = collect['state']['state_vectors']
             times = numpy.zeros((len(vecs), ), dtype=numpy.float64)
             positions = numpy.zeros((len(vecs), 3), dtype=numpy.float64)
@@ -163,7 +173,7 @@ class CapellaDetails(object):
                 velocities[i, :] = entry['velocity']
             return times, positions, velocities
 
-        def get_radar_parameter(name) -> Any:
+        def get_radar_parameter(name):
             if name in radar:
                 return radar[name]
             if len(radar_time_varying) > 0:
@@ -172,7 +182,7 @@ class CapellaDetails(object):
                     return element[name]
             raise ValueError('Unable to determine radar parameter `{}`'.format(name))
 
-        def get_collection_info() -> CollectionInfoType:
+        def get_collection_info():
             coll_name = collect['platform']
             mode = collect['mode'].strip().lower()
             if mode == 'stripmap':
@@ -191,7 +201,7 @@ class CapellaDetails(object):
                 Classification='UNCLASSIFIED',
                 CollectType='MONOSTATIC')
 
-        def get_image_creation() -> ImageCreationType:
+        def get_image_creation():
             from sarpy.__about__ import __version__
             return ImageCreationType(
                 Application=self._tiff_details.tags['Software'],
@@ -199,7 +209,7 @@ class CapellaDetails(object):
                 Profile='sarpy {}'.format(__version__),
                 Site='Unknown')
 
-        def get_image_data() -> ImageDataType:
+        def get_image_data():
             rows = int(img['columns'])  # capella uses flipped row/column definition?
             cols = int(img['rows'])
             if img['data_type'] == 'CInt16':
@@ -220,16 +230,16 @@ class CapellaDetails(object):
                 FullImage=(rows, cols),
                 SCPPixel=scp_pixel)
 
-        def get_geo_data() -> GeoDataType:
+        def get_geo_data():
             return GeoDataType(SCP=SCPType(ECF=img['center_pixel']['target_position']))
 
-        def get_position() -> PositionType:
+        def get_position():
             px, py, pz = fit_position_xvalidation(state_time, state_position, state_velocity, max_degree=8)
             return PositionType(ARPPoly=XYZPolyType(X=px, Y=py, Z=pz))
 
-        def get_grid() -> GridType:
+        def get_grid():
 
-            def get_weight(window_dict: dict) -> (WgtTypeType, Union[None, numpy.ndarray]):
+            def get_weight(window_dict):
                 window_name = window_dict['name']
                 if window_name.lower() == 'rectangular':
                     return WgtTypeType(WindowName='UNIFORM'), None
@@ -305,7 +315,7 @@ class CapellaDetails(object):
                     TxRcvPolarization='{}:{}'.format(radar['transmit_polarization'],
                                                      radar['receive_polarization']))])
 
-        def get_timeline() -> TimelineType:
+        def get_timeline():
             prf = radar['prf'][0]['prf']
             return TimelineType(
                 CollectStart=start_time,
@@ -318,7 +328,7 @@ class CapellaDetails(object):
                         IPPEnd=round(duration*prf) - 1,
                         IPPPoly=(0, prf)), ])
 
-        def get_image_formation() -> ImageFormationType:
+        def get_image_formation():
             algo = img['algorithm'].upper()
             processings = None
             if algo == 'BACKPROJECTION':
@@ -349,7 +359,7 @@ class CapellaDetails(object):
                 RgAutofocus='NO',
                 Processings=processings)
 
-        def get_rma() -> RMAType:
+        def get_rma():
             img_geometry = img['image_geometry']
             near_range = img_geometry['range_to_first_sample']
             center_time = parse_timestring(img['center_pixel']['center_time'], precision='us')
@@ -372,7 +382,7 @@ class CapellaDetails(object):
                 RMAlgoType='RG_DOP',
                 INCA=inca)
 
-        def get_radiometric() -> Union[None, RadiometricType]:
+        def get_radiometric():
             if img['radiometry'].lower() != 'beta_nought':
                 logger.warning(
                     'Got unrecognized Capella radiometry {},\n\t'
@@ -381,7 +391,7 @@ class CapellaDetails(object):
 
             return RadiometricType(BetaZeroSFPoly=[[img['scale_factor']**2, ], ])
 
-        def add_noise() -> None:
+        def add_noise():
             if sicd.Radiometric is None:
                 return
 
@@ -460,7 +470,7 @@ class CapellaReader(SICDTypeReader):
         capella_details : str|CapellaDetails
         """
 
-        if isinstance(capella_details, str):
+        if isinstance(capella_details, string_types):
             capella_details = CapellaDetails(capella_details)
 
         if not isinstance(capella_details, CapellaDetails):
@@ -476,7 +486,7 @@ class CapellaReader(SICDTypeReader):
         self._check_sizes()
 
     @property
-    def capella_details(self) -> CapellaDetails:
+    def capella_details(self):
         """
         CapellaDetails: The capella details object.
         """
@@ -484,14 +494,14 @@ class CapellaReader(SICDTypeReader):
         return self._capella_details
 
     @property
-    def file_name(self) -> str:
+    def file_name(self):
         return self.capella_details.file_name
 
 
 ########
 # base expected functionality for a module with an implemented Reader
 
-def is_a(file_name: str) -> Optional[CapellaReader]:
+def is_a(file_name):
     """
     Tests whether a given file_name corresponds to a Capella SAR file.
     Returns a reader instance, if so.

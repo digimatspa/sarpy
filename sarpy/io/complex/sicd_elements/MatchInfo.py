@@ -1,7 +1,16 @@
 """
 The MatchInfoType definition.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -36,9 +45,9 @@ class MatchCollectionType(Serializable):
 
     def __init__(
             self,
-            CoreName: str = None,
-            MatchIndex: Optional[int] = None,
-            Parameters: Union[None, ParametersCollection, Dict] = None,
+            CoreName = None,
+            MatchIndex = None,
+            Parameters = None,
             **kwargs):
         """
 
@@ -80,9 +89,9 @@ class MatchType(Serializable):
 
     def __init__(
             self,
-            TypeID: str = None,
-            CurrentIndex: Optional[int] = None,
-            MatchCollections: Optional[List[MatchCollectionType]] = None,
+            TypeID = None,
+            CurrentIndex = None,
+            MatchCollections = None,
             **kwargs):
         """
 
@@ -127,7 +136,7 @@ class MatchInfoType(Serializable):
 
     def __init__(
             self,
-            MatchTypes: List[MatchType] = None,
+            MatchTypes = None,
             **kwargs):
         """
 
@@ -145,7 +154,7 @@ class MatchInfoType(Serializable):
         super(MatchInfoType, self).__init__(**kwargs)
 
     @property
-    def NumMatchTypes(self) -> int:
+    def NumMatchTypes(self):
         """int: The number of types of matched collections."""
         if self.MatchTypes is None:
             return 0

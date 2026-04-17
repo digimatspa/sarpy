@@ -6,7 +6,14 @@ For a basic help on the command-line, check
 >>> python -m sarpy.utils.create_kmz --help
 
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -85,4 +92,4 @@ if __name__ == '__main__':
         except sarpy.io.general.base.SarpyIOError:
             continue
     else:
-        raise sarpy.io.general.base.SarpyIOError(f'A KMZ generator for {args.input_file} could not be found')
+        raise sarpy.io.general.base.SarpyIOError('A KMZ generator for {} could not be found'.format(args.input_file))

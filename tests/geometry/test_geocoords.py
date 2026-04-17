@@ -73,10 +73,9 @@ def test_geodetic_to_ecf(input):
 def test_values_both_ways():
     shp = (8, 5)
     rand_llh = numpy.empty(shp + (3, ), dtype=numpy.float64)
-    rng = numpy.random.default_rng()
-    rand_llh[:, :, 0] = 180*(rng.random(shp) - 0.5)
-    rand_llh[:, :, 1] = 360*(rng.random(shp) - 0.5)
-    rand_llh[:, :, 2] = 1e5*rng.random(shp)
+    rand_llh[:, :, 0] = 180 * (numpy.random.random(shp) - 0.5)
+    rand_llh[:, :, 1] = 360 * (numpy.random.random(shp) - 0.5)
+    rand_llh[:, :, 2] = 1e5 * numpy.random.random(shp)
 
     rand_ecf = geocoords.geodetic_to_ecf(rand_llh)
     rand_llh2 = geocoords.ecf_to_geodetic(rand_ecf)
@@ -126,10 +125,9 @@ def test_ned_to_ecf(input):
 def test_ecf_to_ned_roundtrip(input):
     shp = (8, 5)
     rand_ecf = numpy.empty(shp + (3, ), dtype=numpy.float64)
-    rng = numpy.random.default_rng()
-    rand_ecf[:, :, 0] = EQUATORIAL_RADIUS*(rng.random(shp) - 0.5)
-    rand_ecf[:, :, 1] = EQUATORIAL_RADIUS*(rng.random(shp) - 0.5)
-    rand_ecf[:, :, 2] = POLAR_RADIUS*(rng.random(shp) - 0.5)
+    rand_ecf[:, :, 0] = EQUATORIAL_RADIUS*(numpy.random.random(shp) - 0.5)
+    rand_ecf[:, :, 1] = EQUATORIAL_RADIUS*(numpy.random.random(shp) - 0.5)
+    rand_ecf[:, :, 2] = POLAR_RADIUS*(numpy.random.random(shp) - 0.5)
 
     rand_ned = geocoords.ecf_to_ned(rand_ecf, input['orp'])
     rand_ecf2 = geocoords.ned_to_ecf(rand_ned, input['orp'])
@@ -178,10 +176,9 @@ def test_enu_to_ecf(input):
 def test_ecf_to_enu_roundtrip(input):
     shp = (8, 5)
     rand_ecf = numpy.empty(shp + (3, ), dtype=numpy.float64)
-    rng = numpy.random.default_rng()
-    rand_ecf[:, :, 0] = EQUATORIAL_RADIUS*(rng.random(shp) - 0.5)
-    rand_ecf[:, :, 1] = EQUATORIAL_RADIUS*(rng.random(shp) - 0.5)
-    rand_ecf[:, :, 2] = POLAR_RADIUS*(rng.random(shp) - 0.5)
+    rand_ecf[:, :, 0] = EQUATORIAL_RADIUS*(numpy.random.random(shp) - 0.5)
+    rand_ecf[:, :, 1] = EQUATORIAL_RADIUS*(numpy.random.random(shp) - 0.5)
+    rand_ecf[:, :, 2] = POLAR_RADIUS*(numpy.random.random(shp) - 0.5)
 
     rand_enu = geocoords.ecf_to_enu(rand_ecf, input['orp'])
     rand_ecf2 = geocoords.enu_to_ecf(rand_enu, input['orp'])

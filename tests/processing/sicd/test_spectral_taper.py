@@ -9,7 +9,15 @@ import logging
 import numpy as np
 import pytest
 import scipy
-import scipy.fft as scifft
+
+import scipy
+if scipy.__version__ < '1.4':
+    # noinspection PyUnresolvedReferences
+    from scipy.fftpack import fft2 as scifft
+else:
+    # noinspection PyUnresolvedReferences
+    from scipy.fft import fft2 as scifft
+
 import scipy.signal.windows as sciwin
 
 from sarpy.io.complex.sicd_elements.SICD import SICDType
@@ -109,7 +117,7 @@ def test_make_sym_1d_window(window, parlist):
         elif scipy_window == 'taylor':
             w_expect = sciwin.taylor(n, nbar=scipy_pars['NBAR'], sll=np.abs(scipy_pars['SLL']), norm=True, sym=True)
         else:
-            raise ValueError(f"Unknown window function {scipy_window}")
+            raise ValueError("Unknown window function {}".format(scipy_window))
 
         assert np.allclose(w_actual, w_expect)
 
@@ -144,7 +152,7 @@ def test_get_sicd_wgt_funct(axis, mock_sicd_meta):
     assert np.all(w_actual == w_expect)
 
     axis_mdata.WgtType.WindowName = 'SHAZAM'
-    with pytest.raises(ValueError, match=f'SICD/Grid/{axis}/WgtFunct is not part of the SICD metadata'):
+    with pytest.raises(ValueError, match='SICD/Grid/{}/WgtFunct is not part of the SICD metadata'.format(axis)):
         spectral_taper._get_sicd_wgt_funct(mock_sicd_meta, axis, desired_size=nsamp)
 
 
@@ -179,7 +187,8 @@ def test_apply_spectral_taper(mock_sicd_meta, img_rows, img_cols, fft_sgn, skew_
                 wgts = spectral_taper._fit_1d_window(mdata.Grid.Col.WgtFunct, col_edge_hgh - col_edge_low + 1)
                 cdata_fft[:, col_edge_low:col_edge_hgh+1] *= wgts
 
-            self.cdata = (scifft.fftshift(scifft.fft2(scifft.fftshift(cdata_fft)))
+            from numpy.fft import fftshift as np_fftshift
+            self.cdata = (np_fftshift(scifft(np_fftshift(cdata_fft)))
                           / (mdata.ImageData.NumRows * mdata.ImageData.NumCols))
 
             if mdata.Grid.Row.DeltaKCOAPoly is not None:
@@ -295,8 +304,8 @@ def test_apply_2d_spectral_taper(mock_sicd_meta, monkeypatch):
 
     monkeypatch.setattr(spectral_taper, '_apply_1d_spectral_taper', mock_apply_1d_spectral_taper)
 
-    row_scale = 2
-    col_scale = 4
+    row_scale = 2.0
+    col_scale = 4.0
 
     mock_sicd_meta.Grid.Row.WgtFunct = np.full(shape=(11,), fill_value=row_scale)
     mock_sicd_meta.Grid.Col.WgtFunct = np.full(shape=(12,), fill_value=col_scale)

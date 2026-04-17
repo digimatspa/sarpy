@@ -2,7 +2,10 @@ import logging
 import os
 import json
 import tempfile
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 import shutil
 
 import numpy.testing

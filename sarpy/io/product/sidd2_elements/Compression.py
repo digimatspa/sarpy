@@ -1,7 +1,17 @@
 """
 The CompressionType definition.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from builtins import range
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -89,7 +99,7 @@ class J2KSubtype(Serializable):
 
         # throw an error if LayerInfo is an invalid type and an array of bitrates is unable to be generated
         else:
-            raise TypeError(f'Invalid input type for LayerInfo: {type(obj)}. Must be an ElementTree, list, tuple, ndarray, or None.')
+            raise TypeError('Invalid input type for LayerInfo: {}. Must be an ElementTree, list, tuple, ndarray, or None.'.format(type(obj)))
 
 class J2KType(Serializable):
     """

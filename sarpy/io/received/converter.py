@@ -1,7 +1,14 @@
 """
 This module provide utilities for reading essentially Compensated Received Signal Data
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -18,7 +25,7 @@ _openers = []
 _parsed_openers = False
 
 
-def register_opener(open_func: Callable) -> None:
+def register_opener(open_func):
     """
     Provide a new opener.
 
@@ -40,7 +47,7 @@ def register_opener(open_func: Callable) -> None:
         _openers.append(open_func)
 
 
-def parse_openers() -> None:
+def parse_openers():
     """
     Automatically find the viable openers (i.e. :func:`is_a`) in the various modules.
     """
@@ -53,7 +60,7 @@ def parse_openers() -> None:
     check_for_openers('sarpy.io.received', register_opener)
 
 
-def open_received(file_name: str) -> BaseReader:
+def open_received(file_name):
     """
     Given a file, try to find and return the appropriate reader object.
 

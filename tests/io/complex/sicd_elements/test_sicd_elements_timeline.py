@@ -229,7 +229,7 @@ def test_timeline_consecutive_times(timeline, caplog, modifier, expected_behavio
     assert not timeline.is_valid()
     assert any(
         re.search(
-            rf"There is {expected_behavior} between IPPSet.+ of .+ seconds", x.message
+            r"There is {} between IPPSet.+ of .+ seconds".format(expected_behavior), x.message
         )
         for x in caplog.records
     )
@@ -241,7 +241,7 @@ def test_timeline_consecutive_indices(timeline, caplog, modifier, expected_behav
     assert not timeline.is_valid()
     assert any(
         re.search(
-            rf"There is {expected_behavior} between IPPSet.+ of .+ IPPs", x.message
+            r"There is {} between IPPSet.+ of .+ IPPs".format(expected_behavior), x.message
         )
         for x in caplog.records
     )

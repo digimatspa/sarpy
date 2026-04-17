@@ -1,39 +1,39 @@
 {
- "type": "FileAnnotationCollection",
- "version": "test_version",
- "image_file_name": "test_image_file_name",
- "image_id": "test_image_id",
- "core_name": "test_core_name",
+ "type": "FileAnnotationCollection", 
+ "version": "test_version", 
+ "image_file_name": "test_image_file_name", 
+ "image_id": "test_image_id", 
+ "core_name": "test_core_name", 
  "annotations": {
-  "type": "AnnotationCollection",
+  "type": "AnnotationCollection", 
   "features": [
    {
-    "type": "AnnotationFeature",
-    "id": "cbe411a9-acb3-431e-98f6-70fdd73706a0",
+    "type": "AnnotationFeature", 
+    "id": "799531ae-5f9b-45e9-85dd-a1667b96a6ea", 
     "geometry": {
-     "type": "Point",
+     "type": "Point", 
      "coordinates": [
-      0.0,
+      0.0, 
       0.0
      ]
-    },
+    }, 
     "properties": {
-     "type": "AnnotationProperties",
-     "name": "annotation1",
-     "description": "abcd",
-     "directory": "path/folder",
+     "type": "AnnotationProperties", 
+     "name": "annotation1", 
+     "description": "abcd", 
+     "directory": "path/folder", 
      "geometry_properties": [
       {
-       "type": "GeometryProperties",
-       "uid": "abcd",
-       "name": "efgh",
+       "type": "GeometryProperties", 
+       "uid": "abcd", 
+       "name": "efgh", 
        "color": "blue"
       }
-     ],
+     ], 
      "parameters": {
-      "type": "Point",
+      "type": "Point", 
       "coordinates": [
-       0.0,
+       0.0, 
        0.0
       ]
      }

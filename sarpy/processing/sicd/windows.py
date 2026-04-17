@@ -2,7 +2,15 @@
 Window function definitions and a few helper functions. This just passes through
 to scipy functions after managing scipy version dependent import structure.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -37,9 +45,9 @@ else:
 
 
 def general_hamming(
-        M: int,
-        alpha: float,
-        sym: bool = True) -> numpy.ndarray:
+        M,
+        alpha,
+        sym = True):
     r"""
     Returns a generalized hamming function. Constructed (non-symmetric) as
     :math:`\alpha - (1-\alpha)\cos\left(\frac{2\pi n}{M-1}\right) 0\leq n \leq M-1`
@@ -79,8 +87,8 @@ def general_hamming(
 
 
 def hamming(
-        M: int,
-        sym: bool = True) -> numpy.ndarray:
+        M,
+        sym = True):
     """
     The hamming window, which is a general hamming window with alpha=0.54.
 
@@ -101,8 +109,8 @@ def hamming(
 
 
 def hanning(
-        M: int,
-        sym: bool = True) -> numpy.ndarray:
+        M,
+        sym = True):
     """
     The hanning or hann window, which is a general hamming window with alpha=0.5.
 
@@ -123,11 +131,11 @@ def hanning(
 
 
 def taylor(
-        M: int,
-        nbar: int = 4,
-        sll: float = -30,
-        norm: bool = True,
-        sym: bool = True) -> numpy.ndarray:
+        M,
+        nbar = 4,
+        sll = -30,
+        norm = True,
+        sym = True):
     """
     The Taylor window taper function approximates the Dolph-Chebyshev windows
     constant sidelobe level for a parameterized number of near-in sidelobes,
@@ -204,9 +212,9 @@ def taylor(
 
 
 def kaiser(
-        M: int,
-        beta: float,
-        sym: bool = True) -> numpy.ndarray:
+        M,
+        beta,
+        sym = True):
     """
     Return a Kaiser window, which is a taper formed by using a Bessel function.
 
@@ -233,8 +241,8 @@ def kaiser(
 # helper methods
 
 def hamming_ipr(
-        x: Union[numpy.ndarray, float],
-        a: float) -> Union[numpy.ndarray, float]:
+        x,
+        a):
     """
     Evaluate the Hamming impulse response function over the given array.
 
@@ -252,7 +260,7 @@ def hamming_ipr(
     return a*numpy.sinc(x) + 0.5*(1-a)*(numpy.sinc(x-1) + numpy.sinc(x+1)) - a/numpy.sqrt(2)
 
 
-def get_hamming_broadening_factor(coef: float) -> float:
+def get_hamming_broadening_factor(coef):
     test_array = numpy.linspace(0.3, 2.5, 100)
     values = hamming_ipr(test_array, coef)
     init_value = test_array[numpy.argmin(numpy.abs(values))]
@@ -261,8 +269,8 @@ def get_hamming_broadening_factor(coef: float) -> float:
 
 
 def find_half_power(
-        wgt_funct: Optional[numpy.ndarray],
-        oversample: int = 1024) -> Optional[float]:
+        wgt_funct,
+        oversample = 1024):
     """
     Find the half power point of the impulse response function.
 

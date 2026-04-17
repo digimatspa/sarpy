@@ -1,7 +1,16 @@
 """
 Common functionality for converting metadata
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import range
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -21,15 +30,14 @@ logger = logging.getLogger(__name__)
 
 
 def two_dim_poly_fit(
-        x: numpy.ndarray,
-        y: numpy.ndarray,
-        z: numpy.ndarray,
-        x_order: int = 2,
-        y_order: int = 2,
-        x_scale: float = 1.,
-        y_scale: float = 1.,
-        rcond: Optional[float] = None) -> Tuple[
-            numpy.ndarray, numpy.ndarray, int, numpy.ndarray]:
+        x,
+        y,
+        z,
+        x_order = 2,
+        y_order = 2,
+        x_scale = 1.,
+        y_scale = 1.,
+        rcond = None):
     """
     Perform fit of data to two-dimensional polynomial.
 
@@ -165,11 +173,10 @@ def fit_time_coa_polynomial(
 
 
 def fit_position_xvalidation(
-        time_array: numpy.ndarray,
-        position_array: numpy.ndarray,
-        velocity_array: numpy.ndarray,
-        max_degree: int = 5) -> Tuple[
-            numpy.ndarray, numpy.ndarray, numpy.ndarray]:
+        time_array,
+        position_array,
+        velocity_array,
+        max_degree = 5):
     """
     Empirically fit the polynomials for the X, Y, Z ECF position array, using cross
     validation with the velocity array to determine the best fit degree up to a
@@ -292,8 +299,8 @@ def sicd_reader_iterator(
 
 def get_physical_coordinates(
         the_sicd,
-        row_value: Union[int, float, numpy.ndarray],
-        col_value: Union[int, float, numpy.ndarray]) -> Tuple[Union[float, numpy.ndarray], Union[float, numpy.ndarray]]:
+        row_value,
+        col_value):
     """
     Transform from image coordinates to physical coordinates, for polynomial evaluation.
 
@@ -317,10 +324,10 @@ def get_physical_coordinates(
 # helper functions
 
 def get_fetch_block_size(
-        start_element: int,
-        stop_element: int,
-        block_size_in_bytes: int,
-        bands: int = 1):
+        start_element,
+        stop_element,
+        block_size_in_bytes,
+        bands = 1):
     """
     Gets the appropriate block size, given fetch parameters and constraints.
 
@@ -349,8 +356,8 @@ def get_fetch_block_size(
 
 
 def extract_blocks(
-        the_range: Tuple[int, int, int],
-        index_block_size: Union[None, int, float]) -> Tuple[List[Tuple[int, int, int]], List[Tuple[int, int]]]:
+        the_range,
+        index_block_size):
     """
     Convert the single range definition into a series of range definitions in
     keeping with fetching of the appropriate block sizes.

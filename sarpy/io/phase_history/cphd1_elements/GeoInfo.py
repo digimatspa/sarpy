@@ -1,7 +1,16 @@
 """
 The GeoInfo definition.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+#from builtins import str
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -63,7 +72,7 @@ class LineType(Serializable):
 
         # LineType must have at least 2 Elements
         if len(value) < 2:
-            raise ValueError(f'LineType must have at least 2 endpoints, got {len(value)}')
+            raise ValueError('LineType must have at least 2 endpoints, got {}'.format(len(value)))
 
         if isinstance(value, numpy.ndarray):
             is_type = True
@@ -192,7 +201,7 @@ class PolygonType(Serializable):
 
         # PolygonType must have at least 3 Vertices
         if len(value) < 3:
-            raise ValueError(f'PolygonType must have at least 3 vertices, got {len(value)}')
+            raise ValueError('PolygonType must have at least 3 vertices, got {}'.format(len(value)))
 
         if isinstance(value, numpy.ndarray):
             is_type = True

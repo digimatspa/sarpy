@@ -1,8 +1,12 @@
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 from collections import OrderedDict
 from datetime import datetime, date
 from xml.etree import ElementTree
 import numpy as np
+from future.utils import string_types
 
 from sarpy.io.xml.base import ParametersCollection, Serializable, SerializableArray
 
@@ -147,7 +151,7 @@ class TestSerializable(unittest.TestCase):
         xml_bytes = obj.to_xml_bytes(tag='DummySerializable')
         xml_str   = obj.to_xml_string(tag='DummySerializable')
         self.assertIsInstance(xml_bytes, bytes)
-        self.assertIsInstance(xml_str, str)
+        self.assertIsInstance(xml_str, string_types)
         self.assertIn('DummySerializable', xml_str)
 
     def test_from_node_with_tag_override_and_namespace(self):
@@ -169,7 +173,7 @@ class TestSerializable(unittest.TestCase):
         node = ElementTree.fromstring(xml)
         with self.assertRaisesRegex(
             ValueError, 
-            r"Attribute b in class <class " + \
+            r"Attribute b in class .* " + \
             "'test_Serializable_class.DummySerializable'> expects a xml " + \
             "namespace entry of ns1, but xml_ns is None.$"
         ):
@@ -220,7 +224,7 @@ class TestSerializable(unittest.TestCase):
         class DummySerializable2(Serializable):
             _fields = ('a',)
         obj = DummySerializable2(a=1)
-        obj._numeric_format['a'] = lambda x: f"Value:{x}"
+        obj._numeric_format['a'] = lambda x: "Value:{}".format(x)
         fmt = obj._get_formatter('a')
         self.assertTrue(callable(fmt))
         self.assertEqual(fmt(5), "Value:5")
@@ -498,7 +502,10 @@ class TestSerializable(unittest.TestCase):
         doc      = ElementTree.ElementTree()
         # Use a namespace key
         node     = obj.to_node(doc, tag='TestTag', ns_key='ns1')
-        arr_node = node.find('ns1:arr')
+        try:
+            arr_node = node.find('ns1:arr')
+        except:
+            arr_node = next((c for c in node if c.tag == 'ns1:arr'), None)
         items = list(arr_node)
         self.assertIsNotNone(arr_node)
         self.assertEqual(arr_node.attrib['size'],       '3')
@@ -628,10 +635,19 @@ class TestSerializable(unittest.TestCase):
         doc  = ElementTree.ElementTree()
         node = obj.to_node(doc, tag='TestTag', ns_key='ns1')
         # Should create a node with tag 'ns1:cplx' and children 'ns1:Real', 'ns1:Imag'
-        cplx_node = node.find('ns1:cplx')
+        try:
+            cplx_node = node.find('ns1:cplx')
+        except:
+            cplx_node = next((c for c in node if c.tag == 'ns1:cplx'), None)
         self.assertIsNotNone(cplx_node)
-        real_node = cplx_node.find('ns1:Real')
-        imag_node = cplx_node.find('ns1:Imag')
+        try:
+            real_node = cplx_node.find('ns1:Real')
+        except:
+            real_node = next((c for c in cplx_node if c.tag == 'ns1:Real'), None)
+        try:
+            imag_node = cplx_node.find('ns1:Imag')
+        except:
+            imag_node = next((c for c in cplx_node if c.tag == 'ns1:Imag'), None)
         self.assertIsNotNone(real_node)
         self.assertIsNotNone(imag_node)
         self.assertEqual(real_node.text, '1.5')
@@ -696,7 +712,7 @@ class TestSerializable(unittest.TestCase):
         with self.assertRaisesRegex(AttributeError, r'The value associated ' + \
                                     'with attribute arr in an instance of ' + \
                                     'class DummySerializable is of type ' + \
-                                    '\<class \'numpy.ndarray\'\>, but nothing ' + \
+                                    '.* \'numpy.ndarray\'\>, but nothing ' + \
                                     'is populated in the _collection_tags ' + \
                                     'dictionary.$'):
             obj.to_node(doc, tag='TestTag')
@@ -718,7 +734,7 @@ class TestSerializable(unittest.TestCase):
         with self.assertRaisesRegex(AttributeError, r'The value associated ' + \
                                     'with attribute arr in an instance of ' + \
                                     'class DummySerializable is of type ' + \
-                                    '\<class \'numpy.ndarray\'\>, but ' + \
+                                    '.* \'numpy.ndarray\'\>, but ' + \
                                     '\`child_tag\` is not populated in ' + \
                                     'the _collection_tags dictionary.$'):
             obj.to_node(doc, tag='TestTag')
@@ -791,7 +807,7 @@ class TestSerializable(unittest.TestCase):
         class DummyArray(SerializableArray):
             def __init__(self):
                 arr = np.array([DummyChild(x=1), DummyChild(x=2)], dtype=object)
-                super().__init__(coords=arr, name='arr', child_tag='x', child_type=DummyChild)
+                super(DummyArray, self).__init__(coords=arr, name='arr', child_tag='x', child_type=DummyChild)
 
             def to_json_list(self, check_validity=False, strict=False):
                 return [{'x': 1}, {'x': 2}]
@@ -833,7 +849,7 @@ class TestSerializable(unittest.TestCase):
         self.assertEqual(d['serializable_array_field'], [{'x': 1}, {'x': 2}])
         self.assertTrue(isinstance(d['parameters_collection_field'], dict))
         self.assertEqual(d['parameters_collection_field']['a'], 'A')
-        self.assertTrue(isinstance(d['datetime_field'], str) and 
+        self.assertTrue(isinstance(d['datetime_field'], string_types) and 
                         d['datetime_field'].endswith('Z'))
         self.assertTrue(isinstance(d['complex_field'], dict))
         self.assertEqual(d['complex_field']['Real'], 1)
@@ -858,10 +874,7 @@ class TestSerializable(unittest.TestCase):
         obj = DummySerializable(custom=CustomType())
         with self.assertRaisesRegex(ValueError, r'An entry for class ' + \
                                     'DummySerializable using tag custom is ' + \
-                                    'of type \<class \'test_Serializable_class.' + \
-                                    'TestSerializable.' + \
-                                    'test_serializable_to_dict_serialize_plain_fallback.' + \
-                                    '\<locals\>.CustomType\'\>, and ' + \
+                                    'of type (.*), and ' + \
                                     'serialization has not been implemented$'):
             obj.to_dict()
 
@@ -924,12 +937,12 @@ class TestSerializable(unittest.TestCase):
                 self.arr = arr
 
         obj = DummySerializable(arr=np.array([1, 2, 3], dtype=np.float64))
-        with self.assertRaisesRegex(AttributeError, r'The value associated ' + \
-                                    'with attribute arr in an instance of ' + \
-                                    'class DummySerializable is of type ' + \
-                                    '\<class \'numpy.ndarray\'\>, but ' + \
-                                    'nothing is populated in ' + \
-                                    'the _collection_tags dictionary.$'):
+        pattern = (
+            r"The value associated with attribute arr in an instance of class DummySerializable "
+            r"is of type <(?:class|type) 'numpy\.ndarray'>, but nothing is populated in "
+            r"the _collection_tags dictionary\.$"
+        )
+        with self.assertRaisesRegex(AttributeError, pattern):
             obj.to_dict()
         
     def test_serializable_to_dict_child_tag_is_none(self):
@@ -947,7 +960,7 @@ class TestSerializable(unittest.TestCase):
         with self.assertRaisesRegex(AttributeError, r'The value associated ' + \
                                     'with attribute arr in an instance of ' + \
                                     'class DummySerializable is of type ' + \
-                                    '\<class \'numpy.ndarray\'\>, but ' + \
+                                    '.* \'numpy.ndarray\'\>, but ' + \
                                     '`child_tag` is not populated in ' + \
                                     'the _collection_tags dictionary.$'):
             obj.to_dict()
@@ -991,9 +1004,10 @@ class TestSerializable(unittest.TestCase):
     def test_serializable_to_xml_bytes_urn_invalid_type(self):
         obj = DummySerializableTestToXMLBytes(a="value")
         # urn is an int, which is not supported
-        with self.assertRaisesRegex(TypeError, r'Expected string or ' + \
-                                    'dictionary of string for urn, got type ' + \
-                                    '\<class \'int\'\>$'):
+
+        import pytest
+        pattern = "Expected string or dictionary of string for urn, got type <(?:class|type) 'int'>"
+        with pytest.raises(TypeError, match = pattern):
             obj.to_xml_bytes(urn=12345, tag="TestTag")
 
     def test_serializable_recursive_validity_check_stack_logs_error(self):
@@ -1048,15 +1062,7 @@ class TestSerializable(unittest.TestCase):
         """
         node   = ElementTree.fromstring(xml)
         xml_ns = None
-        # Should raise ValueError because child_tag is None in _collections_tags
-        with self.assertRaisesRegex(ValueError, r'Attribute a in class ' + \
-                                    '\<class ' + \
-                                    '\'test_Serializable_class.' + \
-                                    'TestSerializable.' + \
-                                    'test_serializable_from_node_collections_tags_child_tag_none.' + \
-                                    '\<locals\>.DummySerializable\'\> is ' + \
-                                    'listed in the _collections_tags ' + \
-                                    'dictionary, but the `child_tag` value is ' + \
-                                    'either not populated or None.'):
+        pattern = r"Attribute a in class .*DummySerializable.* is listed in the _collections_tags dictionary, but the `child_tag` value is either not populated or None."
+        with self.assertRaisesRegex(ValueError, pattern):
             DummySerializable.from_node(node, xml_ns)
         

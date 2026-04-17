@@ -3,7 +3,14 @@ Simple helper functions for constructing the NGA modified AFRL/RDE structure
 assuming either a known ground truth scenario or inferred analyst truth 
 scenario.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = 'UNCLASSIFIED'
 __author__ = "Thomas McCullough"
 
@@ -41,9 +48,9 @@ class GroundTruthConstructor(object):
         '_collection_info', '_subcollection_info', '_label_source', '_objects', '_fiducials')
 
     def __init__(
-            self, collection_info: CollectionInfoType,
-            subcollection_info: SubCollectionInfoType,
-            label_source: Optional[LabelSourceType] = None):
+            self, collection_info,
+            subcollection_info,
+            label_source = None):
         """
 
         Parameters
@@ -62,7 +69,7 @@ class GroundTruthConstructor(object):
         self._objects = []
         self._fiducials = []
 
-    def add_fiducial(self, the_fiducial: TheFiducialType) -> None:
+    def add_fiducial(self, the_fiducial):
         """
         Adds the given fiducial to the collection.
 
@@ -81,10 +88,10 @@ class GroundTruthConstructor(object):
 
     def add_fiducial_from_arguments(
             self,
-            Name: str = None,
-            SerialNumber: Optional[str] = None,
-            FiducialType: Optional[str] = None,
-            GeoLocation: FiducialGeoLocation = None) -> None:
+            Name = None,
+            SerialNumber = None,
+            FiducialType = None,
+            GeoLocation = None):
         """
         Adds a fiducial to the collection.
 
@@ -105,7 +112,7 @@ class GroundTruthConstructor(object):
 
     def add_object(
             self,
-            the_object: TheObjectType) -> None:
+            the_object):
         """
         Adds the given object to the collection.
 
@@ -124,35 +131,35 @@ class GroundTruthConstructor(object):
 
     def add_object_from_arguments(
             self,
-            SystemName: str = None,
-            SystemComponent: Optional[str] = None,
-            NATOName: Optional[str] = None,
-            Function: Optional[str] = None,
-            Version: Optional[str] = None,
-            DecoyType: Optional[str] = None,
-            SerialNumber: Optional[str] = None,
-            ObjectClass: str = 'Unknown',
-            ObjectSubClass: str = 'Unknown',
-            ObjectTypeClass: str = 'Unknown',
-            ObjectType: str = 'Unknown',
-            ObjectLabel: str = None,
-            Size: Optional[Union[SizeType, numpy.ndarray, list, tuple]] = None,
-            Orientation: OrientationType = None,
-            Articulation: Union[None, str, StringWithComponentType, List[StringWithComponentType]] = None,
-            Configuration: Union[None, str, StringWithComponentType, List[StringWithComponentType]] = None,
-            Accessories: Optional[str] = None,
-            PaintScheme: Optional[str] = None,
-            Camouflage: Optional[str] = None,
-            Obscuration: Optional[str] = None,
-            ObscurationPercent: Optional[float] = None,
-            ImageLevelObscuration: Optional[str] = None,
-            GeoLocation: ObjectGeoLocation = None,
-            TargetToClutterRatio: Optional[str] = None,
-            VisualQualityMetric: Optional[str] = None,
-            UnderlyingTerrain: Optional[str] = None,
-            OverlyingTerrain: Optional[str] = None,
-            TerrainTexture: Optional[str] = None,
-            SeasonalCover: Optional[str] = None) -> None:
+            SystemName = None,
+            SystemComponent = None,
+            NATOName = None,
+            Function = None,
+            Version = None,
+            DecoyType = None,
+            SerialNumber = None,
+            ObjectClass = 'Unknown',
+            ObjectSubClass = 'Unknown',
+            ObjectTypeClass = 'Unknown',
+            ObjectType = 'Unknown',
+            ObjectLabel = None,
+            Size = None,
+            Orientation = None,
+            Articulation = None,
+            Configuration = None,
+            Accessories = None,
+            PaintScheme = None,
+            Camouflage = None,
+            Obscuration = None,
+            ObscurationPercent = None,
+            ImageLevelObscuration = None,
+            GeoLocation = None,
+            TargetToClutterRatio = None,
+            VisualQualityMetric = None,
+            UnderlyingTerrain = None,
+            OverlyingTerrain = None,
+            TerrainTexture = None,
+            SeasonalCover = None):
         """
         Adds an object to the collection.
 
@@ -220,7 +227,7 @@ class GroundTruthConstructor(object):
                           TerrainTexture=TerrainTexture,
                           SeasonalCover=SeasonalCover))
 
-    def get_final_structure(self) -> ResearchType:
+    def get_final_structure(self):
         """
         It is anticipated that this might be reused to localize for a whole series
         of different sicd files.
@@ -255,14 +262,14 @@ class GroundTruthConstructor(object):
 
     def localize_for_sicd(
             self,
-            sicd: SICDType,
-            base_sicd_file: str,
-            layover_shift: bool = False,
-            populate_in_periphery: bool = False,
-            include_out_of_range: bool = False,
-            padding_fraction: Optional[float] = 0.05,
-            minimum_pad: Union[int, float] = 0,
-            md5_checksum: Optional[str] = None):
+            sicd,
+            base_sicd_file,
+            layover_shift = False,
+            populate_in_periphery = False,
+            include_out_of_range = False,
+            padding_fraction = 0.05,
+            minimum_pad = 0,
+            md5_checksum = None):
         """
         Localize the AFRL structure for the given sicd structure.
 
@@ -300,13 +307,13 @@ class GroundTruthConstructor(object):
 
     def localize_for_sicd_reader(
             self,
-            sicd_reader: SICDReader,
-            layover_shift: bool = False,
-            populate_in_periphery: bool = False,
-            include_out_of_range: bool = False,
-            padding_fraction: Optional[float] = 0.05,
-            minimum_pad: Union[int, float] = 0,
-            populate_md5: bool = True):
+            sicd_reader,
+            layover_shift = False,
+            populate_in_periphery = False,
+            include_out_of_range = False,
+            padding_fraction = 0.05,
+            minimum_pad = 0,
+            populate_md5 = True):
         """
         Localize the AFRL structure for the given sicd file.
 
@@ -354,14 +361,14 @@ class AnalystTruthConstructor(object):
 
     def __init__(
             self,
-            sicd: SICDType,
-            base_file: str,
-            collection_info: CollectionInfoType,
-            subcollection_info: SubCollectionInfoType,
-            label_source: Optional[LabelSourceType] = None,
-            projection_type: str = 'HAE',
-            proj_kwargs: Optional[Dict] = None,
-            md5_checksum: Optional[str] = None):
+            sicd,
+            base_file,
+            collection_info,
+            subcollection_info,
+            label_source = None,
+            projection_type = 'HAE',
+            proj_kwargs = None,
+            md5_checksum = None):
         """
 
         Parameters
@@ -401,7 +408,7 @@ class AnalystTruthConstructor(object):
         self._proj_kwargs = {} if proj_kwargs is None else proj_kwargs
 
     @property
-    def image_info(self) -> ImageInfoType:
+    def image_info(self):
         """
         ImageInfoType: The basic image info object derived from the sicd
         """
@@ -409,14 +416,14 @@ class AnalystTruthConstructor(object):
         return self._image_info
 
     @property
-    def sensor_info(self) -> SensorInfoType:
+    def sensor_info(self):
         """
         SensorInfoType: The basic sensor info object derived from the sicd.
         """
 
         return self._sensor_info
 
-    def add_fiducial(self, the_fiducial: TheFiducialType) -> None:
+    def add_fiducial(self, the_fiducial):
         """
         Adds the given fiducial to the collection. Note that this object will be modified in place.
 
@@ -434,10 +441,10 @@ class AnalystTruthConstructor(object):
 
     def add_fiducial_from_arguments(
             self,
-            Name: Optional[str] = None,
-            SerialNumber: Optional[str] = None,
-            FiducialType: Optional[str] = None,
-            ImageLocation: FiducialImageLocation = None):
+            Name = None,
+            SerialNumber = None,
+            FiducialType = None,
+            ImageLocation = None):
         """
         Adds a fiducial to the collection.
 
@@ -458,9 +465,9 @@ class AnalystTruthConstructor(object):
 
     def add_object(
             self,
-            the_object: TheObjectType,
-            padding_fraction: Optional[float] = 0.05,
-            minimum_pad: Union[int, float] = 0):
+            the_object,
+            padding_fraction = 0.05,
+            minimum_pad = 0):
         """
         Adds the object to the collection. Note that this object will be modified in place.
 
@@ -485,37 +492,37 @@ class AnalystTruthConstructor(object):
 
     def add_object_from_arguments(
             self,
-            padding_fraction: float = 0.05,
-            minimum_pad: Union[int, float] = 0,
-            SystemName: str = None,
-            SystemComponent: Optional[str] = None,
-            NATOName: Optional[str] = None,
-            Function: Optional[str] = None,
-            Version: Optional[str] = None,
-            DecoyType: Optional[str] = None,
-            SerialNumber: Optional[str] = None,
-            ObjectClass: str = 'Unknown',
-            ObjectSubClass: str = 'Unknown',
-            ObjectTypeClass: str = 'Unknown',
-            ObjectType: str = 'Unknown',
-            ObjectLabel: str = None,
-            Size: Union[None, SizeType, numpy.ndarray, list, tuple] = None,
-            Orientation: OrientationType = None,
-            Articulation: Union[None, str, StringWithComponentType, List[StringWithComponentType]] = None,
-            Configuration: Union[None, str, StringWithComponentType, List[StringWithComponentType]] = None,
-            Accessories: Optional[str] = None,
-            PaintScheme: Optional[str] = None,
-            Camouflage: Optional[str] = None,
-            Obscuration: Optional[str] = None,
-            ObscurationPercent: Optional[float] = None,
-            ImageLevelObscuration: Optional[str] = None,
-            ImageLocation: ObjectImageLocation = None,
-            TargetToClutterRatio: Optional[str] = None,
-            VisualQualityMetric: Optional[str] = None,
-            UnderlyingTerrain: Optional[str] = None,
-            OverlyingTerrain: Optional[str] = None,
-            TerrainTexture: Optional[str] = None,
-            SeasonalCover: Optional[str] = None) -> None:
+            padding_fraction = 0.05,
+            minimum_pad = 0,
+            SystemName = None,
+            SystemComponent = None,
+            NATOName = None,
+            Function = None,
+            Version = None,
+            DecoyType = None,
+            SerialNumber = None,
+            ObjectClass = 'Unknown',
+            ObjectSubClass = 'Unknown',
+            ObjectTypeClass = 'Unknown',
+            ObjectType = 'Unknown',
+            ObjectLabel = None,
+            Size = None,
+            Orientation = None,
+            Articulation = None,
+            Configuration = None,
+            Accessories = None,
+            PaintScheme = None,
+            Camouflage = None,
+            Obscuration = None,
+            ObscurationPercent = None,
+            ImageLevelObscuration = None,
+            ImageLocation = None,
+            TargetToClutterRatio = None,
+            VisualQualityMetric = None,
+            UnderlyingTerrain = None,
+            OverlyingTerrain = None,
+            TerrainTexture = None,
+            SeasonalCover = None):
         """
         Adds an object to the collection.
 
@@ -588,7 +595,7 @@ class AnalystTruthConstructor(object):
             padding_fraction=padding_fraction,
             minimum_pad=minimum_pad)
 
-    def get_final_structure(self) -> ResearchType:
+    def get_final_structure(self):
         """
         This is not anticipated to be reused, so the raw progress to date is returned.
         Care should be taken in modifying the returned structure directly.
@@ -616,8 +623,8 @@ class AnalystTruthConstructor(object):
 
 
 def convert_afrl_to_native(
-        research: ResearchType,
-        include_chip: bool = False) -> FileLabelCollection:
+        research,
+        include_chip = False):
     """
     Converts an AFRL structure to a label structure for simple viewing.
 
@@ -632,7 +639,7 @@ def convert_afrl_to_native(
     FileLabelCollection
     """
 
-    def _convert_object_to_json(t_object: TheObjectType) -> LabelFeature:
+    def _convert_object_to_json(t_object):
         # extract the "properties"
         geometry, geometry_properties = t_object.get_image_geometry_object_for_sicd(include_chip=include_chip)
         feature = LabelFeature(

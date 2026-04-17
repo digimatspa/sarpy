@@ -51,8 +51,10 @@ def test_radiometric(caplog):
 
 
 def test_radiometric_invalid(caplog):
+    import re
     with caplog.at_level(logging.INFO, 'sarpy.io.xml.descriptors'):
         rad = blocks.RadiometricType(SigmaZeroSFIncidenceMap='invalid')
         assert rad.SigmaZeroSFIncidenceMap == 'invalid'
         assert len(caplog.records) == 1
-        assert "values ARE REQUIRED to be one of ('APPLIED', 'NOT_APPLIED')" in caplog.text
+        pattern = r"values ARE REQUIRED to be one of \((u?'APPLIED', u?'NOT_APPLIED')\)"
+        assert re.search(pattern, caplog.text), "Pattern not found in " + str(caplog.text)

@@ -4,7 +4,17 @@ Functionality for reading SIO data into a SICD model.
 The SIO format is believed to be based on a memo from General Dynamics.  Some SIO features may not
 be implemented and compatibility with other SIO software is not guaranteed.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import open
+from builtins import range
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = ("Thomas McCullough", "Wade Schwartzkopf")
 
@@ -48,7 +58,7 @@ class SIODetails(object):
         0xFF017FFE: '>', 0xFE7F01FF: '<',  # no user data
         0xFF027FFD: '>', 0xFD7F02FF: '<'}  # with user data
 
-    def __init__(self, file_name: str):
+    def __init__(self, file_name):
         self._file_name = file_name
         self._user_data = None
         self._data_offset = 20
@@ -76,7 +86,7 @@ class SIODetails(object):
             self._head = init_head
 
     @property
-    def file_name(self) -> str:
+    def file_name(self):
         return self._file_name
 
     @property
@@ -84,14 +94,14 @@ class SIODetails(object):
         return self._data_offset
 
     @property
-    def raw_data_size(self) -> Optional[Tuple[int, ...]]:
+    def raw_data_size(self):
         if self._head is None:
             return None
         rows, cols = self._head[:2]
         return int(rows), int(cols), 2
 
     @property
-    def formatted_data_size(self) -> Union[None, Tuple[int, ...]]:
+    def formatted_data_size(self):
         if self._head is None:
             return None
         rows, cols = self._head[:2]
@@ -118,7 +128,7 @@ class SIODetails(object):
             raise ValueError(_unsupported_pix_size.format(self._head[2:]))
 
     @property
-    def pixel_type(self) -> str:
+    def pixel_type(self):
         if self._head[2] == 13 and self._head[3] == 8:
             return 'RE32F_IM32F'
         elif self._head[2] == 12 and self._head[3] == 4:
@@ -128,7 +138,7 @@ class SIODetails(object):
         else:
             raise ValueError(_unsupported_pix_size.format(self._head[2:]))
 
-    def get_symmetry(self) -> Tuple[Optional[Tuple[int, ...]], Optional[Tuple[int, ...]]]:
+    def get_symmetry(self):
         return self._reverse_axes, self._transpose_axes
 
     def _read_user_data(self):
@@ -177,7 +187,7 @@ class SIODetails(object):
                 'does not match the actual file size ({})'.format(
                     self._file_name, exp_file_size, act_file_size))
 
-    def _find_caspr_data(self) -> None:
+    def _find_caspr_data(self):
         def find_caspr():
             dir_name, fil_name = os.path.split(self._file_name)
             file_stem = os.path.splitext(fil_name)
@@ -239,7 +249,7 @@ class SIODetails(object):
         elif illum_dir != 'top':
             raise ValueError('unhandled illumination direction {}'.format(illum_dir))
 
-    def get_sicd(self) -> SICDType:
+    def get_sicd(self):
         """
         Extract the SICD details.
 
@@ -297,7 +307,7 @@ class SIOReader(SICDTypeReader):
             filename or SIODetails object
         """
 
-        if isinstance(sio_details, str):
+        if isinstance(sio_details, string_types):
             sio_details = SIODetails(sio_details)
         if not isinstance(sio_details, SIODetails):
             raise TypeError('The input argument for SIOReader must be a filename or '
@@ -322,7 +332,7 @@ class SIOReader(SICDTypeReader):
         self._check_sizes()
 
     @property
-    def sio_details(self) -> SIODetails:
+    def sio_details(self):
         """
         SIODetails: The sio details object.
         """
@@ -330,14 +340,14 @@ class SIOReader(SICDTypeReader):
         return self._sio_details
 
     @property
-    def file_name(self) -> str:
+    def file_name(self):
         return self.sio_details.file_name
 
 
 ########
 # base expected functionality for a module with an implemented Reader
 
-def is_a(file_name: str) -> Optional[SIOReader]:
+def is_a(file_name):
     """
     Tests whether a given file_name corresponds to a SIO file. Returns a reader instance, if so.
 
@@ -377,11 +387,11 @@ class SIOWriter(BaseWriter):
 
     def __init__(
             self,
-            file_object: Union[str, BinaryIO],
-            sicd_meta: SICDType,
-            user_data: Optional[Dict[str, str]] = None,
-            check_older_version: bool = False,
-            check_existence: bool = True):
+            file_object,
+            sicd_meta,
+            user_data = None,
+            check_older_version = False,
+            check_existence = True):
         """
 
         Parameters
@@ -397,7 +407,7 @@ class SIOWriter(BaseWriter):
         """
 
         self._data_written = True
-        if isinstance(file_object, str):
+        if isinstance(file_object, string_types):
             if check_existence and os.path.exists(file_object):
                 raise SarpyIOError(
                     'Given file {} already exists,\n\t'
@@ -476,14 +486,14 @@ class SIOWriter(BaseWriter):
         BaseWriter.__init__(self, data_segment)
 
     @property
-    def file_name(self) -> Optional[str]:
+    def file_name(self):
         """
         None|str: The file name, if feasible.
         """
 
         return self._file_name
 
-    def flush(self, force: bool = False) -> None:
+    def flush(self, force = False):
         BaseWriter.flush(self, force=force)
         if self._data_written:
             return
@@ -492,7 +502,7 @@ class SIOWriter(BaseWriter):
             self._file_object.seek(self._data_offset, os.SEEK_SET)
             self._file_object.write(self.data_segment[0].get_raw_bytes(warn=False))
 
-    def close(self) -> None:
+    def close(self):
         """
         Completes any necessary final steps.
         """

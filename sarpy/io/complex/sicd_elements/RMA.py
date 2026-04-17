@@ -1,7 +1,15 @@
 """
 The RMAType definition.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -43,9 +51,9 @@ class RMRefType(Serializable):
 
     def __init__(
             self,
-            PosRef: Union[XYZType, numpy.ndarray, list, tuple] = None,
-            VelRef: Union[XYZType, numpy.ndarray, list, tuple] = None,
-            DopConeAngRef: float = None,
+            PosRef = None,
+            VelRef = None,
+            DopConeAngRef = None,
             **kwargs):
         """
 
@@ -112,12 +120,12 @@ class INCAType(Serializable):
 
     def __init__(
             self,
-            TimeCAPoly: Union[Poly1DType, numpy.ndarray, list, tuple] = None,
-            R_CA_SCP: float = None,
-            FreqZero: float = None,
-            DRateSFPoly: Union[Poly2DType, numpy.ndarray, list, tuple] = None,
-            DopCentroidPoly: Union[None, Poly2DType, numpy.ndarray, list, tuple] = None,
-            DopCentroidCOA: bool = None,
+            TimeCAPoly = None,
+            R_CA_SCP = None,
+            FreqZero = None,
+            DRateSFPoly = None,
+            DopCentroidPoly = None,
+            DopCentroidCOA = None,
             **kwargs):
         """
 
@@ -144,7 +152,7 @@ class INCAType(Serializable):
         self.DopCentroidCOA = DopCentroidCOA
         super(INCAType, self).__init__(**kwargs)
 
-    def _apply_reference_frequency(self, reference_frequency: float):
+    def _apply_reference_frequency(self, reference_frequency):
         if self.FreqZero is not None:
             self.FreqZero += reference_frequency
 
@@ -181,10 +189,10 @@ class RMAType(Serializable):
 
     def __init__(
             self,
-            RMAlgoType: str = None,
-            RMAT: Optional[RMRefType] = None,
-            RMCR: Optional[RMRefType] = None,
-            INCA: Optional[INCAType] = None,
+            RMAlgoType = None,
+            RMAT = None,
+            RMCR = None,
+            INCA = None,
             **kwargs):
         """
 
@@ -208,7 +216,7 @@ class RMAType(Serializable):
         super(RMAType, self).__init__(**kwargs)
 
     @property
-    def ImageType(self) -> Optional[str]:
+    def ImageType(self):
         """
         str: READ ONLY attribute. Identifies the specific RM image type / metadata type supplied. This is determined by
         returning the (first) attribute among `'RMAT', 'RMCR', 'INCA'` which is populated. `None` will be returned if
@@ -268,7 +276,7 @@ class RMAType(Serializable):
             if self.INCA.FreqZero is None:
                 self.INCA.FreqZero = _get_center_frequency(RadarCollection, ImageFormation)
 
-    def _apply_reference_frequency(self, reference_frequency: float):
+    def _apply_reference_frequency(self, reference_frequency):
         """
         If the reference frequency is used, adjust the necessary fields accordingly.
         Expected to be called by SICD parent.

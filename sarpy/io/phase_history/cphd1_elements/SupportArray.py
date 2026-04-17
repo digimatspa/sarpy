@@ -1,7 +1,15 @@
 """
 The Support Array parameters definition.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -48,13 +56,13 @@ class SupportArrayCore(Serializable):
 
     def __init__(
             self,
-            Identifier: str = None,
-            ElementFormat: str = None,
-            X0: float = None,
-            Y0: float = None,
-            XSS: float = None,
-            YSS: float = None,
-            NODATA: str = None,
+            Identifier = None,
+            ElementFormat = None,
+            X0 = None,
+            Y0 = None,
+            XSS = None,
+            YSS = None,
+            NODATA = None,
             **kwargs):
         """
 
@@ -85,7 +93,7 @@ class SupportArrayCore(Serializable):
         super(SupportArrayCore, self).__init__(**kwargs)
 
     @property
-    def NODATA(self) -> Optional[str]:
+    def NODATA(self):
         """
         None|str: The no data hex string value.
         """
@@ -93,7 +101,7 @@ class SupportArrayCore(Serializable):
         return self._NODATA
 
     @NODATA.setter
-    def NODATA(self, value: Optional[str]):
+    def NODATA(self, value):
         if value is None:
             self._NODATA = None
             return
@@ -101,7 +109,7 @@ class SupportArrayCore(Serializable):
         if isinstance(value, ElementTree.Element):
             value = get_node_value(value)
 
-        if isinstance(value, str):
+        if isinstance(value, string_types):
             self._NODATA = value
         elif isinstance(value, bytes):
             self._NODATA = value.decode('utf-8')
@@ -112,7 +120,7 @@ class SupportArrayCore(Serializable):
         else:
             raise TypeError('Got unexpected type {}'.format(type(value)))
 
-    def get_nodata_as_int(self) -> Optional[int]:
+    def get_nodata_as_int(self):
         """
         Get the no data value as an integer value.
 
@@ -126,7 +134,7 @@ class SupportArrayCore(Serializable):
 
         raise NotImplementedError
 
-    def get_nodata_as_float(self) -> Optional[float]:
+    def get_nodata_as_float(self):
         """
         Gets the no data value as a floating point value.
 
@@ -140,7 +148,7 @@ class SupportArrayCore(Serializable):
 
         raise NotImplementedError
 
-    def get_numpy_format(self) -> Tuple[numpy.dtype, int]:
+    def get_numpy_format(self):
         """
         Convert the element format to a numpy dtype (including endianness) and depth.
 
@@ -168,13 +176,13 @@ class IAZArrayType(SupportArrayCore):
 
     def __init__(
             self,
-            Identifier: str = None,
-            ElementFormat: str = 'IAZ=F4;',
-            X0: float = None,
-            Y0: float = None,
-            XSS: float = None,
-            YSS: float = None,
-            NODATA: str = None,
+            Identifier = None,
+            ElementFormat = 'IAZ=F4;',
+            X0 = None,
+            Y0 = None,
+            XSS = None,
+            YSS = None,
+            NODATA = None,
             **kwargs):
         """
 
@@ -211,13 +219,13 @@ class AntGainPhaseType(SupportArrayCore):
 
     def __init__(
             self,
-            Identifier: str = None,
-            ElementFormat: str = 'Gain=F4;Phase=F4;',
-            X0: float = None,
-            Y0: float = None,
-            XSS: float = None,
-            YSS: float = None,
-            NODATA: str = None,
+            Identifier = None,
+            ElementFormat = 'Gain=F4;Phase=F4;',
+            X0 = None,
+            Y0 = None,
+            XSS = None,
+            YSS = None,
+            NODATA = None,
             **kwargs):
         """
 
@@ -253,13 +261,13 @@ class DwellTimeArrayType(SupportArrayCore):
 
     def __init__(
             self,
-            Identifier: str = None,
-            ElementFormat: str = 'COD=F4;DT=F4;',
-            X0: float = None,
-            Y0: float = None,
-            XSS: float = None,
-            YSS: float = None,
-            NODATA: str = None,
+            Identifier = None,
+            ElementFormat = 'COD=F4;DT=F4;',
+            X0 = None,
+            Y0 = None,
+            XSS = None,
+            YSS = None,
+            NODATA = None,
             **kwargs):
         """
 
@@ -377,10 +385,10 @@ class SupportArrayType(Serializable):
 
     def __init__(
             self,
-            IAZArray: Optional[List[IAZArrayType]] = None,
-            AntGainPhase: Optional[List[AntGainPhaseType]] = None,
-            DwellTimeArray: Optional[List[DwellTimeArrayType]] = None,
-            AddedSupportArray: Optional[List[AddedSupportArrayType]] = None,
+            IAZArray = None,
+            AntGainPhase = None,
+            DwellTimeArray = None,
+            AddedSupportArray = None,
             **kwargs):
         """
 
@@ -405,7 +413,7 @@ class SupportArrayType(Serializable):
 
     def find_support_array(
             self,
-            identifier: str) -> Union[IAZArrayType, AntGainPhaseType, DwellTimeArrayType, AddedSupportArrayType]:
+            identifier):
         """
         Find and return the details for support array associated with the given identifier.
 
@@ -440,7 +448,7 @@ class SupportArrayType(Serializable):
 
         raise KeyError('Identifier {} not associated with a support array.'.format(identifier))
 
-    def version_required(self) -> Tuple[int, int, int]:
+    def version_required(self):
         required = (1, 0, 1)
         if self.DwellTimeArray is not None:
             required = max(required, (1, 1, 0))

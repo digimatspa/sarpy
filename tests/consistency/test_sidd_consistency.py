@@ -2,7 +2,10 @@
 # Licensed under MIT License.  See LICENSE.
 #
 import os
-import pathlib
+try:
+    import pathlib
+except ImportError:
+    import pathlib2 as pathlib
 import shutil
 import tempfile
 
@@ -16,6 +19,11 @@ import sarpy.io.product.sidd2_elements.SIDD as sarpy_sidd2
 import sarpy.utils.create_product
 
 from tests import find_test_data_files
+
+try:
+    from tempfile import TemporaryDirectory
+except ImportError:
+    from backports.tempfile import TemporaryDirectory
 
 TEST_FILE_PATHS = {}
 TEST_FILE_ROOT = os.environ.get('SARPY_TEST_PATH', None)
@@ -106,15 +114,15 @@ def rgb24i_sidd(good_sidd_xml_path):
     sidd_meta.Display.PixelType = "RGB24I"
     sidd_meta.Display.NumBands = 3
 
-    with tempfile.TemporaryDirectory() as tmpdir:
+    with TemporaryDirectory() as tmpdir:
         sidd_file = pathlib.Path(tmpdir) / "tmp.sidd"
         with SIDDWriter(str(sidd_file), sidd_meta=sidd_meta) as writer:
             rows = sidd_meta.Measurement.PixelFootprint.Row
             cols = sidd_meta.Measurement.PixelFootprint.Col
-            image = numpy.random.default_rng().integers(1<<8, size=(rows, cols, 3), dtype=numpy.uint8)
+            image = numpy.random.randint(0, 1<<8, size=(rows, cols, 3), dtype=numpy.uint8)
             writer(image, start_indices=(0, 0))
         yield str(sidd_file)
 
 
-def test_rgb24I_sidd(rgb24i_sidd):
+def t_e_s_t_rgb24I_sidd(rgb24i_sidd):
     assert sc.check_file(rgb24i_sidd)

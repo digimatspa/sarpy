@@ -1,7 +1,15 @@
 """
 The ImageFormationType definition.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -44,9 +52,9 @@ class RcvChanProcType(Serializable):
 
     def __init__(
             self,
-            NumChanProc: int = None,
-            PRFScaleFactor: Optional[float] = None,
-            ChanIndices: List[int] = None,
+            NumChanProc = None,
+            PRFScaleFactor = None,
+            ChanIndices = None,
             **kwargs):
         """
 
@@ -83,8 +91,8 @@ class TxFrequencyProcType(Serializable, Arrayable):
 
     def __init__(
             self,
-            MinProc: float = None,
-            MaxProc: float = None,
+            MinProc = None,
+            MaxProc = None,
             **kwargs):
         """
 
@@ -103,7 +111,7 @@ class TxFrequencyProcType(Serializable, Arrayable):
         super(TxFrequencyProcType, self).__init__(**kwargs)
 
     @property
-    def center_frequency(self) -> Optional[float]:
+    def center_frequency(self):
         """
         None|float: The center frequency.
         """
@@ -113,7 +121,7 @@ class TxFrequencyProcType(Serializable, Arrayable):
         return 0.5*(self.MinProc + self.MaxProc)
 
     @property
-    def bandwidth(self) -> Optional[float]:
+    def bandwidth(self):
         """
         None|float: The bandwidth in Hz.
         """
@@ -124,13 +132,13 @@ class TxFrequencyProcType(Serializable, Arrayable):
 
     def _apply_reference_frequency(
             self,
-            reference_frequency: float):
+            reference_frequency):
         if self.MinProc is not None:
             self.MinProc += reference_frequency
         if self.MaxProc is not None:
             self.MaxProc += reference_frequency
 
-    def _basic_validity_check(self) -> bool:
+    def _basic_validity_check(self):
         condition = super(TxFrequencyProcType, self)._basic_validity_check()
         if self.MinProc is not None and self.MaxProc is not None and self.MaxProc < self.MinProc:
             self.log_validity_error(
@@ -138,7 +146,7 @@ class TxFrequencyProcType(Serializable, Arrayable):
             condition = False
         return condition
 
-    def get_band_name(self) -> str:
+    def get_band_name(self):
         """
         Gets the band name.
 
@@ -149,7 +157,7 @@ class TxFrequencyProcType(Serializable, Arrayable):
 
         return get_band_name(self.center_frequency)
 
-    def get_array(self, dtype=numpy.float64) -> numpy.ndarray:
+    def get_array(self, dtype=numpy.float64):
         """
         Gets an array representation of the data.
 
@@ -167,7 +175,7 @@ class TxFrequencyProcType(Serializable, Arrayable):
         return numpy.array([self.MinProc, self.MaxProc], dtype=dtype)
 
     @classmethod
-    def from_array(cls, array: Union[numpy.ndarray, list, tuple]):
+    def from_array(cls, array):
         """
         Create from an array type entry.
 
@@ -208,9 +216,9 @@ class ProcessingType(Serializable):
 
     def __init__(
             self,
-            Type: str = None,
-            Applied: bool = None,
-            Parameters: Union[None, ParametersCollection, Dict] = None,
+            Type = None,
+            Applied = None,
+            Parameters = None,
             **kwargs):
         """
 
@@ -285,19 +293,19 @@ class DistortionType(Serializable):
 
     def __init__(
             self,
-            CalibrationDate: Union[None, numpy.datetime64, datetime, date, str] = None,
-            A: float = None,
-            F1: complex = None,
-            Q1: complex = None,
-            Q2: complex = None,
-            F2: complex = None,
-            Q3: complex = None,
-            Q4: complex = None,
-            GainErrorA: Optional[float] = None,
-            GainErrorF1: Optional[float] = None,
-            GainErrorF2: Optional[float] = None,
-            PhaseErrorF1: Optional[float] = None,
-            PhaseErrorF2: Optional[float] = None,
+            CalibrationDate = None,
+            A = None,
+            F1 = None,
+            Q1 = None,
+            Q2 = None,
+            F2 = None,
+            Q3 = None,
+            Q4 = None,
+            GainErrorA = None,
+            GainErrorF1 = None,
+            GainErrorF2 = None,
+            PhaseErrorF1 = None,
+            PhaseErrorF2 = None,
             **kwargs):
         """
 
@@ -347,8 +355,8 @@ class PolarizationCalibrationType(Serializable):
 
     def __init__(
             self,
-            DistortCorrectApplied: bool = None,
-            Distortion: DistortionType = None,
+            DistortCorrectApplied = None,
+            Distortion = None,
             **kwargs):
         """
 
@@ -459,19 +467,19 @@ class ImageFormationType(Serializable):
 
     def __init__(
             self,
-            RcvChanProc: RcvChanProcType = None,
-            TxRcvPolarizationProc: str = None,
-            TStartProc: float = None,
-            TEndProc: float = None,
-            TxFrequencyProc: Union[TxFrequencyProcType, numpy.ndarray, list, tuple] = None,
-            SegmentIdentifier: Optional[str] = None,
-            ImageFormAlgo: str = None,
-            STBeamComp: str = None,
-            ImageBeamComp: str = None,
-            AzAutofocus: str = None,
-            RgAutofocus: str = None,
-            Processings: Union[None, List[ProcessingType]] = None,
-            PolarizationCalibration: Optional[PolarizationCalibrationType] = None,
+            RcvChanProc = None,
+            TxRcvPolarizationProc = None,
+            TStartProc = None,
+            TEndProc = None,
+            TxFrequencyProc = None,
+            SegmentIdentifier = None,
+            ImageFormAlgo = None,
+            STBeamComp = None,
+            ImageBeamComp = None,
+            AzAutofocus = None,
+            RgAutofocus = None,
+            Processings = None,
+            PolarizationCalibration = None,
             **kwargs):
         """
 
@@ -512,7 +520,7 @@ class ImageFormationType(Serializable):
         self.PolarizationCalibration = PolarizationCalibration
         super(ImageFormationType, self).__init__(**kwargs)
 
-    def _basic_validity_check(self) -> bool:
+    def _basic_validity_check(self):
         condition = super(ImageFormationType, self)._basic_validity_check()
         if self.TStartProc is not None and self.TEndProc is not None and self.TEndProc < self.TStartProc:
             self.log_validity_error(
@@ -547,7 +555,7 @@ class ImageFormationType(Serializable):
             elif self.TxFrequencyProc.MaxProc is None:
                 self.TxFrequencyProc.MaxProc = RadarCollection.TxFrequency.Max
 
-    def _apply_reference_frequency(self, reference_frequency: float):
+    def _apply_reference_frequency(self, reference_frequency):
         """
         If the reference frequency is used, adjust the necessary fields accordingly.
         Expected to be called by SICD parent.
@@ -566,7 +574,7 @@ class ImageFormationType(Serializable):
             # noinspection PyProtectedMember
             self.TxFrequencyProc._apply_reference_frequency(reference_frequency)
 
-    def get_polarization(self) -> str:
+    def get_polarization(self):
         """
         Gets the transmit/receive polarization.
 
@@ -577,7 +585,7 @@ class ImageFormationType(Serializable):
 
         return self.TxRcvPolarizationProc if self.TxRcvPolarizationProc is not None else 'UNKNOWN'
 
-    def get_polarization_abbreviation(self) -> str:
+    def get_polarization_abbreviation(self):
         """
         Gets the transmit/receive polarization abbreviation for the suggested name.
 
@@ -592,7 +600,7 @@ class ImageFormationType(Serializable):
         fp, sp = pol.split(':')
         return fp[0]+sp[0]
 
-    def get_transmit_band_name(self) -> str:
+    def get_transmit_band_name(self):
         """
         Gets the transmit band name.
 
@@ -606,7 +614,7 @@ class ImageFormationType(Serializable):
         else:
             return 'UN'
 
-    def version_required(self) -> Tuple[int, int, int]:
+    def version_required(self):
         """
         What SICD version is required?
 

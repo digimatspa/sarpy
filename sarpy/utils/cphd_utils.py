@@ -12,6 +12,13 @@ For a basic help on the command-line, check
 """
 
 from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import unicode_literals
+from future.utils import string_types
+from builtins import open
+from future import standard_library
+standard_library.install_aliases()
 import argparse
 import sys
 import functools
@@ -51,7 +58,7 @@ def _print_header(input_file):
         if initial_location is not None:
             file_object.seek(initial_location)
 
-    if isinstance(input_file, str):
+    if isinstance(input_file, string_types):
         file_object = open(input_file, 'rb')
         initial_location = None
         close_after = True
@@ -79,7 +86,7 @@ def _print_header(input_file):
 
 def _create_default_output_file(input_file):
     # type: (Union[str, BinaryIO]) -> str
-    if isinstance(input_file, str):
+    if isinstance(input_file, string_types):
         return os.path.splitext(input_file)[0] + '.meta_dump.txt'
     else:
         return os.path.expanduser('~/Desktop/phase_history.meta_dump.txt')
@@ -115,7 +122,7 @@ def print_cphd_metadata(input_file, destination=sys.stdout):
 
     _define_print_function(destination)
 
-    if isinstance(input_file, str):
+    if isinstance(input_file, string_types):
         print_func('Details for CPHD file {}'.format(input_file))
 
     print_func('---- CPHD Header Information ----')

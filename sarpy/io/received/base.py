@@ -1,7 +1,14 @@
 """
 Base structures for received signal data readers and usage
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -22,10 +29,10 @@ class CRSDTypeReader(BaseReader):
     """
 
     def __init__(self,
-                 data_segment: Union[None, DataSegment, Sequence[DataSegment]],
-                 crsd_meta: Union[None, CRSDType1_0],
-                 close_segments: bool = True,
-                 delete_files: Union[None, str, Sequence[str]] = None):
+                 data_segment,
+                 crsd_meta,
+                 close_segments = True,
+                 delete_files = None):
         """
 
         Parameters
@@ -52,7 +59,7 @@ class CRSDTypeReader(BaseReader):
             self, data_segment, reader_type='CRSD', close_segments=close_segments, delete_files=delete_files)
 
     @property
-    def crsd_meta(self) -> Union[None, CRSDType1_0]:
+    def crsd_meta(self):
         """
         None|CRSDType1_0: the crsd meta_data.
         """
@@ -60,8 +67,8 @@ class CRSDTypeReader(BaseReader):
         return self._crsd_meta
 
     def read_support_array(self,
-                           index: Union[int, str],
-                           *ranges: Sequence[Union[None, int, Tuple[int, ...], slice]]) -> numpy.ndarray:
+                           index,
+                           *ranges):
         """
         Read the support array.
 
@@ -84,7 +91,7 @@ class CRSDTypeReader(BaseReader):
 
         raise NotImplementedError
 
-    def read_support_block(self) -> Dict[str, numpy.ndarray]:
+    def read_support_block(self):
         """
         Reads the entirety of support block(s).
 
@@ -98,9 +105,9 @@ class CRSDTypeReader(BaseReader):
 
     def read_pvp_variable(
             self,
-            variable: str,
-            index: Union[int, str],
-            the_range: Union[None, int, Tuple[int, ...], slice] = None) -> Optional[numpy.ndarray]:
+            variable,
+            index,
+            the_range = None):
         """
         Read the vector parameter for the given `variable` and CRSD channel.
 
@@ -124,8 +131,8 @@ class CRSDTypeReader(BaseReader):
 
     def read_pvp_array(
             self,
-            index: Union[int, str],
-            the_range: Union[None, int, Tuple[int, ...], slice] = None) -> numpy.ndarray:
+            index,
+            the_range = None):
         """
         Read the PVP array from the requested channel.
 
@@ -145,7 +152,7 @@ class CRSDTypeReader(BaseReader):
 
         raise NotImplementedError
 
-    def read_pvp_block(self) -> Dict[str, numpy.ndarray]:
+    def read_pvp_block(self):
         """
         Reads the entirety of the PVP block(s).
 
@@ -157,7 +164,7 @@ class CRSDTypeReader(BaseReader):
 
         raise NotImplementedError
 
-    def read_signal_block(self) -> Dict[str, numpy.ndarray]:
+    def read_signal_block(self):
         """
         Reads the entirety of signal block(s), with data formatted as complex64
         (after accounting for AmpSF).
@@ -170,7 +177,7 @@ class CRSDTypeReader(BaseReader):
 
         raise NotImplementedError
 
-    def read_signal_block_raw(self) -> Dict[str, numpy.ndarray]:
+    def read_signal_block_raw(self):
         """
         Reads the entirety of signal block(s), with data formatted in file
         storage format (no converting to complex, no consideration of AmpSF).

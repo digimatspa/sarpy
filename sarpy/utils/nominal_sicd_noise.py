@@ -6,7 +6,15 @@ For a basic help on the command-line, check
 >>> python -m sarpy.utils.nominal_sicd_noise --help
 
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -52,7 +60,7 @@ def nominal_sicd_noise(
         Try to preserve some of the original NITF information?
     """
 
-    if isinstance(input_reader, str):
+    if isinstance(input_reader, string_types):
         input_reader = SICDReader(input_reader)
     if not isinstance(input_reader, SICDReader):
         raise TypeError('We require that the input is a SICD reader or path to a sicd file.')

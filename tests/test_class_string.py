@@ -1,5 +1,8 @@
 from sarpy.utils.review_class import check_classification
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 
 class TestClassString(unittest.TestCase):

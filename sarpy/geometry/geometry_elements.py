@@ -1,7 +1,19 @@
 """
 This module provides basic geometry elements generally geared towards (geo)json usage.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from builtins import zip
+from builtins import int
+#from builtins import str
+from builtins import range
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -306,7 +318,7 @@ class Feature(Jsonable):
 
         if uid is None:
             self._uid = str(uuid4())
-        elif not isinstance(uid, str):
+        elif not isinstance(uid, string_types):
             raise TypeError('uid must be a string.')
         else:
             self._uid = uid
@@ -360,7 +372,7 @@ class Feature(Jsonable):
 
     @properties.setter
     def properties(self, properties):
-        if not isinstance(properties, (int, float, str, dict, list, Jsonable)):
+        if not isinstance(properties, (int, float, string_types, dict, list, Jsonable)):
             logger.warning(
                 'Got unexpected type `{}` for properties.\n\t'
                 'This may effect serialization ability'.format(type(properties)))
@@ -390,7 +402,7 @@ class Feature(Jsonable):
             parent_dict['geometry'] = self.geometry.to_dict()
 
         if self.properties is not None:
-            if isinstance(self.properties, (int, float, str, list, dict)):
+            if isinstance(self.properties, (int, float, string_types, list, dict)):
                 parent_dict['properties'] = self.properties
             elif isinstance(self.properties, Jsonable):
                 parent_dict['properties'] = self.properties.to_dict()
@@ -469,7 +481,7 @@ class FeatureCollection(Jsonable):
         if self._features is None:
             raise StopIteration
 
-        if isinstance(item, str):
+        if isinstance(item, string_types):
             index = self._feature_dict[item]
             return self._features[index]
         return self._features[item]
@@ -481,10 +493,10 @@ class FeatureCollection(Jsonable):
 
         if isinstance(item, Feature):
             item = Feature.uid
-        if not isinstance(item, (str, int)):
+        if not isinstance(item, (string_types, int)):
             raise ValueError('Unexpected type `{}`'.format(type(item)))
 
-        if isinstance(item, str):
+        if isinstance(item, string_types):
             index = self._feature_dict[item]
             del self._features[index]
         else:

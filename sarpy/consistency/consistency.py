@@ -1,9 +1,20 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import unicode_literals
+from future.utils import string_types
 #
 # Copyright 2020-2021 Valkyrie Systems Corporation
 #
 # Licensed under MIT License.  See LICENSE.
 #
 
+from builtins import dict
+#from builtins import str
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 __classification__ = "UNCLASSIFIED"
 __author__ = "Nathan Bombaci, Valkyrie"
 
@@ -67,7 +78,11 @@ class ConsistencyChecker(object):
         attrs = [getattr(self, name) for name in sorted(names)]
         self.funcs = [attr for attr in attrs if hasattr(attr, '__call__')]
 
-    def check(self, func_name=None, *, allow_prefix=False, ignore_patterns=None):
+    def check(self, func_name=None, **_3to2kwargs):
+        if 'ignore_patterns' in _3to2kwargs: ignore_patterns = _3to2kwargs['ignore_patterns']; del _3to2kwargs['ignore_patterns']
+        else: ignore_patterns = None
+        if 'allow_prefix' in _3to2kwargs: allow_prefix = _3to2kwargs['allow_prefix']; del _3to2kwargs['allow_prefix']
+        else: allow_prefix = False
         """
         Run checks.
 
@@ -87,7 +102,7 @@ class ConsistencyChecker(object):
         if func_name is None:
             funcs = self.funcs
         else:
-            if isinstance(func_name, str):
+            if isinstance(func_name, string_types):
                 func_name = [func_name]
 
             def matches_prefix(requested, actual):
@@ -106,7 +121,7 @@ class ConsistencyChecker(object):
                     not_found.append(requested_func)
 
             if not_found:
-                raise ValueError(f"Functions not found: {not_found}")
+                raise ValueError("Functions not found: {}".format(not_found))
 
         for pattern in (ignore_patterns or []):
             funcs = [func for func in funcs if not re.match(pattern, func.__name__)]
@@ -367,7 +382,7 @@ class ConsistencyChecker(object):
 
         indent = 4
         for case, details in to_print.items():
-            print(f"{case}: {str(details['doc']).strip()}")
+            print("{}: {}".format(case, str(details['doc']).strip()))
             if details['details']:
                 for sub in details['details']:
                     lead = in_color(*coloration[sub['severity'], sub['passed']])
@@ -388,7 +403,7 @@ class ConsistencyChecker(object):
                 print("{}---: No test performed".format(' '*indent))
 
 
-class Approx:
+class Approx(object):
     """
     Wrapper for performing approximate value comparisons.
 
@@ -434,7 +449,7 @@ class Approx:
 
     def __repr__(self):
         tol = self.atol + np.abs(np.asarray(self.value)) * self.rtol
-        return f"{self.value} ± {tol}"
+        return "{} ± {}".format(self.value, tol)
 
     def _isclose(self, rhs):
         return np.isclose(rhs, self.value, rtol=self.rtol, atol=self.atol)

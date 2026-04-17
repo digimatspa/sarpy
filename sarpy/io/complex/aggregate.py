@@ -2,7 +2,14 @@
 Functionality for an aggregate sicd type reader, for opening multiple sicd type
 files as a single reader object.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -24,7 +31,7 @@ class AggregateComplexReader(AggregateReader, SICDTypeReader):
 
     __slots__ = ('_readers', '_index_mapping')
 
-    def __init__(self, readers: Union[Sequence[str], Sequence[SICDTypeReader]]):
+    def __init__(self, readers):
         """
 
         Parameters
@@ -39,7 +46,7 @@ class AggregateComplexReader(AggregateReader, SICDTypeReader):
         self._check_sizes()
 
     @staticmethod
-    def _validate_readers(readers: Sequence[SICDTypeReader]) -> Tuple[SICDTypeReader, ...]:
+    def _validate_readers(readers):
         """
         Validate the input reader/file collection.
 
@@ -60,7 +67,7 @@ class AggregateComplexReader(AggregateReader, SICDTypeReader):
         # validate each entry
         the_readers = []
         for i, entry in enumerate(readers):
-            if isinstance(entry, str):
+            if isinstance(entry, string_types):
                 try:
                     reader = open_complex(entry)
                 except SarpyIOError:
@@ -77,7 +84,7 @@ class AggregateComplexReader(AggregateReader, SICDTypeReader):
             the_readers.append(reader)
         return tuple(the_readers)
 
-    def _define_sicds(self) -> Tuple[SICDType, ...]:
+    def _define_sicds(self):
         sicds = []
         for reader_index, sicd_index in self.index_mapping:
             reader = self._readers[reader_index]

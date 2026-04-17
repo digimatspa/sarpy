@@ -1,7 +1,14 @@
 """
 Common use sicd_elements methods.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -16,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 def _get_center_frequency(
         RadarCollection,
-        ImageFormation) -> Optional[float]:
+        ImageFormation):
     """
     Helper method.
 
@@ -38,7 +45,7 @@ def _get_center_frequency(
         return None
 
 
-def polstring_version_required(str_in: Optional[str]) -> Tuple[int, int, int]:
+def polstring_version_required(str_in):
     """
     What SICD version does the pol string require?
 
@@ -77,7 +84,7 @@ def polstring_version_required(str_in: Optional[str]) -> Tuple[int, int, int]:
 ################
 # SICD comparison and matching methods
 
-def is_same_size(sicd1, sicd2) -> bool:
+def is_same_size(sicd1, sicd2):
     """
     Are the two SICD structures the same size in pixels?
 
@@ -101,7 +108,7 @@ def is_same_size(sicd1, sicd2) -> bool:
         return False
 
 
-def is_same_sensor(sicd1, sicd2) -> bool:
+def is_same_sensor(sicd1, sicd2):
     """
     Are the two SICD structures from the same sensor?
 
@@ -124,7 +131,7 @@ def is_same_sensor(sicd1, sicd2) -> bool:
         return False
 
 
-def is_same_start_time(sicd1, sicd2) -> bool:
+def is_same_start_time(sicd1, sicd2):
     """
     Do the two SICD structures have the same start time with millisecond resolution?
 
@@ -147,7 +154,7 @@ def is_same_start_time(sicd1, sicd2) -> bool:
         return False
 
 
-def is_same_duration(sicd1, sicd2) -> bool:
+def is_same_duration(sicd1, sicd2):
     """
     Do the two SICD structures have the same duration, with millisecond resolution?
 
@@ -170,7 +177,7 @@ def is_same_duration(sicd1, sicd2) -> bool:
         return False
 
 
-def is_same_band(sicd1, sicd2) -> bool:
+def is_same_band(sicd1, sicd2):
     """
     Are the two SICD structures the same band?
 
@@ -193,7 +200,7 @@ def is_same_band(sicd1, sicd2) -> bool:
         return False
 
 
-def is_same_scp(sicd1, sicd2) -> bool:
+def is_same_scp(sicd1, sicd2):
     """
     Do the two SICD structures share the same SCP, with resolution of one meter
     in each ECF coordinate?
@@ -219,7 +226,7 @@ def is_same_scp(sicd1, sicd2) -> bool:
         return False
 
 
-def is_general_match(sicd1, sicd2) -> bool:
+def is_general_match(sicd1, sicd2):
     """
     Do the two SICD structures seem to form a basic match? This necessarily
     establishes and equivalence relation between sicds.

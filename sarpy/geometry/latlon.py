@@ -1,8 +1,20 @@
 """
 Module for converting between various latitude/longitude representations.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import range
+from builtins import round
+from builtins import filter
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 import re
+import sys
 
 import numpy
 
@@ -128,6 +140,10 @@ def string(value, latlon, num_units=3, precision=None, delimiter='',
         latlon_string = latlon_sign + latlon_string
     else:
         latlon_string = latlon_string + hemisphere
+
+    if sys.version_info[0] < 3:
+        # Python 2: la funzione restituisce bytes UTF-8
+        latlon_string = latlon_string.encode('utf-8')
     return latlon_string
 
 
@@ -180,7 +196,7 @@ def num(latlon_input):
     if isinstance(latlon_input, (numpy.ndarray, list, tuple)) and len(latlon_input) == 3:
         return float(latlon_input[0]) + float(latlon_input[1])/60. + float(latlon_input[2])/3600.
 
-    if not isinstance(latlon_input, str):
+    if not isinstance(latlon_input, string_types):
         raise ValueError('Expected a (degree, minutes, seconds) tuple of string. '
                          'Got type {}'.format(type(latlon_input)))
     # String input

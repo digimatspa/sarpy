@@ -1,7 +1,18 @@
 """
 Functionality for reading Radarsat (RS2 and RCM) data into a SICD model.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import open
+from builtins import range
+from builtins import zip
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = ("Thomas McCullough", "Khanh Ho", "Wade Schwartzkopf", "Nathan Bombaci")
 
@@ -54,7 +65,7 @@ _unhandled_generation_text = 'Unhandled generation `{}`'
 ############
 # Helper functions
 
-def _parse_xml(file_name: str, without_ns: bool = False) -> ElementTree.Element:
+def _parse_xml(file_name, without_ns = False):
     if without_ns:
         with open(file_name, 'rb') as fi:
             xml_string = fi.read()
@@ -64,7 +75,7 @@ def _parse_xml(file_name: str, without_ns: bool = False) -> ElementTree.Element:
         return ElementTree.parse(file_name).getroot()
 
 
-def _format_class_str(class_str: str) -> str:
+def _format_class_str(class_str):
     if 'UNCLASS' in class_str:
         return 'UNCLASSIFIED'
     else:
@@ -88,10 +99,10 @@ def load_addin():
 
 
 def _validate_segment_and_sicd(
-        the_sicd: SICDType,
-        data_segment: DataSegment,
-        name: str,
-        the_file: str):
+        the_sicd,
+        data_segment,
+        name,
+        the_file):
     """
     Check that chipper and sicd are compatible.
 
@@ -117,10 +128,10 @@ def _validate_segment_and_sicd(
 
 
 def _construct_tiff_segment(
-        the_sicd: SICDType,
-        the_file: str,
-        reverse_axes: Union[None, int, Sequence[int]] = None,
-        transpose_axes: Union[None, Tuple[int, ...]] = None):
+        the_sicd,
+        the_file,
+        reverse_axes = None,
+        transpose_axes = None):
     """
 
     Parameters
@@ -141,10 +152,10 @@ def _construct_tiff_segment(
 
 
 def _construct_single_nitf_segment(
-        the_sicd: SICDType,
-        the_file: str,
-        reverse_axes: Optional[Sequence[int]],
-        transpose_axes: Optional[Tuple[int, ...]]) -> Tuple[ComplexNITFReader, DataSegment]:
+        the_sicd,
+        the_file,
+        reverse_axes,
+        transpose_axes):
     """
 
     Parameters
@@ -173,10 +184,10 @@ def _construct_single_nitf_segment(
 
 
 def _construct_multiple_nitf_segment(
-        the_sicds: List[SICDType],
-        the_file: str,
-        reverse_axes: Optional[Sequence[int]],
-        transpose_axes: Optional[Tuple[int, ...]]) -> Tuple[ComplexNITFReader, Tuple[DataSegment, ...]]:
+        the_sicds,
+        the_file,
+        reverse_axes,
+        transpose_axes):
     """
 
     Parameters
@@ -220,7 +231,7 @@ class RadarSatDetails(object):
         '_x_spline', '_y_spline', '_z_spline',
         '_state_time', '_state_position', '_state_velocity')
 
-    def __init__(self, file_name: str):
+    def __init__(self, file_name):
         """
 
         Parameters
@@ -280,7 +291,7 @@ class RadarSatDetails(object):
         self._extract_beams_and_bursts()
 
     @property
-    def file_name(self) -> str:
+    def file_name(self):
         """
         str: the file name
         """
@@ -288,7 +299,7 @@ class RadarSatDetails(object):
         return self._file_name
 
     @property
-    def directory_name(self) -> str:
+    def directory_name(self):
         """
         str: the package directory name
         """
@@ -296,7 +307,7 @@ class RadarSatDetails(object):
         return self._directory_name
 
     @property
-    def satellite(self) -> str:
+    def satellite(self):
         """
         str: the satellite name
         """
@@ -304,7 +315,7 @@ class RadarSatDetails(object):
         return self._satellite
 
     @property
-    def generation(self) -> str:
+    def generation(self):
         """
         str: RS2 or RCM
         """
@@ -315,14 +326,14 @@ class RadarSatDetails(object):
             return 'RCM'
 
     @property
-    def pass_direction(self) -> str:
+    def pass_direction(self):
         """
         str: The pass direction
         """
 
         return self._find('./sourceAttributes/orbitAndAttitude/orbitInformation/passDirection').text
 
-    def get_symmetry(self) -> Tuple[Optional[Tuple[int, ...]], Optional[Tuple[int, ...]]]:
+    def get_symmetry(self):
         """
         Get the symmetry transform information.
 
@@ -351,13 +362,13 @@ class RadarSatDetails(object):
         transpose_axes = (1, 0, 2)
         return reverse_axes, transpose_axes
 
-    def _find(self, tag: str) -> ElementTree.Element:
+    def _find(self, tag):
         return self._root_node.find(tag)
 
-    def _findall(self, tag: str) -> List[ElementTree.Element]:
+    def _findall(self, tag):
         return self._root_node.findall(tag)
 
-    def _get_tiepoint_nodes(self) -> List[ElementTree.Element]:
+    def _get_tiepoint_nodes(self):
         """
         Fetch the tie point nodes.
 
@@ -368,7 +379,7 @@ class RadarSatDetails(object):
 
         return self._findall('./imageAttributes/geographicInformation/geolocationGrid/imageTiePoint')
 
-    def _build_location_spline(self) -> None:
+    def _build_location_spline(self):
         """
         Populates the three (line, sample) -> location coordinate splines. This
         should be done once for all images.
@@ -440,7 +451,7 @@ class RadarSatDetails(object):
         self._z_spline = RectBivariateSpline(
             lines, samples, numpy.reshape(ecf_coords[:, 2], (lines.size, samples.size)), kx=3, ky=3, s=0)
 
-    def _get_image_location(self, line: Union[int, float], sample: Union[int, float]) -> numpy.ndarray:
+    def _get_image_location(self, line, sample):
         """
         Fetch the image location estimate based on the previously constructed splines.
 
@@ -461,7 +472,7 @@ class RadarSatDetails(object):
              float(self._y_spline.ev(line, sample)),
              float(self._z_spline.ev(line, sample))], dtype='float64')
 
-    def _parse_state_vectors(self) -> None:
+    def _parse_state_vectors(self):
         """
         Parses the state vectors.
 
@@ -489,7 +500,7 @@ class RadarSatDetails(object):
                 float(state_vec.find('yVelocity').text),
                 float(state_vec.find('zVelocity').text)]
 
-    def _extract_beams_and_bursts(self) -> None:
+    def _extract_beams_and_bursts(self):
         """
         Extract the beam and burst and polarization information.
 
@@ -514,7 +525,7 @@ class RadarSatDetails(object):
                     num_lines_processed = max(num_lines_processed, nlines+line_offset)
                 self._num_lines_processed = num_lines_processed
 
-    def _get_sicd_radar_mode(self) -> RadarModeType:
+    def _get_sicd_radar_mode(self):
         """
         Gets the RadarMode information.
 
@@ -537,7 +548,7 @@ class RadarSatDetails(object):
             mode_type = 'STRIPMAP'
         return RadarModeType(ModeID=mode_id, ModeType=mode_type)
 
-    def _get_sicd_collection_info(self, start_time: numpy.datetime64) -> Tuple[dict, CollectionInfoType]:
+    def _get_sicd_collection_info(self, start_time):
         """
         Gets the sicd CollectionInfo information.
 
@@ -576,7 +587,7 @@ class RadarSatDetails(object):
             RadarMode=self._get_sicd_radar_mode(),
             CollectType='MONOSTATIC')
 
-    def _get_sicd_image_creation(self) -> ImageCreationType:
+    def _get_sicd_image_creation(self):
         """
         Gets the ImageCreation metadata.
 
@@ -593,7 +604,7 @@ class RadarSatDetails(object):
             Site=processing_info.find('processingFacility').text,
             Profile='sarpy {}'.format(__version__))
 
-    def _get_sicd_position(self, start_time: numpy.datetime64) -> PositionType:
+    def _get_sicd_position(self, start_time):
         """
         Gets the SICD Position definition, based on the given start time.
 
@@ -612,7 +623,7 @@ class RadarSatDetails(object):
         return PositionType(ARPPoly=XYZPolyType(X=P_x, Y=P_y, Z=P_z))
 
     @staticmethod
-    def _parse_polarization(str_in: str) -> Tuple[str, str]:
+    def _parse_polarization(str_in):
         """
         Parses the Radarsat polarization string into it's two SICD components.
 
@@ -632,7 +643,7 @@ class RadarSatDetails(object):
         rcv_pol = 'RHC' if str_in[1] == 'C' else str_in[1]  # probably only H/V
         return tx_pol, rcv_pol
 
-    def _get_sicd_polarizations(self) -> Tuple[List[str], List[str]]:
+    def _get_sicd_polarizations(self):
         tx_pols = []
         tx_rcv_pols = []
         for entry in self._polarizations:
@@ -642,7 +653,7 @@ class RadarSatDetails(object):
             tx_rcv_pols.append('{}:{}'.format(tx_pol, rcv_pol))
         return tx_pols, tx_rcv_pols
 
-    def _get_side_of_track(self) -> str:
+    def _get_side_of_track(self):
         """
         Gets the sicd side of track.
 
@@ -653,7 +664,7 @@ class RadarSatDetails(object):
 
         return self._find('./sourceAttributes/radarParameters/antennaPointing').text[0].upper()
 
-    def _get_regular_sicd(self) -> Tuple[List[SICDType], List[str]]:
+    def _get_regular_sicd(self):
         """
         Gets the SICD collection. This will return one SICD per polarimetric
         collection. It will also return the data file(s). This is only applicable
@@ -665,7 +676,7 @@ class RadarSatDetails(object):
         files: List[str]
         """
 
-        def get_image_and_geo_data() -> Tuple[ImageDataType, GeoDataType]:
+        def get_image_and_geo_data():
             if self.generation == 'RS2':
                 pixel_type = 'RE16I_IM16I'
                 cols = int(self._find('./imageAttributes/rasterAttributes/numberOfLines').text)
@@ -691,7 +702,7 @@ class RadarSatDetails(object):
             t_geo_data = GeoDataType(SCP=SCPType(ECF=scp_ecf))
             return im_data, t_geo_data
 
-        def get_grid_row() -> DirParamType:
+        def get_grid_row():
             if self.generation == 'RS2':
                 row_ss = float(self._find('./imageAttributes/rasterAttributes/sampledPixelSpacing').text)
                 row_irbw = 2*float(self._find('./imageGenerationParameters'
@@ -717,14 +728,14 @@ class RadarSatDetails(object):
                 SS=row_ss, ImpRespBW=row_irbw, Sgn=-1, KCtr=2*center_frequency/speed_of_light,
                 DeltaKCOAPoly=Poly2DType(Coefs=((0,),)), WgtType=row_wgt_type)
 
-        def get_grid_col() -> DirParamType:
+        def get_grid_col():
             az_win = self._find('./imageGenerationParameters/sarProcessingInformation/azimuthWindow')
             col_wgt_type = WgtTypeType(WindowName=az_win.find('./windowName').text.upper())
             if col_wgt_type.WindowName == 'KAISER':
                 col_wgt_type.Parameters = {'BETA': az_win.find('./windowCoefficient').text}
             return DirParamType(Sgn=-1, KCtr=0, WgtType=col_wgt_type)
 
-        def get_radar_collection() -> RadarCollectionType:
+        def get_radar_collection():
             radar_params = self._find('./sourceAttributes/radarParameters')
             # Ultrafine and spotlight modes have t pulses, otherwise just one.
             bandwidth_elements = sorted(radar_params.findall('pulseBandwidth'), key=lambda x: x.get('pulse'))
@@ -760,7 +771,7 @@ class RadarSatDetails(object):
                     TxStepType(TxPolarization=entry, index=j+1) for j, entry in enumerate(tx_pols)]
             return t_radar_collection
 
-        def get_timeline() -> TimelineType:
+        def get_timeline():
             pulse_parts = len(self._findall('./sourceAttributes/radarParameters/pulseBandwidth'))
             if self.generation == 'RS2':
                 pulse_rep_freq = float(
@@ -791,7 +802,7 @@ class RadarSatDetails(object):
             return TimelineType(
                 CollectStart=collect_start, CollectDuration=duration, IPP=[ipp, ])
 
-        def get_image_formation() -> ImageFormationType:
+        def get_image_formation():
             pulse_parts = len(self._findall('./sourceAttributes/radarParameters/pulseBandwidth'))
             return ImageFormationType(
                 # PRFScaleFactor for either polarimetric or multi-step, but not both.
@@ -807,7 +818,7 @@ class RadarSatDetails(object):
                 AzAutofocus='NO',
                 RgAutofocus='NO')
 
-        def get_rma_adjust_grid() -> RMAType:
+        def get_rma_adjust_grid():
             # fetch all the things needed below
             # generation agnostic
             doppler_bandwidth = float(
@@ -965,8 +976,8 @@ class RadarSatDetails(object):
                 raise ValueError('unhandled ModeType {}'.format(collection_info.RadarMode.ModeType))
             return RMAType(RMAlgoType='OMEGA_K', INCA=inca)
 
-        def get_radiometric() -> Optional[RadiometricType]:
-            def perform_radiometric_fit(component_file: str) -> numpy.ndarray:
+        def get_radiometric():
+            def perform_radiometric_fit(component_file):
                 comp_struct = _parse_xml(component_file, without_ns=(self.generation != 'RS2'))
                 comp_values = numpy.array(
                     [float(entry) for entry in comp_struct.find('./gains').text.split()], dtype='float64')
@@ -1065,12 +1076,12 @@ class RadarSatDetails(object):
                                    GammaZeroSFPoly=gamma_zero_sf_poly,
                                    NoiseLevel=noise_level)
 
-        def correct_scp() -> None:
+        def correct_scp():
             scp_pixel = base_sicd.ImageData.SCPPixel.get_array()
             scp_ecf = base_sicd.project_image_to_ground(scp_pixel, projection_type='HAE')
             base_sicd.update_scp(scp_ecf, coord_system='ECF')
 
-        def get_data_file_names() -> List[str]:
+        def get_data_file_names():
             base_path = os.path.dirname(self.file_name)
             image_files = []
             if self.generation == 'RS2':
@@ -1140,7 +1151,7 @@ class RadarSatDetails(object):
             the_sicds.append(this_sicd)
         return the_sicds, the_files
 
-    def _get_scansar_sicd(self, beam: str, burst: str) -> Tuple[List[SICDType], List[str]]:
+    def _get_scansar_sicd(self, beam, burst):
         """
         Gets the SICD collection for the given burst. This is only applicable
         to ScanSAR collects. This will return one SICD per polarimetric collection.
@@ -1157,7 +1168,7 @@ class RadarSatDetails(object):
         files: List[str]
         """
 
-        def get_image_and_geo_data() -> Tuple[ImageDataType, GeoDataType, int]:
+        def get_image_and_geo_data():
             img_attributes = self._find('./sceneAttributes/imageAttributes[@burst="{}"]'.format(burst))
             sample_offset = int(img_attributes.find('./pixelOffset').text)
             line_offset = int(img_attributes.find('./lineOffset').text)
@@ -1179,7 +1190,7 @@ class RadarSatDetails(object):
             t_geo_data = GeoDataType(SCP=SCPType(ECF=scp_ecf))
             return im_data, t_geo_data, sample_offset
 
-        def get_grid_row() -> DirParamType:
+        def get_grid_row():
             row_ss = float(self._find('./imageReferenceAttributes/rasterAttributes/sampledPixelSpacing').text)
             row_irbw = 2*float(self._find('./sourceAttributes'
                                           '/radarParameters'
@@ -1199,7 +1210,7 @@ class RadarSatDetails(object):
                 SS=row_ss, ImpRespBW=row_irbw, Sgn=-1, KCtr=2*center_frequency/speed_of_light,
                 DeltaKCOAPoly=Poly2DType(Coefs=((0,),)), WgtType=row_wgt_type)
 
-        def get_grid_col() -> DirParamType:
+        def get_grid_col():
             az_win = self._find(
                 './imageGenerationParameters/sarProcessingInformation/azimuthWindow[@beam="{}"]'.format(beam))
             col_wgt_type = WgtTypeType(WindowName=az_win.find('./windowName').text.upper())
@@ -1208,7 +1219,7 @@ class RadarSatDetails(object):
 
             return DirParamType(Sgn=-1, KCtr=0, WgtType=col_wgt_type)
 
-        def get_radar_collection() -> RadarCollectionType:
+        def get_radar_collection():
             radar_params = self._find('./sourceAttributes/radarParameters')
             # Ultrafine and spotlight modes have t pulses, otherwise just one.
             bandwidth_elements = sorted(
@@ -1260,7 +1271,7 @@ class RadarSatDetails(object):
                 CollectDuration=processing_time_span,
                 IPP=[ipp, ])
 
-        def get_image_formation() -> ImageFormationType:
+        def get_image_formation():
             pulse_parts = len(
                 self._findall('./sourceAttributes/radarParameters/pulseBandwidth[@beam="{}"]'.format(beam)))
             return ImageFormationType(
@@ -1277,7 +1288,7 @@ class RadarSatDetails(object):
                 AzAutofocus='NO',
                 RgAutofocus='NO')
 
-        def get_rma_adjust_grid() -> RMAType:
+        def get_rma_adjust_grid():
             sar_processing_info = self._find('./imageGenerationParameters/sarProcessingInformation')
 
             doppler_bandwidth = float(sar_processing_info.find('./totalProcessedAzimuthBandwidth').text)
@@ -1389,8 +1400,8 @@ class RadarSatDetails(object):
                 raise ValueError('ScanSAR mode data should be SPOTLIGHT mode')
             return RMAType(RMAlgoType='OMEGA_K', INCA=inca)
 
-        def get_radiometric() -> Optional[RadiometricType]:
-            def perform_radiometric_fit(component_file: str) -> numpy.ndarray:
+        def get_radiometric():
+            def perform_radiometric_fit(component_file):
                 comp_struct = _parse_xml(component_file, without_ns=True)
                 comp_values = numpy.array(
                     [float(entry) for entry in comp_struct.find('./gains').text.split()], dtype=numpy.float64)
@@ -1457,12 +1468,12 @@ class RadarSatDetails(object):
                                    GammaZeroSFPoly=gamma_zero_sf_poly,
                                    NoiseLevel=noise_level)
 
-        def correct_scp() -> None:
+        def correct_scp():
             scp_pixel = base_sicd.ImageData.SCPPixel.get_array()
             scp_ecf = base_sicd.project_image_to_ground(scp_pixel, projection_type='HAE')
             base_sicd.GeoData.SCP.ECF = scp_ecf
 
-        def get_data_file_names() -> List[str]:
+        def get_data_file_names():
             base_path = os.path.dirname(self.file_name)
             image_files = []
             img_attribute_node = self._find('./sceneAttributes/imageAttributes[@burst="{}"]'.format(burst))
@@ -1548,7 +1559,7 @@ class RadarSatDetails(object):
             the_sicds.append(this_sicd)
         return the_sicds, the_files
 
-    def get_sicd_collection(self) -> Tuple[List[List[SICDType]], List[List[str]]]:
+    def get_sicd_collection(self):
         """
         Gets the collection of sicd objects.
 
@@ -1595,7 +1606,7 @@ class RadarSatReader(SICDTypeReader):
         """
 
         self._other_reader = None
-        if isinstance(radar_sat_details, str):
+        if isinstance(radar_sat_details, string_types):
             radar_sat_details = RadarSatDetails(radar_sat_details)
         if not isinstance(radar_sat_details, RadarSatDetails):
             raise TypeError('The input argument for RadarSatReader must be a '
@@ -1616,10 +1627,10 @@ class RadarSatReader(SICDTypeReader):
 
     def _construct_segments(
             self,
-            sicds: List[SICDType],
-            data_files: List[str],
-            reverse_axes: Optional[Tuple[int, ...]],
-            transpose_axes: Optional[Tuple[int, ...]]) -> List[DataSegment]:
+            sicds,
+            data_files,
+            reverse_axes,
+            transpose_axes):
         """
         Construct the data segments.
 
@@ -1667,7 +1678,7 @@ class RadarSatReader(SICDTypeReader):
         return data_segments
 
     @property
-    def radarsat_details(self) -> RadarSatDetails:
+    def radarsat_details(self):
         """
         RadarSarDetails: The RadarSat/RCM details object.
         """
@@ -1675,10 +1686,10 @@ class RadarSatReader(SICDTypeReader):
         return self._radar_sat_details
 
     @property
-    def file_name(self) -> str:
+    def file_name(self):
         return self.radarsat_details.directory_name
 
-    def close(self) -> None:
+    def close(self):
         SICDTypeReader.close(self)
         self._other_reader = None
 
@@ -1686,7 +1697,7 @@ class RadarSatReader(SICDTypeReader):
 ########
 # base expected functionality for a module with an implemented Reader
 
-def is_a(file_name: str) -> Optional[RadarSatReader]:
+def is_a(file_name):
     """
     Tests whether a given file_name corresponds to a RadarSat file. Returns a reader instance, if so.
 

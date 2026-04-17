@@ -5,7 +5,37 @@
 #
 
 import copy
-import importlib.util
+import sys
+
+import sys
+
+def find_module_spec(module_name):
+    if sys.version_info >= (3, 4):
+        import importlib.util
+        return importlib.util.find_spec(module_name)
+    else:
+        import pkgutil
+        loader = pkgutil.find_loader(module_name)
+        if loader is None:
+            return None
+
+        class Spec:
+            pass
+        spec = Spec()
+        spec.loader = loader
+        spec.name = module_name
+        return spec
+
+if sys.version_info >= (3, 4):
+    import importlib.util as importlib_util
+else:
+
+    class _CompatImportlibUtil:
+        @staticmethod
+        def find_spec(name):
+            return find_module_spec(name)  
+
+    importlib_util = _CompatImportlibUtil()
 import os
 import re
 import shutil
@@ -34,8 +64,8 @@ if TEST_FILE_ROOT is not None:
         if os.path.isfile(the_file):
             TEST_FILE_PATHS[name_key] = the_file
 
-HAVE_NETWORKX = importlib.util.find_spec('networkx') is not None
-HAVE_SHAPELY = importlib.util.find_spec('shapely') is not None
+HAVE_NETWORKX = importlib_util.find_spec('networkx') is not None
+HAVE_SHAPELY = importlib_util.find_spec('shapely') is not None
 
 
 @pytest.fixture(scope='module')
@@ -88,7 +118,7 @@ def make_elem(tag, text=None, children=None, namespace=None, attributes=None, **
     if text is not None:
         if isinstance(text, bool):
             text = str(text).lower()
-        if not isinstance(text, str):
+        if not isinstance(text, string_types):
             text = repr(text)
     attrib = copy.copy(attrib)
     attrib.update(attributes)
@@ -200,7 +230,7 @@ def test_check_file_type_header(good_cphd, tmpdir):
         orig_header = orig_file.readline()
         orig_version_length = len(orig_header) - len('CPHD/') - 1
         assert orig_version_length > 3
-        out_file.write(f"CPHD/1.0{'Q' * (orig_version_length - 3)}\n".encode())
+        out_file.write("CPHD/1.0{}\n".format('Q' * (orig_version_length - 3)).encode())
         shutil.copyfileobj(orig_file, out_file)
 
     cphd_con = CphdConsistency.from_file(bad_cphd)
@@ -896,7 +926,7 @@ def _fxn_with_toa_domain(xml):
     xml.find('./Global/DomainType').text = 'TOA'
     fx1 = xml.find('./PVP/FX1')
     for name in ('FXN1', 'FXN2'):
-        if xml.find(f'./PVP/{name}') is None:
+        if xml.find('./PVP/{}'.format(name)) is None:
             new_elem = copy.deepcopy(fx1)
             new_elem.tag = name
             fx1.getparent().append(new_elem)
@@ -905,7 +935,7 @@ def _fxn_with_toa_domain(xml):
 def _fxn1_only(xml):
     xml.find('./Global/DomainType').text = 'FX'
     fx1 = xml.find('./PVP/FX1')
-    remove_nodes(*xml.findall('./PVP/FXN1'), *xml.findall('./PVP/FXN2'))
+    remove_nodes(*(xml.findall('./PVP/FXN1') + xml.findall('./PVP/FXN2')))
     new_elem = copy.deepcopy(fx1)
     new_elem.tag = 'FXN1'
     fx1.getparent().append(new_elem)
@@ -922,7 +952,7 @@ def test_check_optional_pvps_fx(invalidate_func, good_cphd):
 def test_check_optional_pvps_toa(good_cphd):
     cphd_con = CphdConsistency.from_file(good_cphd)
     toa1 = cphd_con.xml.find('./PVP/TOA1')
-    remove_nodes(*cphd_con.xml.findall('./PVP/TOAE1'), *cphd_con.xml.findall('./PVP/TOAE2'))
+    remove_nodes(*(cphd_con.xml.findall('./PVP/TOAE1') + cphd_con.xml.findall('./PVP/TOAE2')))
     new_elem = copy.deepcopy(toa1)
     new_elem.tag = 'TOAE1'
     toa1.getparent().append(new_elem)
@@ -943,7 +973,7 @@ def dataset_with_toaextsaved(good_xml):
         pvps[chan_id] = np.zeros(num_vect, dtype=[('TOAE1', 'f8'), ('TOAE2', 'f8')])
         pvps[chan_id]['TOAE1'] = np.linspace(min_toae1, min_toae1 / 2, num_vect)
         pvps[chan_id]['TOAE2'] = np.linspace(max_toae2, max_toae2 / 2, num_vect)
-        chan_param_node = root.find(f'./ns:Channel/ns:Parameters[ns:Identifier="{chan_id}"]',
+        chan_param_node = root.find('./ns:Channel/ns:Parameters[ns:Identifier="{}"]'.format(chan_id),
                                     namespaces=good_xml['nsmap'])
         remove_nodes(*chan_param_node.findall('./ns:TOAExtended/ns:TOAExtSaved', namespaces=good_xml['nsmap']))
         new_elem = make_elem('TOAExtended', namespace=good_xml['nsmap']['ns'], children=[
@@ -952,7 +982,7 @@ def dataset_with_toaextsaved(good_xml):
 
         toa1 = root.find('./ns:PVP/ns:TOA1', namespaces=good_xml['nsmap'])
         for parameter in ('TOAE1', 'TOAE2'):
-            remove_nodes(*root.findall(f'./ns:PVP/ns:{parameter}', namespaces=good_xml['nsmap']))
+            remove_nodes(*root.findall('./ns:PVP/ns:{}'.format(parameter), namespaces=good_xml['nsmap']))
             new_elem = copy.deepcopy(toa1)
             new_elem.tag = etree.QName(new_elem, parameter)
             toa1.getparent().append(new_elem)
@@ -1041,14 +1071,14 @@ def test_check_channel_afrrs(good_cphd, parameter):
     cphd_con = CphdConsistency.from_file(good_cphd, check_signal_data=True)
     cphd_con = copy.deepcopy(cphd_con)
     channel_id = cphd_con.xml.findtext('./Data/Channel/Identifier')
-    tx_wf_ids = cphd_con.xml.findall(f'./Channel/Parameters[Identifier="{channel_id}"]/TxRcv/TxWFId')
+    tx_wf_ids = cphd_con.xml.findall('./Channel/Parameters[Identifier="{}"]/TxRcv/TxWFId'.format(channel_id))
     assert len(tx_wf_ids) == 1  # test construction assumes only one tx_wf
     tx_wf_parameters = get_by_id(cphd_con.xml, './TxRcv/TxWFParameters', tx_wf_ids[0].text)
     restored_tx_wf_parameters = copy.deepcopy(tx_wf_parameters)
     restored_tx_wf_parameters.find('./Identifier').text += '_restored'
     tx_fm_rate = tx_wf_parameters.find('./LFMRate')
     tx_fm_rate.text = str((float(tx_fm_rate.text) + 1e6) * 10)
-    cphd_con.check(f'check_channel_{parameter.lower()}_{channel_id}')
+    cphd_con.check('check_channel_{}_{}'.format(parameter.lower(), channel_id))
     assert cphd_con.failures()
 
     # add back the original LFMRate and see that it passes
@@ -1060,13 +1090,13 @@ def test_check_channel_afrrs(good_cphd, parameter):
     num_tx_wfs.text = str(int(num_tx_wfs.text) + 1)
     cphd_con = CphdConsistency(cphd_con.xml, cphd_con.pvps, cphd_con.header, cphd_con.filename,
                                cphd_con.schema, cphd_con.check_signal_data)
-    cphd_con.check(f'check_channel_{parameter.lower()}_{channel_id}')
+    cphd_con.check('check_channel_{}_{}'.format(parameter.lower(), channel_id))
     assert not cphd_con.failures()
     assert cphd_con.passes()
 
     # skips if micro parameter is all zero
     cphd_con.pvps[channel_id][parameter][:] = 0
-    cphd_con.check(f'check_channel_{parameter.lower()}_{channel_id}')
+    cphd_con.check('check_channel_{}_{}'.format(parameter.lower(), channel_id))
     assert not cphd_con.failures()
     assert not cphd_con.passes()
     assert cphd_con.skips()

@@ -1,7 +1,17 @@
 """
 This module contains the base objects for use in base xml/serializable functionality.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+#from builtins import str
+from builtins import super
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -210,12 +220,12 @@ class StringListDescriptor(BasicDescriptor):
         if super(StringListDescriptor, self).__set__(instance, value):  # the None handler...kinda hacky
             return
 
-        if isinstance(value, str):
+        if isinstance(value, string_types):
             set_value([value, ])
         elif isinstance(value, ElementTree.Element):
             set_value([get_node_value(value), ])
         elif isinstance(value, list):
-            if len(value) == 0 or isinstance(value[0], str):
+            if len(value) == 0 or isinstance(value[0], string_types):
                 set_value(value)
             elif isinstance(value[0], ElementTree.Element):
                 set_value([get_node_value(nod) for nod in value])
@@ -292,7 +302,8 @@ class StringRegexDescriptor(BasicDescriptor):
 
         val = parse_str(value, self.name, instance)
 
-        if self.matcher.fullmatch(val):
+        m = self.matcher.match(val)
+        if m and m.end() == len(val):
             self.data[instance] = val
         else:
             msg = 'Attribute {} of class {} received {},\n\t' \

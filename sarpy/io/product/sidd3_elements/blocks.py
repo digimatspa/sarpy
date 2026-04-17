@@ -1,7 +1,15 @@
 """
 Multipurpose basic SIDD elements
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -149,16 +157,16 @@ class RadiometricType(SicdRadiometric.RadiometricType):
     SigmaZeroSFIncidenceMap = StringEnumDescriptor(
         'SigmaZeroSFIncidenceMap', _SIGMA_ZERO_SF_INCIDENCE_MAP_VALUES,
         SicdRadiometric.RadiometricType._required, strict=DEFAULT_STRICT,
-        docstring='Allowed Values: “APPLIED” or “NOT_APPLIED”')  # type: str
+        docstring='Allowed Values: "APPLIED" or "NOT_APPLIED"')  # type: str
 
     def __init__(
             self,
-            NoiseLevel: Optional[SicdRadiometric.NoiseLevelType_] = None,
-            RCSSFPoly: Union[None, Poly2DType, numpy.ndarray, list, tuple] = None,
-            SigmaZeroSFPoly: Union[None, Poly2DType, numpy.ndarray, list, tuple] = None,
-            BetaZeroSFPoly: Union[None, Poly2DType, numpy.ndarray, list, tuple] = None,
-            GammaZeroSFPoly: Union[None, Poly2DType, numpy.ndarray, list, tuple] = None,
-            SigmaZeroSFIncidenceMap: str = None,
+            NoiseLevel = None,
+            RCSSFPoly = None,
+            SigmaZeroSFPoly = None,
+            BetaZeroSFPoly = None,
+            GammaZeroSFPoly = None,
+            SigmaZeroSFIncidenceMap = None,
             **kwargs):
         """
 

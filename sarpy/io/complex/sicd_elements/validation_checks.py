@@ -4,7 +4,14 @@ The detailed and involved validity checks for the sicd structure.
 Note: These checks were originally implemented in the SICD component objects,
 but separating this implementation is probably less confusing in the long run.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -23,7 +30,7 @@ def _rgazcomp_check_kaz_poly(
         Grid,
         SCPCOA,
         look,
-        ARP_Vel) -> bool:
+        ARP_Vel):
     """
     Check the KAZ polynomial value.
 
@@ -71,7 +78,7 @@ def _rgazcomp_check_row_deltakcoa(
         RgAzComp,
         Grid,
         RadarCollection,
-        ImageFormation) -> bool:
+        ImageFormation):
     """
 
     Parameters
@@ -120,7 +127,7 @@ def _rgazcomp_check_row_deltakcoa(
 
 def _rgazcomp_check_col_deltacoa(
         RgAzComp,
-        Grid) -> bool:
+        Grid):
     """
 
     Parameters
@@ -156,7 +163,7 @@ def _rgazcomp_check_col_deltacoa(
     return cond
 
 
-def _rgazcomp_checks(the_sicd) -> bool:
+def _rgazcomp_checks(the_sicd):
     """
     Perform the RgAzComp structure validation checks.
 
@@ -230,7 +237,7 @@ def _rgazcomp_checks(the_sicd) -> bool:
 ##############
 # PFA image formation parameter checks
 
-def _pfa_check_kaz_krg(PFA, Grid) -> bool:
+def _pfa_check_kaz_krg(PFA, Grid):
     """
     Check the validity of the Kaz and Krg values.
 
@@ -303,7 +310,7 @@ def _pfa_check_kaz_krg(PFA, Grid) -> bool:
     return cond
 
 
-def _pfa_check_polys(PFA, Position, Timeline, SCP) -> bool:
+def _pfa_check_polys(PFA, Position, Timeline, SCP):
     """
 
     Parameters
@@ -341,7 +348,7 @@ def _pfa_check_polys(PFA, Position, Timeline, SCP) -> bool:
     return cond
 
 
-def _pfa_check_uvects(PFA, Position, Grid, SCP) -> bool:
+def _pfa_check_uvects(PFA, Position, Grid, SCP):
     """
 
     Parameters
@@ -387,7 +394,7 @@ def _pfa_check_uvects(PFA, Position, Grid, SCP) -> bool:
     return cond
 
 
-def _pfa_check_stdeskew(PFA, Grid) -> bool:
+def _pfa_check_stdeskew(PFA, Grid):
     """
     This function ensures that the STDeskew settings and related polynomials are 
     consistent and physically meaningful for PFA processing in SAR data.
@@ -459,7 +466,7 @@ def _pfa_check_kctr(
         PFA,
         RadarCollection,
         ImageFormation,
-        Grid) -> bool:
+        Grid):
     """
 
     Parameters
@@ -494,7 +501,7 @@ def _pfa_check_kctr(
     return cond
 
 
-def _pfa_check_image_plane(PFA, Grid, SCPCOA, SCP) -> bool:
+def _pfa_check_image_plane(PFA, Grid, SCPCOA, SCP):
     """
 
     Parameters
@@ -558,7 +565,7 @@ def _pfa_check_image_plane(PFA, Grid, SCPCOA, SCP) -> bool:
 def _pfa_check_polar_angle_consistency(
         PFA,
         CollectionInfo,
-        ImageFormation) -> bool:
+        ImageFormation):
     """
 
     Parameters
@@ -589,7 +596,7 @@ def _pfa_check_polar_angle_consistency(
     return cond
 
 
-def _pfa_checks(the_sicd) -> bool:
+def _pfa_checks(the_sicd):
     """
     Perform the PFA structure validation checks.
 
@@ -642,7 +649,7 @@ def _rma_check_rmat(
         Grid,
         GeoData,
         RadarCollection,
-        ImageFormation) -> bool:
+        ImageFormation):
     """
 
     Parameters
@@ -729,7 +736,7 @@ def _rma_check_rmcr(
         Grid,
         GeoData,
         RadarCollection,
-        ImageFormation) -> bool:
+        ImageFormation):
     """
 
     Parameters
@@ -814,7 +821,7 @@ def _rma_check_inca(
         GeoData,
         RadarCollection,
         CollectionInfo,
-        Position) -> bool:
+        Position):
     """
 
     Parameters
@@ -946,7 +953,7 @@ def _rma_check_inca(
     return cond
 
 
-def _rma_checks(the_sicd) -> bool:
+def _rma_checks(the_sicd):
     """
     Perform the RMA structure validation checks.
 
@@ -973,7 +980,7 @@ def _rma_checks(the_sicd) -> bool:
 ##############
 # SICD checks
 
-def _validate_scp_time(the_sicd) -> bool:
+def _validate_scp_time(the_sicd):
     """
     Validate the SCPTime.
 
@@ -1003,7 +1010,7 @@ def _validate_scp_time(the_sicd) -> bool:
 
 def _validate_image_form_parameters(
         the_sicd,
-        alg_type: str) -> bool:
+        alg_type):
     """
     Validate the image formation parameter specifics.
 
@@ -1077,7 +1084,7 @@ def _validate_image_form_parameters(
     return cond
 
 
-def _validate_image_formation(the_sicd) -> bool:
+def _validate_image_formation(the_sicd):
     """
     Validate the image formation.
 
@@ -1126,7 +1133,7 @@ def _validate_image_formation(the_sicd) -> bool:
     return _validate_image_form_parameters(the_sicd, alg_types[0])
 
 
-def _validate_antenna(the_sicd) -> bool:
+def _validate_antenna(the_sicd):
     """
     Validate the Antenna Node
 
@@ -1151,21 +1158,21 @@ def _validate_antenna(the_sicd) -> bool:
                 if pattern.GainPoly is not None:
                     gbs = pattern.GainPoly(0, 0)
                     if gbs != 0.0:
-                        branch.log_validity_error(f'The constant coefficient of the {branch_name}.{pattern_name}.GainPoly is {gbs} and should be 0.0')
+                        branch.log_validity_error('The constant coefficient of the {}.{}.GainPoly is {} and should be 0.0'.format(branch_name, pattern_name, gbs))
                         valid = False
                 if pattern.PhasePoly is not None:
                     pbs = pattern.PhasePoly(0, 0)
                     if pbs != 0.0:
-                        branch.log_validity_error(f'The constant coefficient of the {branch_name}.{pattern_name}.PhasePoly is {pbs} and should be 0.0')
+                        branch.log_validity_error('The constant coefficient of the {}.{}.PhasePoly is {} and should be 0.0'.format(branch_name, pattern_name, pbs))
                         valid = False
         if branch.GainBSPoly is not None:
             gz = branch.GainBSPoly(0)
             if gz != 0.0:
-                branch.log_validity_error(f'The constant coefficient of the {branch_name}.GainBSPoly is {gz} and should be 0.0')
+                branch.log_validity_error('The constant coefficient of the {}.GainBSPoly is {} and should be 0.0'.format(branch_name, gz))
     return valid
 
 
-def _validate_acp(the_sicd) -> bool:
+def _validate_acp(the_sicd):
     """
     Validate the RadarCollection/Area/Corner/ACP nodes
 
@@ -1197,7 +1204,7 @@ def _validate_acp(the_sicd) -> bool:
     return True
 
 
-def _validate_image_segment_id(the_sicd) -> bool:
+def _validate_image_segment_id(the_sicd):
     """
     Validate the image segment id.
 
@@ -1249,7 +1256,7 @@ def _validate_image_segment_id(the_sicd) -> bool:
     return True
 
 
-def _validate_spotlight_mode(the_sicd) -> bool:
+def _validate_spotlight_mode(the_sicd):
     """
     Validate the spotlight mode situation.
 
@@ -1286,7 +1293,7 @@ def _validate_spotlight_mode(the_sicd) -> bool:
     return True
 
 
-def _validate_valid_data(the_sicd) -> bool:
+def _validate_valid_data(the_sicd):
     """
     Check that either both ValidData fields are populated, or neither.
 
@@ -1315,12 +1322,12 @@ def _validate_valid_data(the_sicd) -> bool:
         num_image_vert = the_sicd.ImageData.ValidData.get_array().shape[-1]
         if num_geo_vert != num_image_vert:
             the_sicd.log_validity_error('ValidData has different number of vertices in '
-                                        f'the ImageData ({num_image_vert}) '
-                                        f'and GeoData ({num_geo_vert})')
+                                        'the ImageData ({}) '
+                                        'and GeoData ({})'.format(num_image_vert, num_geo_vert))
     return True
 
 
-def _validate_polygons(the_sicd) -> bool:
+def _validate_polygons(the_sicd):
     """
     Checks that the polygons appear to be appropriate.
 
@@ -1399,7 +1406,7 @@ def _validate_polygons(the_sicd) -> bool:
     return value
 
 
-def _validate_polarization(the_sicd) -> bool:
+def _validate_polarization(the_sicd):
     """
     Validate the polarization.
 
@@ -1429,7 +1436,7 @@ def _validate_polarization(the_sicd) -> bool:
     return True
 
 
-def _check_deltak(the_sicd) -> bool:
+def _check_deltak(the_sicd):
     """
     Checks the deltak parameters.
 
@@ -1459,7 +1466,7 @@ def _check_deltak(the_sicd) -> bool:
     return the_sicd.Grid.check_deltak(x_coords, y_coords)
 
 
-def _check_projection(the_sicd) -> None:
+def _check_projection(the_sicd):
     """
     Checks the projection ability.
 
@@ -1477,7 +1484,7 @@ def _check_projection(the_sicd) -> None:
 def _validate_radiometric(
         Radiometric,
         Grid,
-        SCPCOA) -> bool:
+        SCPCOA):
     """
     Validate the radiometric parameters.
 
@@ -1543,7 +1550,7 @@ def _validate_radiometric(
     return cond
 
 
-def _check_radiometric_recommended(radiometric) -> None:
+def _check_radiometric_recommended(radiometric):
     """
     Checks the recommended fields for the radiometric object.
 
@@ -1566,7 +1573,7 @@ def _check_radiometric_recommended(radiometric) -> None:
             'are not easily available.')
 
 
-def _check_recommended_attributes(the_sicd) -> None:
+def _check_recommended_attributes(the_sicd):
     """
     Checks recommended attributes.
 
@@ -1601,7 +1608,7 @@ def _check_recommended_attributes(the_sicd) -> None:
             'this validation test, because a number tests could not be performed.')
 
 
-def detailed_validation_checks(the_sicd) -> bool:
+def detailed_validation_checks(the_sicd):
     """
     Assembles the suite of detailed sicd validation checks.
 

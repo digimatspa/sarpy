@@ -1,7 +1,16 @@
 """
 This module provides common functions for creating kmz products.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import range
+#from builtins import str
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Valkyrie Systems Corporation"
 
@@ -23,7 +32,7 @@ def ecef_to_kml_coord(ecf_points):
     """Convert a list of ECEF points to a list of KML coordinates"""
     # TODO apply geoid.  KML expects MSL
     llh_points = ecf_to_geodetic(ecf_points)
-    return [f"{lon},{lat},{alt}" for (lat, lon, alt) in llh_points]
+    return ["{},{},{}".format(lon, lat, alt) for (lat, lon, alt) in llh_points]
 
 
 def acf_to_ecef(eb_dcx, eb_dcy, uacx, uacy):
@@ -40,8 +49,15 @@ def acf_to_ecef(eb_dcx, eb_dcy, uacx, uacy):
 
 
 def add_polygon_style(
-    kmz_document, name, *, bbggrr, low_aa, low_width, high_aa, high_width, outline="1"
+    kmz_document, name, **_3to2kwargs
 ):
+    if 'outline' in _3to2kwargs: outline = _3to2kwargs['outline']; del _3to2kwargs['outline']
+    else: outline = "1"
+    high_width = _3to2kwargs['high_width']; del _3to2kwargs['high_width']
+    high_aa = _3to2kwargs['high_aa']; del _3to2kwargs['high_aa']
+    low_width = _3to2kwargs['low_width']; del _3to2kwargs['low_width']
+    low_aa = _3to2kwargs['low_aa']; del _3to2kwargs['low_aa']
+    bbggrr = _3to2kwargs['bbggrr']; del _3to2kwargs['bbggrr']
     """Add a polygon style to a KML document"""
     opaque = "ff"
     kmz_document.add_style(
@@ -323,7 +339,7 @@ def make_beam_footprints(
             result[name] = {"time": time, "contour": contour_earth_ecf}
         except Exception as exc:
             logger.warning(
-                f"Exception while calculating {name} beam footprint of {aiming_metadata['antpat_id']}"
+                "Exception while calculating {} beam footprint of {}".format(name, aiming_metadata['antpat_id'])
             )
             logger.warning(exc, exc_info=True)
 

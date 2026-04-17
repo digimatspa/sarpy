@@ -1,7 +1,15 @@
 """
 The AntennaType definition.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -36,8 +44,8 @@ class EBType(Serializable):
 
     def __init__(
             self,
-            DCXPoly: Union[Poly1DType, numpy.ndarray, list, tuple] = None,
-            DCYPoly: Union[Poly1DType, numpy.ndarray, list, tuple] = None,
+            DCXPoly = None,
+            DCYPoly = None,
             **kwargs):
         """
         Parameters
@@ -57,7 +65,7 @@ class EBType(Serializable):
 
     def __call__(
             self,
-            t: Union[float, int, numpy.ndarray]):
+            t):
         """
         Evaluate the polynomial at points `t`. This passes `t` straight through
         to :func:`polyval` of `numpy.polynomial.polynomial` for each of
@@ -139,15 +147,15 @@ class AntParamType(Serializable):
 
     def __init__(
             self,
-            XAxisPoly: XYZPolyType = None,
-            YAxisPoly: XYZPolyType = None,
-            FreqZero: float = None,
-            EB: Optional[EBType] = None,
-            Array: GainPhasePolyType = None,
-            Elem: Optional[GainPhasePolyType] = None,
-            GainBSPoly: Union[None, Poly1DType, numpy.ndarray, list, tuple] = None,
-            EBFreqShift: Optional[bool] = None,
-            MLFreqDilation: Optional[bool] = None,
+            XAxisPoly = None,
+            YAxisPoly = None,
+            FreqZero = None,
+            EB = None,
+            Array = None,
+            Elem = None,
+            GainBSPoly = None,
+            EBFreqShift = None,
+            MLFreqDilation = None,
             **kwargs):
         """
         Parameters
@@ -198,9 +206,9 @@ class AntennaType(Serializable):
 
     def __init__(
             self,
-            Tx: Optional[AntParamType] = None,
-            Rcv: Optional[AntParamType] = None,
-            TwoWay: Optional[AntParamType] = None,
+            Tx = None,
+            Rcv = None,
+            TwoWay = None,
             **kwargs):
         """
 

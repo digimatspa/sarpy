@@ -4,7 +4,10 @@
 # Licensed under MIT License.  See LICENSE.
 #
 import logging
-import pathlib
+try:
+    import pathlib
+except ImportError:
+    import pathlib2 as pathlib
 import tempfile
 import uuid
 
@@ -19,6 +22,11 @@ from sarpy.consistency import sidd_consistency
 
 import tests
 
+try:
+    from tempfile import TemporaryDirectory
+except ImportError:
+    from backports.tempfile import TemporaryDirectory
+
 
 TOLERANCE = 1e-8
 
@@ -30,11 +38,11 @@ sicd_files = product_file_types.get('SICD', [])
 def sidd_nitf(request):
     if not sicd_files:
         pytest.skip("SICD file required; check SARPY_TEST_PATH")
-    with tempfile.TemporaryDirectory() as tmpdir:
+    with TemporaryDirectory() as tmpdir:
         sarpy.utils.create_product.main([
             str(sicd_files[0]),
             tmpdir,
-            f'--version={request.param}',
+            '--version={}'.format(request.param),
         ])
         contents = list(pathlib.Path(tmpdir).iterdir())
         assert len(contents) == 1
@@ -137,23 +145,23 @@ def test_sidd_filtertypes(tmp_path, sidd_etree, kernel_or_bank, filt_type):
         filt_details = "<Predefined><FilterFamily>0</FilterFamily><FilterMember>1</FilterMember></Predefined>"
     if filt_type == "custom":
         var0, var1 = {"Kernel": ("row", "col"), "Bank": ("phasing", "point")}[kernel_or_bank]
-        filt_details = f'''
+        filt_details = '''
         <Custom>
-            <FilterCoefficients num{var0.capitalize()}s="1" num{var1.capitalize()}s="2">
-                <Coef {var0}="0" {var1}="0">0.1</Coef>
-                <Coef {var0}="0" {var1}="1">0.2</Coef>
+            <FilterCoefficients num{}s="1" num{}s="2">
+                <Coef {}="0" {}="0">0.1</Coef>
+                <Coef {}="0" {}="1">0.2</Coef>
             </FilterCoefficients>
         </Custom>
-        '''
+        '''.format(var0.capitalize(), var1.capitalize(), var0, var1, var0, var1)
     aa_node = sidd_etree.find(".//AntiAlias", namespaces=sidd_etree.getroot().nsmap)
-    new_aa = lxml.etree.fromstring(f'''
-        <AntiAlias xmlns="{lxml.etree.QName(aa_node).namespace}">
+    new_aa = lxml.etree.fromstring('''
+        <AntiAlias xmlns="{}">
             <FilterName>SARPyFilterTypeTest</FilterName>
-            <Filter{kernel_or_bank}>
-                {filt_details}
-            </Filter{kernel_or_bank}>
+            <Filter{}>
+                {}
+            </Filter{}>
             <Operation>CORRELATION</Operation>
-        </AntiAlias>''')
+        </AntiAlias>'''.format(lxml.etree.QName(aa_node).namespace, kernel_or_bank, filt_details, kernel_or_bank))
     aa_node[:] = new_aa[:]
 
     sidd_xml_str = lxml.etree.tostring(sidd_etree)
@@ -164,7 +172,7 @@ def test_sidd_filtertypes(tmp_path, sidd_etree, kernel_or_bank, filt_type):
     if filt_type == "custom":
         sidd_obj = sarpy_sidd.SIDDType.from_xml_string(lxml.etree.tostring(sidd_etree))
         aa_obj = sidd_obj.Display.NonInteractiveProcessing[0].RRDS.AntiAlias
-        custom_coefs = getattr(aa_obj, f"Filter{kernel_or_bank}").Custom.get_array()
+        custom_coefs = getattr(aa_obj, "Filter{}".format(kernel_or_bank)).Custom.get_array()
         assert np.allclose(custom_coefs, np.array([[0.1, 0.2]]))
 
 

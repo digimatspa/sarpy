@@ -1,7 +1,16 @@
 """
 This module contains the base objects for use in the SICD elements, and the base serializable functionality.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+#from builtins import str
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -27,12 +36,12 @@ class SerializableCPArrayDescriptor(BasicDescriptor):
 
     def __init__(
             self,
-            name: str,
+            name,
             child_type,
-            tag_dict: Dict,
-            required: Tuple[str, ...],
-            strict: bool = DEFAULT_STRICT,
-            docstring: Optional[str] = None):
+            tag_dict,
+            required,
+            strict = DEFAULT_STRICT,
+            docstring = None):
         self.child_type = child_type
         tags = tag_dict[name]
         self.array = tags.get('array', False)
@@ -78,11 +87,11 @@ class SerializableCPArray(SerializableArray):
     def __init__(
             self,
             coords=None,
-            name: str = None,
-            child_tag: str = None,
+            name = None,
+            child_tag = None,
             child_type=None,
-            _xml_ns: Optional[Dict[str, str]] = None,
-            _xml_ns_key: Optional[str] = None):
+            _xml_ns = None,
+            _xml_ns_key = None):
         if hasattr(child_type, '_CORNER_VALUES'):
             self._index_as_string = True
         else:
@@ -94,25 +103,25 @@ class SerializableCPArray(SerializableArray):
         self._maximum_length = 4
 
     @property
-    def FRFC(self) -> Optional[numpy.ndarray]:
+    def FRFC(self):
         if self._array is None:
             return None
         return self._array[0].get_array()
 
     @property
-    def FRLC(self) -> Optional[numpy.ndarray]:
+    def FRLC(self):
         if self._array is None:
             return None
         return self._array[1].get_array()
 
     @property
-    def LRLC(self) -> Optional[numpy.ndarray]:
+    def LRLC(self):
         if self._array is None:
             return None
         return self._array[2].get_array()
 
     @property
-    def LRFC(self) -> Optional[numpy.ndarray]:
+    def LRFC(self):
         if self._array is None:
             return None
         return self._array[3].get_array()

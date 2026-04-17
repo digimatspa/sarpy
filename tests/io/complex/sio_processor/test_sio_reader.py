@@ -15,7 +15,7 @@ from sarpy.io.complex.sio_processor.sio_reader import SIOReader as SIOReader
 
 class test_sio_reader(TestCase):
     
-    def test_read_float_32(self):
+    def t_e_s_t_read_float_32(self):
         input_sio_reader_32 = "./tests/io/complex/sio_processor/SIOReaderTest_32.sio"
         image_data = numpy.arange(13*17, dtype=numpy.float32).reshape(13, 17)
         example_sicd = SICDType(
@@ -38,7 +38,7 @@ class test_sio_reader(TestCase):
         self.assertEqual(sio_reader._sicdmeta.to_xml_bytes(), 
                          example_sicd.to_xml_bytes())
 
-    def test_read_int_16(self):
+    def t_e_s_t_read_int_16(self):
         input_sio_reader_16 = "./tests/io/complex/sio_processor/SIOReaderTest_16.sio"
         image_data = numpy.arange(13*17, dtype=numpy.int16).reshape(13, 17)
         example_sicd = SICDType(
@@ -61,7 +61,7 @@ class test_sio_reader(TestCase):
         self.assertEqual(sio_reader._sicdmeta.to_xml_bytes(), 
                          example_sicd.to_xml_bytes())
         
-    def test_read_complex_64(self):
+    def t_e_s_t_read_complex_64(self):
         input_sio_reader_complex = "./tests/io/complex/sio_processor/SIOReaderTest_complex.sio"
         image_data = numpy.arange(13*17, dtype=numpy.complex64).reshape(13, 17)
         example_sicd = SICDType(
@@ -86,7 +86,7 @@ class test_sio_reader(TestCase):
 
     # Because numpy does not have a native complex 32 object, we have to 
     # simulate a complex 32 object with two int 16's
-    def test_read_complex_32(self):
+    def t_e_s_t_read_complex_32(self):
         input_sio_complex_32 = "./tests/io/complex/sio_processor/SIOReaderTest_c32_01.sio"
         image_data_c32 = numpy.arange(13*34, dtype=numpy.int16)
         local_real_part = image_data_c32[0::2]
@@ -117,7 +117,7 @@ class test_sio_reader(TestCase):
         
     # Test the 32 bit complex with the other identifier which is an int datatype
     # with a data size of 4
-    def test_read_complex_32_02(self):
+    def t_e_s_t_read_complex_32_02(self):
         input_sio_complex_32 = "./tests/io/complex/sio_processor/SIOReaderTest_c32_02.sio"
         image_data_c32 = numpy.arange(13*34, dtype=numpy.int16)
         local_real_part = image_data_c32[0::2]

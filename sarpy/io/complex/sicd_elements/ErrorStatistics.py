@@ -1,7 +1,15 @@
 """
 The ErrorStatisticsType definition.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -36,9 +44,9 @@ class CompositeSCPErrorType(Serializable):
 
     def __init__(
             self,
-            Rg: float = None,
-            Az: float = None,
-            RgAz: float = None,
+            Rg = None,
+            Az = None,
+            RgAz = None,
             **kwargs):
         """
 
@@ -99,21 +107,21 @@ class CorrCoefsType(Serializable):
 
     def __init__(
             self,
-            P1P2: float = None,
-            P1P3: float = None,
-            P1V1: float = None,
-            P1V2: float = None,
-            P1V3: float = None,
-            P2P3: float = None,
-            P2V1: float = None,
-            P2V2: float = None,
-            P2V3: float = None,
-            P3V1: float = None,
-            P3V2: float = None,
-            P3V3: float = None,
-            V1V2: float = None,
-            V1V3: float = None,
-            V2V3: float = None,
+            P1P2 = None,
+            P1P3 = None,
+            P1V1 = None,
+            P1V2 = None,
+            P1V3 = None,
+            P2P3 = None,
+            P2V1 = None,
+            P2V2 = None,
+            P2V3 = None,
+            P3V1 = None,
+            P3V2 = None,
+            P3V3 = None,
+            V1V2 = None,
+            V1V3 = None,
+            V2V3 = None,
             **kwargs):
         """
 
@@ -188,15 +196,15 @@ class PosVelErrType(Serializable):
 
     def __init__(
             self,
-            Frame: str = None,
-            P1: float = None,
-            P2: float = None,
-            P3: float = None,
-            V1: float = None,
-            V2: float = None,
-            V3: float = None,
-            CorrCoefs: Optional[CorrCoefsType] = None,
-            PositionDecorr: Optional[ErrorDecorrFuncType] = None,
+            Frame = None,
+            P1 = None,
+            P2 = None,
+            P3 = None,
+            V1 = None,
+            V2 = None,
+            V3 = None,
+            CorrCoefs = None,
+            PositionDecorr = None,
             **kwargs):
         """
 
@@ -248,10 +256,10 @@ class RadarSensorErrorType(Serializable):
 
     def __init__(
             self,
-            RangeBias: float = None,
-            ClockFreqSF: Optional[float] = None,
-            TransmitFreqSF: Optional[float] = None,
-            RangeBiasDecorr: Optional[ErrorDecorrFuncType] = None,
+            RangeBias = None,
+            ClockFreqSF = None,
+            TransmitFreqSF = None,
+            RangeBiasDecorr = None,
             **kwargs):
         """
 
@@ -293,9 +301,9 @@ class TropoErrorType(Serializable):
 
     def __init__(
             self,
-            TropoRangeVertical: Optional[float] = None,
-            TropoRangeSlant: Optional[float] = None,
-            TropoRangeDecorr: Optional[ErrorDecorrFuncType] = None,
+            TropoRangeVertical = None,
+            TropoRangeSlant = None,
+            TropoRangeDecorr = None,
             **kwargs):
         """
 
@@ -343,10 +351,10 @@ class IonoErrorType(Serializable):
 
     def __init__(
             self,
-            IonoRangeVertical: Optional[float] = None,
-            IonoRangeRateVertical: Optional[float] = None,
-            IonoRgRgRateCC: float = None,
-            IonoRangeVertDecorr: Optional[ErrorDecorrFuncType] = None,
+            IonoRangeVertical = None,
+            IonoRangeRateVertical = None,
+            IonoRgRgRateCC = None,
+            IonoRangeVertDecorr = None,
             **kwargs):
         """
 
@@ -390,10 +398,10 @@ class ErrorComponentsType(Serializable):
 
     def __init__(
             self,
-            PosVelErr: PosVelErrType = None,
-            RadarSensor: RadarSensorErrorType = None,
-            TropoError: Optional[TropoErrorType] = None,
-            IonoError: Optional[IonoErrorType] = None,
+            PosVelErr = None,
+            RadarSensor = None,
+            TropoError = None,
+            IonoError = None,
             **kwargs):
         """
 
@@ -432,8 +440,8 @@ class UnmodeledDecorrType(Serializable):
 
     def __init__(
             self,
-            Xrow: ErrorDecorrFuncType = None,
-            Ycol: ErrorDecorrFuncType = None,
+            Xrow = None,
+            Ycol = None,
             **kwargs):
         """
 
@@ -469,10 +477,10 @@ class UnmodeledType(Serializable):
 
     def __init__(
             self,
-            Xrow: float = None,
-            Ycol: float = None,
-            XrowYcol: float = None,
-            UnmodeledDecorr: Optional[UnmodeledDecorrType] = None,
+            Xrow = None,
+            Ycol = None,
+            XrowYcol = None,
+            UnmodeledDecorr = None,
             **kwargs):
         """
 
@@ -520,10 +528,10 @@ class ErrorStatisticsType(Serializable):
 
     def __init__(
             self,
-            CompositeSCP: Optional[CompositeSCPErrorType] = None,
-            Components: Optional[ErrorComponentsType] = None,
-            Unmodeled: Optional[UnmodeledType] = None,
-            AdditionalParms: Union[None, ParametersCollection, Dict] = None,
+            CompositeSCP = None,
+            Components = None,
+            Unmodeled = None,
+            AdditionalParms = None,
             **kwargs):
         """
 

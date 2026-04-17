@@ -10,7 +10,17 @@ For a basic help on the command-line, check
 >>> python -m sarpy.utils.nitf_utils --help
 
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import range
+from builtins import open
+from builtins import filter
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Austin Lan, L3/Harris"
 
@@ -67,7 +77,7 @@ def _filter_files(input_path):
 
 
 def _create_default_output_file(input_file, output_directory=None):
-    if not isinstance(input_file, str):
+    if not isinstance(input_file, string_types):
         if output_directory is None:
             return os.path.expanduser('~/Desktop/header_dump.txt')
         else:
@@ -306,7 +316,7 @@ def print_nitf(file_name, dest=sys.stdout):
 
     details = NITFDetails(file_name)
 
-    if isinstance(file_name, str):
+    if isinstance(file_name, string_types):
         print_func('')
         print_func('Details for file {}'.format(file_name))
         print_func('')

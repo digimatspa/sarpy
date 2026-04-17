@@ -25,7 +25,15 @@ Create a variety of sidd products.
     # create a sidd version 2 dynamic image/sub-aperture stack for the whole file
     create_dynamic_image_sidd(ortho_helper, '<output directory>', dimension=0, version=2)
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import range
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 

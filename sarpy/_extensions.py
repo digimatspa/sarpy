@@ -1,11 +1,18 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 
-import importlib.metadata
 
 
-def entry_points(*, group):
+def entry_points( **_3to2kwargs):
+    group = _3to2kwargs['group']; del _3to2kwargs['group']
     """
-    Simple wrapper around importlib.metadata.entry_points
+    Simple wrapper around entry_points.
 
     Parameters
     ----------
@@ -15,17 +22,18 @@ def entry_points(*, group):
     Returns
     -------
     list of entry points belonging to group
-
-    Notes
-    -----
-    This function is only needed to support Python < 3.10.
-    importlib.metadata was introduced in Python 3.8 as a provisional module.
-    The stable interface was introduced in Python 3.10 and the original interface was removed in 3.12.
     """
+    try:
+        # Python >= 3.8 (but API changed in 3.10)
+        import importlib.metadata as metadata
+    except ImportError:
+        # Python 2.7 / 3.7 and lower: use the backport
+        import importlib_metadata as metadata
 
-    eps = importlib.metadata.entry_points()
+    eps = metadata.entry_points()
     if hasattr(eps, 'select'):
         # Python >= 3.10
         return eps.select(group=group)
     else:
+        # Python < 3.10 (including backport)
         return eps.get(group, [])

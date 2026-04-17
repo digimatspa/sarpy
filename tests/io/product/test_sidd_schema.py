@@ -43,8 +43,8 @@ def test_validate_xml_ns_unmapped(sidd_nsmap):
 
 def test_validate_xml_change_keys(sidd_nsmap):
     xml_ns, ns_key = sidd_nsmap
-    xml_ns_changed_keys = {f'{k}_changed': v for k, v in xml_ns.items()}
-    assert sarpy_sidd.validate_xml_ns(xml_ns_changed_keys, f'{ns_key}_changed')
+    xml_ns_changed_keys = {'{}_changed'.format(k): v for k, v in xml_ns.items()}
+    assert sarpy_sidd.validate_xml_ns(xml_ns_changed_keys, '{}_changed'.format(ns_key))
 
 
 def test_validate_xml_mismatched_ns(sidd_nsmap, caplog):

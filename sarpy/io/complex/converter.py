@@ -2,7 +2,19 @@
 This module provide utilities for converting from any complex format that we can
 read to SICD or SIO format. The same conversion utility can be used to subset data.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import range
+#from builtins import str
+from builtins import zip
+from builtins import round
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = ("Wade Schwartzkopf", "Thomas McCullough", "Valkyrie Systems Corporation")
 
@@ -32,7 +44,7 @@ _openers = []
 _parsed_openers = False
 
 
-def register_opener(open_func: Callable) -> None:
+def register_opener(open_func):
     """
     Provide a new opener.
 
@@ -54,7 +66,7 @@ def register_opener(open_func: Callable) -> None:
         _openers.append(open_func)
 
 
-def parse_openers() -> None:
+def parse_openers():
     """
     Automatically find the viable openers (i.e. :func:`is_a`) in the various modules.
     """
@@ -67,7 +79,7 @@ def parse_openers() -> None:
     check_for_openers('sarpy.io.complex', register_opener)
 
 
-def _define_final_attempt_openers() -> List[Callable]:
+def _define_final_attempt_openers():
     """
     Gets the prioritized list of openers to attempt after regular openers.
 
@@ -80,7 +92,7 @@ def _define_final_attempt_openers() -> List[Callable]:
     return [final_attempt, ]
 
 
-def open_complex(file_name: Union[str, BinaryIO]) -> SICDTypeReader:
+def open_complex(file_name):
     """
     Given a file, try to find and return the appropriate reader object.
 
@@ -355,7 +367,7 @@ def conversion_utility(
                     t_lims.append((t_start, t_end))
             return tuple(t_lims)
 
-    if isinstance(input_file, str):
+    if isinstance(input_file, string_types):
         reader = open_complex(input_file)
     elif isinstance(input_file, SICDTypeReader):
         reader = input_file
@@ -387,7 +399,7 @@ def conversion_utility(
                                                        ref_surface=ref_surface,
                                                        geoid_path=geoid_file)
         else:
-            raise NotImplementedError(f'DEM type ({dem_type}) is not implemented.')
+            raise NotImplementedError('DEM type ({}) is not implemented.'.format(dem_type))
 
         for sicd in sicds:
             # project SCP and corner points to DEM
@@ -455,7 +467,7 @@ def conversion_utility(
     # construct output_files list
     if output_files is None:
         output_files = [sicds[frame].NITF['SUGGESTED_NAME']+'.nitf' for frame in frames]
-    elif isinstance(output_files, str):
+    elif isinstance(output_files, string_types):
         if len(sicds) == 1:
             output_files = [output_files, ]
         else:

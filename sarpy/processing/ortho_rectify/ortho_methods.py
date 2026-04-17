@@ -1,7 +1,17 @@
 """
 Methods for ortho-rectification
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from builtins import range
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -253,7 +263,7 @@ class OrthorectificationHelper(object):
     def apply_radiometric(self, value):
         if value is None:
             self._apply_radiometric = None
-        elif isinstance(value, str):
+        elif isinstance(value, string_types):
             val = value.upper()
             allowed = ('RCS', 'SIGMA0', 'GAMMA0', 'BETA0')
             if val not in allowed:

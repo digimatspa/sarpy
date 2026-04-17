@@ -1,7 +1,15 @@
 """
 Basic image registration tools
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import zip
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = 'Thomas McCullough'
 
@@ -22,9 +30,9 @@ logger = logging.getLogger(__name__)
 
 
 def best_physical_location_fit(
-        structs: Sequence[Union[SICDType, SIDDType1, SIDDType2]],
-        locs: Union[numpy.ndarray, list, tuple],
-        **minimization_args) -> Tuple[numpy.ndarray, float, Any]:
+        structs,
+        locs,
+        **minimization_args):
     """
     Given a collection of SICD and/or SIDDs and a collection of image coordinates, 
     each of which identifies the pixel location of the same feature in the 
@@ -103,10 +111,10 @@ def best_physical_location_fit(
 
 
 def _find_best_adjustable_parameters_sicd(
-        sicd: SICDType,
-        ecf_coords: numpy.ndarray,
-        img_coords: numpy.ndarray,
-        **minimization_args) -> Tuple[numpy.ndarray, numpy.ndarray, float, float, Any]:
+        sicd,
+        ecf_coords,
+        img_coords,
+        **minimization_args):
     """
     Find the best projection model adjustable parameters (in `'ECF'` coordinate frame)
     to fit the geophysical coordinate locations to the image coordinate locations.
@@ -175,10 +183,10 @@ def _find_best_adjustable_parameters_sicd(
 
 
 def _find_best_adjustable_parameters(
-        struct: Union[SICDType, SIDDType1, SIDDType2],
-        ecf_coords: numpy.ndarray,
-        img_coords: numpy.ndarray,
-        **minimization_args) -> Tuple[numpy.ndarray, numpy.ndarray, float, float, Any]:
+        struct,
+        ecf_coords,
+        img_coords,
+        **minimization_args):
     """
     Find the best projection model adjustable parameters (in `'ECF'` coordinate frame)
     to fit the geophysical coordinate locations to the image coordinate locations.
@@ -243,10 +251,10 @@ def _find_best_adjustable_parameters(
 
 
 def find_best_adjustable_parameters(
-        struct: Union[SICDType, SIDDType1, SIDDType2],
-        ecf_coords: numpy.ndarray,
-        img_coords: numpy.ndarray,
-        **minimization_args) -> Tuple[numpy.ndarray, numpy.ndarray, float, float, Any]:
+        struct,
+        ecf_coords,
+        img_coords,
+        **minimization_args):
     """
     Find the best projection model adjustable parameters (in `'ECF'` coordinate frame)
     to fit the geophysical coordinate locations to the image coordinate locations.

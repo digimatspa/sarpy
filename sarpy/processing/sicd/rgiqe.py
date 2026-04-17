@@ -2,7 +2,16 @@
 Radar Generalized Image Quality Equation (RGIQE) calculation(s) and tools for
 application to SICD structures and files.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import int
+from builtins import round
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -30,7 +39,7 @@ parameters updated on 2022-02-01
 #####################
 # methods for extracting necessary information from the sicd structure
 
-def _verify_sicd_with_noise(sicd: SICDType) -> None:
+def _verify_sicd_with_noise(sicd):
     """
     Verify that the sicd is appropriately populated with noise.
 
@@ -57,7 +66,7 @@ def _verify_sicd_with_noise(sicd: SICDType) -> None:
             'so no noise estimate can be derived.')
 
 
-def get_sigma0_noise(sicd: SICDType) -> float:
+def get_sigma0_noise(sicd):
     """
     Calculate the absolute noise estimate, in sigma0 power units.
 
@@ -79,7 +88,7 @@ def get_sigma0_noise(sicd: SICDType) -> float:
     return noise
 
 
-def get_default_signal_estimate(sicd: SICDType) -> float:
+def get_default_signal_estimate(sicd):
     """
     Gets default signal for use in the RNIIRS calculation. This will be
     1.0 for copolar (or unknown) collections, and 0.25 for cross-pole
@@ -107,7 +116,7 @@ def get_default_signal_estimate(sicd: SICDType) -> float:
     return 1.0 if pols[0] == pols[1] else 0.25
 
 
-def get_bandwidth_area(sicd: SICDType) -> float:
+def get_bandwidth_area(sicd):
     """
     Calculate the bandwidth area.
 
@@ -130,9 +139,9 @@ def get_bandwidth_area(sicd: SICDType) -> float:
 # methods for calculating information density and rniirs
 
 def get_information_density(
-        bandwidth_area: Union[float, numpy.ndarray],
-        signal: Union[float, numpy.ndarray],
-        noise: Union[float, numpy.ndarray]) -> Union[float, numpy.ndarray]:
+        bandwidth_area,
+        signal,
+        noise):
     """
     Calculate the information density from bandwidth area and signal/noise estimates.
 
@@ -151,7 +160,7 @@ def get_information_density(
 
 
 def get_rniirs(
-        information_density: Union[float, numpy.ndarray]) -> Union[float, numpy.ndarray]:
+        information_density):
     r"""
     Calculate an RNIIRS estimate from the information density or
     Shannon-Hartley channel capacity.
@@ -200,7 +209,7 @@ def get_rniirs(
 
 
 def get_information_density_for_rniirs(
-        rniirs: Union[float, numpy.ndarray]) -> Union[float, numpy.ndarray]:
+        rniirs):
     """
     The inverse of :func:`get_rniirs`, this determines the information density
     which yields the given RNIIRS.
@@ -242,9 +251,9 @@ def get_information_density_for_rniirs(
 
 
 def snr_to_rniirs(
-        bandwidth_area: Union[float, numpy.ndarray],
-        signal: Union[float, numpy.ndarray],
-        noise: Union[float, numpy.ndarray]) -> Tuple[Union[float, numpy.ndarray], Union[float, numpy.ndarray]]:
+        bandwidth_area,
+        signal,
+        noise):
     """
     Calculate the information_density and RNIIRS estimate from bandwidth area and
     signal/noise estimates.
@@ -273,7 +282,7 @@ def snr_to_rniirs(
     return information_density, rniirs
 
 
-def rgiqe(sicd: SICDType) -> Tuple[float, float]:
+def rgiqe(sicd):
     """
     Calculate the information_density and (default) estimated RNIIRS for the
     given sicd.
@@ -295,10 +304,10 @@ def rgiqe(sicd: SICDType) -> Tuple[float, float]:
 
 
 def populate_rniirs_for_sicd(
-        sicd: SICDType,
-        signal: Optional[float] = None,
-        noise: Optional[float] = None,
-        override: bool = False) -> None:
+        sicd,
+        signal = None,
+        noise = None,
+        override = False):
     """
     This populates the value(s) for RNIIRS and information density in the SICD
     structure, according to the RGIQE. **This modifies the sicd structure in place.**
@@ -357,11 +366,11 @@ def populate_rniirs_for_sicd(
 
 
 def get_bandwidth_noise_distribution(
-        sicd: SICDType,
-        alpha: Union[float, numpy.ndarray],
-        desired_information_density: Optional[float] = None,
-        desired_rniirs: Optional[float] = None
-        ) -> Tuple[Union[Tuple[float, float], numpy.ndarray], Union[float, numpy.ndarray]]:
+        sicd,
+        alpha,
+        desired_information_density = None,
+        desired_rniirs = None
+        ):
     r"""
     This function determines SICD degradation parameters (nominally symmetric in
     row/column subaperture degradation) to achieve the desired information density/rniirs.
@@ -493,7 +502,7 @@ def get_bandwidth_noise_distribution(
 # helpers for quality degradation function
 
 def _get_uniform_weight_dicts(
-        sicd: SICDType) -> Tuple[Optional[Dict], Optional[Dict]]:
+        sicd):
     """
     Gets the dictionaries denoting uniform weighting.
 
@@ -515,8 +524,8 @@ def _get_uniform_weight_dicts(
 
 
 def _validate_reader(
-        reader: Union[str, SICDTypeReader],
-        index: int) -> Tuple[SICDTypeReader, int]:
+        reader,
+        index):
     """
     Validate the method input:
 
@@ -532,7 +541,7 @@ def _validate_reader(
     index: int
     """
 
-    if isinstance(reader, str):
+    if isinstance(reader, string_types):
         reader = open_complex(reader)
 
     if not isinstance(reader, SICDTypeReader):
@@ -544,13 +553,13 @@ def _validate_reader(
 
 
 def _map_desired_resolution_to_aperture(
-        current_imp_resp_bw: float,
-        sample_size: float,
-        direction: str,
-        direction_size: int,
-        desired_resolution: Optional[float] = None,
-        desired_bandwidth: Optional[float] = None,
-        broadening_factor: Optional[float] = None) -> Tuple[Optional[Tuple[int, int]], float]:
+        current_imp_resp_bw,
+        sample_size,
+        direction,
+        direction_size,
+        desired_resolution = None,
+        desired_bandwidth = None,
+        broadening_factor = None):
     """
     Determine the appropriate symmetric subaperture range to achieve the desired
     bandwidth or resolution, assuming the given broadening factor.
@@ -613,10 +622,10 @@ def _map_desired_resolution_to_aperture(
 
 
 def _map_bandwidth_parameters(
-        sicd: SICDType,
-        desired_resolution: Optional[Tuple[float, float]] = None,
-        desired_bandwidth: Optional[Tuple[float, float]] = None
-        ) -> Tuple[Tuple[int, int], float, Tuple[int, int], float]:
+        sicd,
+        desired_resolution = None,
+        desired_bandwidth = None
+        ):
     """
     Helper function to map desired resolution or bandwidth to the suitable (centered)
     aperture.
@@ -659,8 +668,8 @@ def _map_bandwidth_parameters(
 
 
 def get_dimension_bandwidth_multiplier_possibilities(
-        sicd: SICDType,
-        dimension: int) -> Tuple[numpy.ndarray, numpy.ndarray]:
+        sicd,
+        dimension):
     """
     Gets the bandwidth possibilities for all centered subapertures along the given
     dimension.
@@ -693,7 +702,7 @@ def get_dimension_bandwidth_multiplier_possibilities(
 
 
 def get_bidirectional_bandwidth_multiplier_possibilities(
-        sicd: SICDType) -> Tuple[numpy.ndarray, numpy.ndarray]:
+        sicd):
     """
     Gets the bandwidth possibilities for all centered subapertures shrinking
     along both dimensions symmetrically.
@@ -737,13 +746,13 @@ def get_bidirectional_bandwidth_multiplier_possibilities(
 # SICD quality degradation functions
 
 def quality_degrade(
-        reader: Union[str, SICDTypeReader],
-        index: int = 0,
-        output_file: Optional[str] = None,
-        desired_resolution: Optional[Tuple[float, float]] = None,
-        desired_bandwidth: Optional[Tuple[float, float]] = None,
-        desired_nesz: Optional[float] = None,
-        **kwargs) -> Optional[FlatSICDReader]:
+        reader,
+        index = 0,
+        output_file = None,
+        desired_resolution = None,
+        desired_bandwidth = None,
+        desired_nesz = None,
+        **kwargs):
     r"""
     Create a degraded quality SICD based on the desired resolution (impulse response width)
     or bandwidth (impulse response bandwidth), and the desired Noise Equivalent
@@ -821,12 +830,12 @@ def quality_degrade(
 
 
 def quality_degrade_resolution(
-        reader: Union[str, SICDTypeReader],
-        index: int = 0,
-        output_file: Optional[str] = None,
-        desired_resolution: Optional[Tuple[float, float]] = None,
-        desired_bandwidth: Optional[Tuple[float, float]] = None,
-        **kwargs) -> Optional[FlatSICDReader]:
+        reader,
+        index = 0,
+        output_file = None,
+        desired_resolution = None,
+        desired_bandwidth = None,
+        **kwargs):
     """
     Create a degraded quality SICD based on INCREASING the impulse response width
     to the desired resolution or DECREASING the impulse response bandwidth to the
@@ -866,11 +875,11 @@ def quality_degrade_resolution(
 
 
 def quality_degrade_noise(
-        reader: Union[str, SICDTypeReader],
-        index: int = 0,
-        output_file: Optional[str] = None,
-        desired_nesz: Optional[float] = None,
-        **kwargs) -> Optional[FlatSICDReader]:
+        reader,
+        index = 0,
+        output_file = None,
+        desired_nesz = None,
+        **kwargs):
     """
     Create a degraded quality SICD based on INCREASING the noise to the desired
     Noise Equivalent Sigma Zero value. The produced SICD will have uniform weighting.
@@ -904,12 +913,12 @@ def quality_degrade_noise(
 
 
 def quality_degrade_rniirs(
-        reader: Union[str, SICDTypeReader],
-        index: int = 0,
-        output_file: Optional[str] = None,
-        desired_rniirs: Optional[float] = None,
-        alpha: float = 0,
-        **kwargs) -> Optional[FlatSICDReader]:
+        reader,
+        index = 0,
+        output_file = None,
+        desired_rniirs = None,
+        alpha = 0,
+        **kwargs):
     r"""
     Create a degraded quality SICD based on the desired estimated RNIIRS value.
     The produced SICD will have uniform weighting.

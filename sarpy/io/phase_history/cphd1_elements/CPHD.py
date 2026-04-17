@@ -1,7 +1,16 @@
 """
 The Compensated Phase History Data 1.0.1 definition.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = ("Thomas McCullough", "Daniel Pressler, Valkyrie")
 
@@ -174,7 +183,7 @@ class CPHDHeader(CPHDHeaderBase):
         super(CPHDHeader, self).__init__()
 
     @property
-    def use_version(self) -> str:
+    def use_version(self):
         return self._use_version
 
     def to_string(self):

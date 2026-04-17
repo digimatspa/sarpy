@@ -28,7 +28,7 @@ def find_test_data_files(test_json_file):
         the path specified by the environmental variable SARPY_TEST_PATH.
     """
     test_data_files = {}
-    with open(test_json_file, 'r') as fi:
+    with open(str(test_json_file), 'r') as fi:
         the_files = json.load(fi)
         for the_type in the_files:
             valid_entries = []

@@ -1,7 +1,16 @@
 """
 The image subheader definitions.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -816,7 +825,7 @@ class ImageSegmentHeader(NITFElement):
         else:
             return super(ImageSegmentHeader, cls)._parse_attribute(fields, attribute, value, start)
 
-    def get_uncompressed_block_size(self) -> int:
+    def get_uncompressed_block_size(self):
         """
         Gets the size of an uncompressed block.
 
@@ -835,7 +844,7 @@ class ImageSegmentHeader(NITFElement):
         else:
             return int(nppbh*nppbv*len(self.Bands)*self.NBPP/8)
 
-    def get_full_uncompressed_image_size(self) -> int:
+    def get_full_uncompressed_image_size(self):
         """
         Gets the full size in bytes of the uncompressed image including any padding
         in the blocks.
@@ -850,7 +859,7 @@ class ImageSegmentHeader(NITFElement):
             total_blocks *= len(self.Bands)
         return total_blocks*self.get_uncompressed_block_size()
 
-    def get_clevel(self) -> int:
+    def get_clevel(self):
         """
         Gets the CLEVEL value for this image segment.
 
@@ -1232,7 +1241,7 @@ class ImageSegmentHeader0(NITFElement):
             out = super(ImageSegmentHeader0, cls)._parse_attribute(fields, attribute, value, start)
         return out
 
-    def get_uncompressed_block_size(self) -> int:
+    def get_uncompressed_block_size(self):
         """
         Gets the size of an uncompressed block.
 
@@ -1251,7 +1260,7 @@ class ImageSegmentHeader0(NITFElement):
         else:
             return int(nppbh*nppbv*len(self.Bands)*self.NBPP/8)
 
-    def get_full_uncompressed_image_size(self) -> int:
+    def get_full_uncompressed_image_size(self):
         """
         Gets the full size in bytes of the uncompressed image including any padding
         in the blocks.
@@ -1266,7 +1275,7 @@ class ImageSegmentHeader0(NITFElement):
             total_blocks *= len(self.Bands)
         return total_blocks*self.get_uncompressed_block_size()
 
-    def get_clevel(self) -> int:
+    def get_clevel(self):
         """
         Gets the CLEVEL value for this image segment.
 

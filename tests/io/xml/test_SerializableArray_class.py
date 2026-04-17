@@ -1,4 +1,7 @@
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 import numpy as np
 from xml.etree import ElementTree
 
@@ -8,7 +11,7 @@ class DummySerializable(Serializable):
     _fields   = ('x',)
     _required = ('x',)
     def __init__(self, x=None, **kwargs):
-        super().__init__(x=x, **kwargs)
+        super(DummySerializable, self).__init__(x=x, **kwargs)
     @classmethod
     def from_array(cls, arr):
         return cls(x=arr[0])

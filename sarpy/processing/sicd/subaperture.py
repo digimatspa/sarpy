@@ -1,7 +1,18 @@
 """
 Sub-aperture processing methods.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import range
+from builtins import super
+from builtins import zip
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __author__ = 'Thomas McCullough'
 __classification__ = "UNCLASSIFIED"
 
@@ -28,11 +39,11 @@ _METHOD_VALUES = ('NORMAL', 'FULL', 'MINIMAL')
 
 
 def frame_definition(
-        array_size: int,
-        frame_count: int = 9,
-        aperture_fraction: float = 0.2,
-        fill: Union[int, float] = 1,
-        method: str = 'FULL') -> Tuple[List[Tuple[int, int]], int]:
+        array_size,
+        frame_count = 9,
+        aperture_fraction = 0.2,
+        fill = 1,
+        method = 'FULL'):
     """
     Get the frame definition along the desired axis for subaperture processing.
 
@@ -95,7 +106,7 @@ def frame_definition(
 #####################################
 # The sub-aperture processing methods
 
-def _validate_input(array: numpy.ndarray) -> numpy.ndarray:
+def _validate_input(array):
     if not isinstance(array, numpy.ndarray):
         raise TypeError('array must be a numpy array. Got type {}'.format(type(array)))
     if not numpy.iscomplexobj(array):
@@ -105,7 +116,7 @@ def _validate_input(array: numpy.ndarray) -> numpy.ndarray:
     return array
 
 
-def _validate_dimension(dimension: int) -> int:
+def _validate_dimension(dimension):
     dimension = int(dimension)
     if dimension not in (0, 1):
         raise ValueError('dimension must be 0 or 1, got {}'.format(dimension))
@@ -113,10 +124,10 @@ def _validate_dimension(dimension: int) -> int:
 
 
 def subaperture_processing_array(
-        array: numpy.ndarray,
-        aperture_indices: Tuple[int, int],
-        output_resolution: int,
-        dimension: int = 0) -> numpy.ndarray:
+        array,
+        aperture_indices,
+        output_resolution,
+        dimension = 0):
     """
     Perform the sub-aperture processing on the given complex array data.
 
@@ -146,10 +157,10 @@ def subaperture_processing_array(
 
 
 def subaperture_processing_phase_history(
-        phase_array: numpy.ndarray,
-        aperture_indices: Tuple[int, int],
-        output_resolution: int,
-        dimension: int = 0) -> numpy.ndarray:
+        phase_array,
+        aperture_indices,
+        output_resolution,
+        dimension = 0):
     """
     Perform the sub-aperture processing on the given complex phase history data.
 
@@ -192,13 +203,13 @@ class SubapertureCalculator(FFTCalculator):
 
     def __init__(
             self,
-            reader: Union[str, SICDTypeReader],
-            dimension: int = 0,
-            index: int = 0,
-            block_size: int = 10,
-            frame_count: int = 9,
-            aperture_fraction: float = 0.2,
-            method: str = 'FULL'):
+            reader,
+            dimension = 0,
+            index = 0,
+            block_size = 10,
+            frame_count = 9,
+            aperture_fraction = 0.2,
+            method = 'FULL'):
         """
 
         Parameters
@@ -233,7 +244,7 @@ class SubapertureCalculator(FFTCalculator):
         self.method = method
 
     @property
-    def frame_count(self) -> int:
+    def frame_count(self):
         """
         int: The frame count.
         """
@@ -248,7 +259,7 @@ class SubapertureCalculator(FFTCalculator):
         self._frame_count = value
 
     @property
-    def aperture_fraction(self) -> float:
+    def aperture_fraction(self):
         """
         float: The relative aperture fraction size.
         """
@@ -263,7 +274,7 @@ class SubapertureCalculator(FFTCalculator):
         self._aperture_fraction = value
 
     @property
-    def method(self) -> str:
+    def method(self):
         """
         str: The subaperture method.
         """
@@ -310,15 +321,15 @@ class SubapertureCalculator(FFTCalculator):
             raise TypeError(
                 'The final slice dimension is of unsupported type {}'.format(type(the_frame)))
 
-    def _parse_slicing(self, item) -> Tuple[slice, slice, Optional[int]]:
+    def _parse_slicing(self, item):
         row_range, col_range, the_frame = super(SubapertureCalculator, self)._parse_slicing(item)
         return row_range, col_range, self._parse_frame_argument(the_frame)
 
     def subaperture_generator(
             self,
-            row_range: Union[slice, Tuple[int, int, int]],
-            col_range: Union[slice, Tuple[int, int, int]],
-            frames: Union[None, int, list, tuple, numpy.ndarray] = None) -> Generator[numpy.ndarray, None, None]:
+            row_range,
+            col_range,
+            frames = None):
         """
         Supplies a generator for the given row and column ranges and frames collection.
         **Note that this IGNORES the block_size parameter in fetching, and fetches the
@@ -342,7 +353,7 @@ class SubapertureCalculator(FFTCalculator):
         """
 
         def get_dimension_details(
-                the_range: Union[slice, Tuple[int, int, int]]) -> Tuple[Tuple[int, int, int], int, int]:
+                the_range):
             if isinstance(the_range, Sequence):
                 start, stop, step = the_range
             elif isinstance(the_range, slice):
@@ -406,9 +417,9 @@ class SubapertureCalculator(FFTCalculator):
 
     def _prepare_output(
             self,
-            row_range: Union[slice, Tuple[int, int, int]],
-            col_range: Union[slice, Tuple[int, int, int]],
-            frames: Union[None, int, list, tuple, numpy.ndarray] = None) -> numpy.ndarray:
+            row_range,
+            col_range,
+            frames = None):
         row_start, row_stop, row_step = row_range if isinstance(row_range, tuple) else \
             (row_range.start, row_range.stop, row_range.step)
         if row_stop is None:
@@ -431,7 +442,7 @@ class SubapertureCalculator(FFTCalculator):
             out_size = (row_count, col_count, len(frames))
         return numpy.zeros(out_size, dtype=numpy.complex64)
 
-    def __getitem__(self, item) -> numpy.ndarray:
+    def __getitem__(self, item):
         """
         Fetches the csi data based on the input slice. Slicing in the final
         dimension using an integer, slice, or integer array is supported. Note
@@ -508,12 +519,12 @@ class SubapertureOrthoIterator(OrthorectificationIterator):
 
     def __init__(
             self,
-            ortho_helper: OrthorectificationHelper,
-            calculator: SubapertureCalculator,
-            bounds: Union[None, numpy.ndarray, tuple, list] = None,
-            remap_function: Optional[RemapFunction] = None,
-            recalc_remap_globals: bool = False,
-            depth_first: bool = True):
+            ortho_helper,
+            calculator,
+            bounds = None,
+            remap_function = None,
+            recalc_remap_globals = False,
+            depth_first = True):
         """
 
         Parameters
@@ -549,11 +560,11 @@ class SubapertureOrthoIterator(OrthorectificationIterator):
             remap_function=remap_function, recalc_remap_globals=recalc_remap_globals)
 
     @property
-    def calculator(self) -> SubapertureCalculator:
+    def calculator(self):
         # noinspection PyTypeChecker
         return self._calculator
 
-    def _depth_first_iteration(self) -> Tuple[numpy.ndarray, Tuple[int, int], int]:
+    def _depth_first_iteration(self):
         if not self._depth_first:
             raise ValueError('Requires depth_first = True')
 
@@ -593,7 +604,7 @@ class SubapertureOrthoIterator(OrthorectificationIterator):
                          this_ortho_bounds[2] - self.ortho_bounds[2])
         return ortho_data, start_indices, self._this_frame
 
-    def _frame_first_iteration(self) -> Tuple[numpy.ndarray, Tuple[int, int], int]:
+    def _frame_first_iteration(self):
         if self._depth_first:
             raise ValueError('Requires depth_first = False')
 
@@ -631,7 +642,7 @@ class SubapertureOrthoIterator(OrthorectificationIterator):
                          this_ortho_bounds[2] - self.ortho_bounds[2])
         return ortho_data, start_indices, self._this_frame
 
-    def __next__(self) -> Tuple[numpy.ndarray, Tuple[int, int], int]:
+    def __next__(self):
         """
         Get the next iteration of ortho-rectified data.
 
@@ -652,7 +663,7 @@ class SubapertureOrthoIterator(OrthorectificationIterator):
         else:
             return self._frame_first_iteration()
 
-    def next(self) -> Tuple[numpy.ndarray, Tuple[int, int], int]:
+    def next(self):
         """
         Get the next iteration of ortho-rectified data.
 
@@ -684,11 +695,11 @@ class ApertureFilter(object):
 
     def __init__(
             self,
-            reader: SICDTypeReader,
-            dimension: int = 1,
-            index: int = 0,
-            apply_deskew: bool = True,
-            apply_deweighting: bool = False):
+            reader,
+            dimension = 1,
+            index = 0,
+            apply_deskew = True,
+            apply_deweighting = False):
         """
 
         Parameters
@@ -706,7 +717,7 @@ class ApertureFilter(object):
         self._sub_image_bounds = None
 
     @property
-    def apply_deskew(self) -> bool:
+    def apply_deskew(self):
         """
         bool: Apply deskew to calculated value.
         """
@@ -719,7 +730,7 @@ class ApertureFilter(object):
         self._set_normalized_phase_history()
 
     @property
-    def apply_deweighting(self) -> bool:
+    def apply_deweighting(self):
         """
         bool: Apply deweighting to calculated values.
         """
@@ -731,7 +742,7 @@ class ApertureFilter(object):
         self._deskew_calculator.apply_deweighting = val
         self._set_normalized_phase_history()
 
-    def _get_fft_complex_data(self, cdata: numpy.ndarray) -> numpy.ndarray:
+    def _get_fft_complex_data(self, cdata):
         """
         Transform the complex image data to phase history data.
 
@@ -746,7 +757,7 @@ class ApertureFilter(object):
 
         return fftshift(fft2_sicd(cdata, self.sicd))
 
-    def _get_fft_phase_data(self, ph_data: numpy.ndarray) -> numpy.ndarray:
+    def _get_fft_phase_data(self, ph_data):
         """
         Transforms the phase history data to complex image data.
 
@@ -762,7 +773,7 @@ class ApertureFilter(object):
         return ifft2_sicd(ph_data, self.sicd)
 
     @property
-    def sicd(self) -> SICDType:
+    def sicd(self):
         """
         SICDType: The associated SICD structure.
         """
@@ -770,7 +781,7 @@ class ApertureFilter(object):
         return self._deskew_calculator.sicd
 
     @property
-    def dimension(self) -> int:
+    def dimension(self):
         """
         int: The processing dimension.
         """
@@ -778,7 +789,7 @@ class ApertureFilter(object):
         return self._deskew_calculator.dimension
 
     @property
-    def data_size(self) -> Optional[Tuple[int, int]]:
+    def data_size(self):
         """
         None|(int, int): The feasible data size
         """
@@ -804,14 +815,14 @@ class ApertureFilter(object):
         self._set_normalized_phase_history()
 
     @property
-    def flip_x_axis(self) -> bool:
+    def flip_x_axis(self):
         try:
             return self.sicd.SCPCOA.SideOfTrack == "L"
         except AttributeError:
             return False
 
     @property
-    def sub_image_bounds(self) -> Tuple[Tuple[int, int], ...]:
+    def sub_image_bounds(self):
         """
         Tuple[Tuple[int, int], ...]: The sub-image bounds used for processing.
         """
@@ -820,8 +831,8 @@ class ApertureFilter(object):
 
     def set_sub_image_bounds(
             self,
-            row_bounds: Optional[Tuple[int, int]],
-            col_bounds: Optional[Tuple[int, int]]):
+            row_bounds,
+            col_bounds):
         """
         Sets the full range bounds for the phase history calculation. This subsequently
         sets the `normalized_phase_history` value.
@@ -853,14 +864,14 @@ class ApertureFilter(object):
         self._set_normalized_phase_history()
 
     @property
-    def normalized_phase_history(self) -> Optional[numpy.ndarray]:
+    def normalized_phase_history(self):
         """
         None|numpy.ndarray: The normalized phase history
         """
 
         return self._normalized_phase_history
 
-    def _set_normalized_phase_history(self) -> None:
+    def _set_normalized_phase_history(self):
         """
         Sets the normalized phase history.
 
@@ -886,7 +897,7 @@ class ApertureFilter(object):
         self._normalized_phase_history = self._get_fft_complex_data(deskewed_data)
 
     @property
-    def polar_angles(self) -> numpy.ndarray:
+    def polar_angles(self):
         angle_width = (1 / self.sicd.Grid.Col.SS) / self.sicd.Grid.Row.KCtr
         if self.sicd.Grid.Col.KCtr:
             angle_ctr = self.sicd.Grid.Col.KCtr
@@ -899,7 +910,7 @@ class ApertureFilter(object):
         return numpy.rad2deg(numpy.arctan(angles))
 
     @property
-    def frequencies(self) -> numpy.ndarray:
+    def frequencies(self):
         """
         This returns the subaperture frequencies in units of GHz
 
@@ -917,7 +928,7 @@ class ApertureFilter(object):
         frequencies = numpy.linspace(freq_limits[1], freq_limits[0], self.normalized_phase_history.shape[0])
         return frequencies
 
-    def __getitem__(self, item) -> Optional[numpy.ndarray]:
+    def __getitem__(self, item):
         if self.normalized_phase_history is None:
             return None
         filtered_cdata = numpy.zeros(self.normalized_phase_history.shape, dtype='complex64')

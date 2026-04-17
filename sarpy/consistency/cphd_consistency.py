@@ -1,9 +1,23 @@
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 #
 # Copyright 2020-2021 Valkyrie Systems Corporation
 #
 # Licensed under MIT License.  See LICENSE.
 #
 
+from builtins import super
+from builtins import zip
+from builtins import open
+#from builtins import str
+from builtins import next
+from builtins import range
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Nathan Bombaci, Valkyrie"
 
@@ -189,7 +203,7 @@ def get_by_id(xml, path, identifier):
         node found by path with an Identifier node with value of `identifier` or None if a match is not found
     """
 
-    return xml.find(f'{path}[Identifier="{identifier}"]')
+    return xml.find('{}[Identifier="{}"]'.format(path, identifier))
 
 
 class CphdConsistency(con.ConsistencyChecker):
@@ -240,7 +254,7 @@ class CphdConsistency(con.ConsistencyChecker):
                     this_doc = func.__doc__.strip()
                     if this_doc.endswith('.'):
                         this_doc = this_doc[:-1]
-                    subfunc.__doc__ = f"{this_doc} for channel {channel_id}."
+                    subfunc.__doc__ = "{} for channel {}.".format(this_doc, channel_id)
                     modified_channel_id = re.sub(INVALID_CHAR_REGEX, '_', channel_id)
                     subfunc.__name__ = "{name}_{chanid}".format(name=func.__name__, chanid=modified_channel_id)
                     subfuncs.append(subfunc)
@@ -370,7 +384,7 @@ class CphdConsistency(con.ConsistencyChecker):
         The XML matches the schema.
         """
 
-        with self.need(f"Schema available for checking xml whose root tag = {self.xml_with_ns.tag}"):
+        with self.need("Schema available for checking xml whose root tag = {}".format(self.xml_with_ns.tag)):
             assert self.schema is not None
             schema = etree.XMLSchema(file=str(self.schema))
 
@@ -384,11 +398,11 @@ class CphdConsistency(con.ConsistencyChecker):
         """
 
         cod_id = channel_node.findtext('./DwellTimes/CODId')
-        with self.need(f"/Dwell/CODTime with Identifier={cod_id} exists for DwellTime in channel={channel_id}"):
+        with self.need("/Dwell/CODTime with Identifier={} exists for DwellTime in channel={}".format(cod_id, channel_id)):
             assert get_by_id(self.xml, './Dwell/CODTime', cod_id) is not None
 
         dwell_id = channel_node.findtext('./DwellTimes/DwellId')
-        with self.need(f"/Dwell/DwellTime with Identifier={dwell_id} exists for DwellTime in channel={channel_id}"):
+        with self.need("/Dwell/DwellTime with Identifier={} exists for DwellTime in channel={}".format(dwell_id, channel_id)):
             assert get_by_id(self.xml, './Dwell/DwellTime', dwell_id) is not None
 
     @per_channel
@@ -424,8 +438,8 @@ class CphdConsistency(con.ConsistencyChecker):
             return np.asarray([pt.coords for pt in polygon.intersection(coords).geoms])
 
         sampled_iacs = _get_points_in_polygon(image_area_polygon).T
-        sampled_cods = npp.polyval2d(*sampled_iacs, codtime_poly)
-        sampled_dwells = npp.polyval2d(*sampled_iacs, dwelltime_poly)
+        sampled_cods = npp.polyval2d(*(sampled_iacs + (codtime_poly,)))
+        sampled_dwells = npp.polyval2d(*(sampled_iacs + (dwelltime_poly,)))
         with self.need("/Dwell/DwellTime/DwellTimePoly is nonnegative in image area"):
             assert sampled_dwells.min() >= 0.0
 
@@ -924,7 +938,7 @@ class CphdConsistency(con.ConsistencyChecker):
     def _get_channel_tx_lfmrates(self, channel_node):
         tx_lfmrates = set()
         for txwdid_node in channel_node.findall('./TxRcv/TxWFId'):
-            this_lfmrate = self.xml.findtext(f'./TxRcv/TxWFParameters[Identifier="{txwdid_node.text}"]/LFMRate')
+            this_lfmrate = self.xml.findtext('./TxRcv/TxWFParameters[Identifier="{}"]/LFMRate'.format(txwdid_node.text))
             if this_lfmrate is not None:
                 tx_lfmrates.add(float(this_lfmrate))
         assert tx_lfmrates
@@ -947,7 +961,7 @@ class CphdConsistency(con.ConsistencyChecker):
             derived_fx_matches_tx_lfmrates = np.isclose(derived_fx_rate[mask, np.newaxis],
                                                         tx_lfmrates[np.newaxis, :]).any(axis=1)
             inconsistent_derived_lfmrates = derived_fx_rate[mask][~derived_fx_matches_tx_lfmrates].tolist()
-            with self.want(f"aFRR1 is consistent with /TxRcv/TxWFParameters/LFMRate(s): {tx_lfmrates}"):
+            with self.want("aFRR1 is consistent with /TxRcv/TxWFParameters/LFMRate(s): {}".format(tx_lfmrates)):
                 assert not inconsistent_derived_lfmrates
 
     @per_channel
@@ -966,7 +980,7 @@ class CphdConsistency(con.ConsistencyChecker):
             derived_fx_matches_tx_lfmrates = np.isclose(derived_fx_rate[mask, np.newaxis],
                                                         tx_lfmrates[np.newaxis, :]).any(axis=1)
             inconsistent_derived_lfmrates = derived_fx_rate[mask][~derived_fx_matches_tx_lfmrates].tolist()
-            with self.want(f"aFRR2 is consistent with /TxRcv/TxWFParameters/LFMRate(s): {tx_lfmrates}"):
+            with self.want("aFRR2 is consistent with /TxRcv/TxWFParameters/LFMRate(s): {}".format(tx_lfmrates)):
                 assert not inconsistent_derived_lfmrates
 
     @per_channel
@@ -1005,7 +1019,7 @@ class CphdConsistency(con.ConsistencyChecker):
             for path in identifier_set:
                 these_identifiers.extend(x.text for x in channel_node.findall(path))
             repeated_identifiers = _get_repeated_elements(these_identifiers)
-            with self.want(f'Identifiers {identifier_set} are unique'):
+            with self.want('Identifiers {} are unique'.format(identifier_set)):
                 assert not repeated_identifiers
 
     @per_channel
@@ -1407,11 +1421,11 @@ class CphdConsistency(con.ConsistencyChecker):
             elif xml_path == 'ARPVel':
                 approx_args['atol'] = 1e-3
 
-            actual_value = parser(xml_node.find(f'./{xml_path}'))
+            actual_value = parser(xml_node.find('./{}'.format(xml_path)))
             if issubclass(np.asarray(expected_value).dtype.type, numbers.Number):
                 actual_value = con.Approx(actual_value, **approx_args)
 
-            with self.need(f'{xml_path} matches defined PVP/calculation'):
+            with self.need('{} matches defined PVP/calculation'.format(xml_path)):
                 assert np.all(expected_value == actual_value)
 
     def check_refgeom_root(self):
@@ -1486,14 +1500,14 @@ class CphdConsistency(con.ConsistencyChecker):
             {'./SceneCoordinates/ImageGrid/SegmentList/Segment/Identifier'},
             {'./TxRcv/RcvParameters/Identifier'},
             {'./TxRcv/TxWFParameters/Identifier'},
-            {f'./SupportArray/{sa_type}/Identifier' for sa_type in ('IAZArray', 'AntGainPhase', 'AddedSupportArray')},
+            {'./SupportArray/{}/Identifier'.format(sa_type) for sa_type in ('IAZArray', 'AntGainPhase', 'AddedSupportArray')},
         )
         for identifier_set in identifier_sets:
             these_identifiers = []
             for path in identifier_set:
                 these_identifiers.extend(x.text for x in self.xml.findall(path))
             repeated_identifiers = _get_repeated_elements(these_identifiers)
-            with self.need(f'Identifiers {identifier_set} are unique'):
+            with self.need('Identifiers {} are unique'.format(identifier_set)):
                 assert not repeated_identifiers
 
     def check_polynomials(self):
@@ -1503,24 +1517,24 @@ class CphdConsistency(con.ConsistencyChecker):
 
         def check_poly(poly_elem):
             path = poly_elem.getroottree().getpath(poly_elem)
-            order_by_dim = {dim: int(poly_elem.get(f'order{dim}'))
-                            for dim in (1, 2) if poly_elem.get(f'order{dim}') is not None}
-            coef_exponents = [tuple(int(coef.get(f'exponent{dim}')) for dim in order_by_dim)
+            order_by_dim = {dim: int(poly_elem.get('order{}'.format(dim)))
+                            for dim in (1, 2) if poly_elem.get('order{}'.format(dim)) is not None}
+            coef_exponents = [tuple(int(coef.get('exponent{}'.format(dim))) for dim in order_by_dim)
                               for coef in poly_elem.findall('./Coef')]
             repeated_coef_exponents = _get_repeated_elements(coef_exponents)
-            with self.need(f'{path} is correctly specified'):
+            with self.need('{} is correctly specified'.format(path)):
                 for index, order in enumerate(order_by_dim.values()):
                     dim_coefs_above_order = [coef_exp[index] for coef_exp in coef_exponents if coef_exp[index] > order]
                     assert not dim_coefs_above_order
                 assert not repeated_coef_exponents
 
         poly_paths = itertools.chain(
-            [f'./Antenna/AntPattern/{j}/{k}Poly' for j, k in itertools.product(('Array', 'Element'),
+            ['./Antenna/AntPattern/{}/{}Poly'.format(j, k) for j, k in itertools.product(('Array', 'Element'),
                                                                                ('Gain', 'Phase'))],
-            [f'./Antenna/AntCoordFrame/{axis}AxisPoly/{comp}' for axis, comp in itertools.product('XY', 'XYZ')],
+            ['./Antenna/AntCoordFrame/{}AxisPoly/{}'.format(axis, comp) for axis, comp in itertools.product('XY', 'XYZ')],
             ['./Antenna/AntPattern/GainBSPoly'],
-            [f'./Antenna/AntPattern/EB/DC{ax}Poly' for ax in 'XY'],
-            [f'./Dwell/{x}Time/{x}TimePoly' for x in ('COD', 'Dwell')],
+            ['./Antenna/AntPattern/EB/DC{}Poly'.format(ax) for ax in 'XY'],
+            ['./Dwell/{}Time/{}TimePoly'.format(x, x) for x in ('COD', 'Dwell')],
         )
         for element_path in poly_paths:
             for poly in self.xml.findall(element_path):

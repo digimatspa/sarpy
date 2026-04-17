@@ -1,7 +1,15 @@
 """
 The SCPCOAType definition.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -31,9 +39,9 @@ class GeometryCalculator(object):
 
     def __init__(
             self,
-            SCP: numpy.ndarray,
-            ARPPos: numpy.ndarray,
-            ARPVel: numpy.ndarray):
+            SCP,
+            ARPPos,
+            ARPVel):
         """
 
         Parameters
@@ -71,7 +79,7 @@ class GeometryCalculator(object):
         self.uEAST = numpy.cross(self.uNORTH, self.ETP)  # already unit vector
 
     @staticmethod
-    def _make_unit(vec: numpy.ndarray) -> numpy.ndarray:
+    def _make_unit(vec):
         vec_norm = norm(vec)
         if vec_norm < 1e-6:
             logger.error(
@@ -80,46 +88,46 @@ class GeometryCalculator(object):
         return vec/vec_norm
 
     @property
-    def ROV(self) -> float:
+    def ROV(self):
         """
         float: Range over velocity
         """
         return float(norm(self.LOS)/norm(self.ARP_vel))
 
     @property
-    def SideOfTrack(self) -> str:
+    def SideOfTrack(self):
         return 'R' if self.look < 0 else 'L'
 
     @property
-    def SlantRange(self) -> float:
+    def SlantRange(self):
         return float(norm(self.LOS))
 
     @property
-    def GroundRange(self) -> float:
+    def GroundRange(self):
         return norm(self.SCP)*numpy.arccos(self.uSCP.dot(self.uARP))
 
     @property
-    def DopplerConeAng(self) -> float:
+    def DopplerConeAng(self):
         return float(numpy.rad2deg(numpy.arccos(self.uARP_vel.dot(self.uLOS))))
 
     @property
-    def GrazeAng(self) -> float:
+    def GrazeAng(self):
         return self.get_graze_and_incidence()[0]
 
     @property
-    def IncidenceAng(self) -> float:
+    def IncidenceAng(self):
         return self.get_graze_and_incidence()[1]
 
-    def get_graze_and_incidence(self) -> Tuple[float, float]:
+    def get_graze_and_incidence(self):
         graze_ang = -float(numpy.rad2deg(numpy.arcsin(self.ETP.dot(self.uLOS))))
         return graze_ang, 90 - graze_ang
 
     @property
-    def TwistAng(self) -> float:
+    def TwistAng(self):
         return float(-numpy.rad2deg(numpy.arcsin(self.uGPY.dot(self.uSPZ))))
 
     @property
-    def SquintAngle(self) -> float:
+    def SquintAngle(self):
         # Note: squint angle is not defined in the SICD DIDD, but it is defined in the SIDD DIDD v2 (7.5.4)
         #     squint_angle = arccos(-Xs_hat dot Va_hat), where "hat" means unit vector.
         # In this code, uLOS = -xs_hat, so the minus sign is omitted from the argument of the arccos function.
@@ -129,27 +137,27 @@ class GeometryCalculator(object):
         return float(self.look * numpy.rad2deg(numpy.arccos(los_proj.dot(arp_vel_proj))))
 
     @property
-    def SlopeAng(self) -> float:
+    def SlopeAng(self):
         return float(numpy.rad2deg(numpy.arccos(self.ETP.dot(self.uSPZ))))
 
     @property
-    def AzimAng(self) -> float:
+    def AzimAng(self):
         azim_ang = numpy.rad2deg(numpy.arctan2(self.uGPX.dot(self.uEAST), self.uGPX.dot(self.uNORTH)))
         azim_ang = azim_ang if azim_ang > 0 else azim_ang + 360
         return float(azim_ang)
 
     @property
-    def LayoverAng(self) -> float:
+    def LayoverAng(self):
         return self.get_layover()[0]
 
-    def get_layover(self) -> Tuple[float, float]:
+    def get_layover(self):
         layover_ground = self.ETP - self.ETP.dot(self.uSPZ)*self.uSPZ
         layover_ang = numpy.rad2deg(
             numpy.arctan2(layover_ground.dot(self.uEAST), layover_ground.dot(self.uNORTH)))
         layover_ang = layover_ang if layover_ang > 0 else layover_ang + 360
         return float(layover_ang), float(norm(layover_ground))
 
-    def get_shadow(self) -> Tuple[float, float]:
+    def get_shadow(self):
         shadow = self.ETP - self.uLOS/self.uLOS.dot(self.ETP)
         shadow_prime = shadow - self.uSPZ*(shadow.dot(self.ETP)/self.uSPZ.dot(self.ETP))
         shadow_angle = numpy.rad2deg(numpy.arctan2(shadow_prime.dot(self.uGPY), shadow_prime.dot(self.uGPX)))
@@ -222,20 +230,20 @@ class SCPCOAType(Serializable):
 
     def __init__(
             self,
-            SCPTime: float = None,
-            ARPPos: Union[XYZType, numpy.ndarray, list, tuple] = None,
-            ARPVel: Union[XYZType, numpy.ndarray, list, tuple] = None,
-            ARPAcc: Union[XYZType, numpy.ndarray, list, tuple] = None,
-            SideOfTrack: str = None,
-            SlantRange: float = None,
-            GroundRange: float = None,
-            DopplerConeAng: float = None,
-            GrazeAng: float = None,
-            IncidenceAng: float = None,
-            TwistAng: float = None,
-            SlopeAng: float = None,
-            AzimAng: float = None,
-            LayoverAng: float = None,
+            SCPTime = None,
+            ARPPos = None,
+            ARPVel = None,
+            ARPAcc = None,
+            SideOfTrack = None,
+            SlantRange = None,
+            GroundRange = None,
+            DopplerConeAng = None,
+            GrazeAng = None,
+            IncidenceAng = None,
+            TwistAng = None,
+            SlopeAng = None,
+            AzimAng = None,
+            LayoverAng = None,
             **kwargs):
         """
 
@@ -277,7 +285,7 @@ class SCPCOAType(Serializable):
         super(SCPCOAType, self).__init__(**kwargs)
 
     @property
-    def look(self) -> Optional[int]:
+    def look(self):
         """
         int: An integer version of `SideOfTrack`:
 
@@ -294,7 +302,7 @@ class SCPCOAType(Serializable):
             return -1 if self.SideOfTrack == 'R' else 1
 
     @property
-    def ROV(self) -> Optional[float]:
+    def ROV(self):
         """
         float: The Ratio of Range to Velocity at Center of Aperture time.
         """
@@ -302,7 +310,7 @@ class SCPCOAType(Serializable):
         return self._ROV
 
     @property
-    def ThetaDot(self) -> Optional[float]:
+    def ThetaDot(self):
         """
         float: Derivative of Theta as a function of time at Center of Aperture time.
         """
@@ -312,7 +320,7 @@ class SCPCOAType(Serializable):
         return float(numpy.sin(numpy.deg2rad(self.DopplerConeAng))/self.ROV)
 
     @property
-    def MultipathGround(self) -> Optional[float]:
+    def MultipathGround(self):
         """
         float: The anticipated angle of multipath features on the ground in degrees.
         """
@@ -322,7 +330,7 @@ class SCPCOAType(Serializable):
             -numpy.arctan(numpy.tan(numpy.deg2rad(self.TwistAng))*numpy.sin(numpy.deg2rad(self.GrazeAng))))
 
     @property
-    def Multipath(self) -> Optional[float]:
+    def Multipath(self):
         """
         float: The anticipated angle of multipath features in degrees.
         """
@@ -331,7 +339,7 @@ class SCPCOAType(Serializable):
         return numpy.mod(self.AzimAng - 180 + self.MultipathGround, 360)
 
     @property
-    def Shadow(self) -> Optional[float]:
+    def Shadow(self):
         """
         float: The anticipated angle of shadow features in degrees.
         """
@@ -339,7 +347,7 @@ class SCPCOAType(Serializable):
         return self._shadow
 
     @property
-    def ShadowMagnitude(self) -> Optional[float]:
+    def ShadowMagnitude(self):
         """
         float: The anticipated relative magnitude of shadow features.
         """
@@ -347,7 +355,7 @@ class SCPCOAType(Serializable):
         return self._shadow_magnitude
 
     @property
-    def Squint(self) -> float:
+    def Squint(self):
         """
         float: The squint angle, in degrees.
         """
@@ -355,14 +363,14 @@ class SCPCOAType(Serializable):
         return self._squint
 
     @property
-    def LayoverMagnitude(self) -> float:
+    def LayoverMagnitude(self):
         """
         float: The anticipated relative magnitude of layover features.
         """
 
         return self._layover_magnitude
 
-    def _derive_scp_time(self, Grid, overwrite: bool = False):
+    def _derive_scp_time(self, Grid, overwrite = False):
         """
         Expected to be called by SICD parent.
 
@@ -384,7 +392,7 @@ class SCPCOAType(Serializable):
         scp_time = Grid.TimeCOAPoly.Coefs[0, 0]
         self.SCPTime = scp_time
 
-    def _derive_position(self, Position, overwrite: bool = False):
+    def _derive_position(self, Position, overwrite = False):
         """
         Derive aperture position parameters, if necessary. Expected to be called by SICD parent.
 
@@ -411,7 +419,7 @@ class SCPCOAType(Serializable):
             self.ARPVel = XYZType.from_array(poly.derivative_eval(scptime, 1))
             self.ARPAcc = XYZType.from_array(poly.derivative_eval(scptime, 2))
 
-    def _derive_geometry_parameters(self, GeoData, overwrite: bool = False):
+    def _derive_geometry_parameters(self, GeoData, overwrite = False):
         """
         Expected to be called by SICD parent.
 
@@ -478,7 +486,7 @@ class SCPCOAType(Serializable):
         self._derive_position(Position, overwrite=True)
         self._derive_geometry_parameters(GeoData, overwrite=True)
 
-    def check_values(self, GeoData) -> bool:
+    def check_values(self, GeoData):
         """
         Check derived values for validity.
 

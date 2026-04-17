@@ -1,7 +1,17 @@
 """
 Module contained elements for defining TREs - really intended as read only objects.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import range
+from builtins import super
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -40,18 +50,18 @@ def _parse_type(typ_string, leng, value, start):
         return struct.unpack('>f', byt)[0]
     if typ_string == 'b':
         return byt
-    raise ValueError(f'Got unrecognized type string {typ_string}')
+    raise ValueError('Got unrecognized type string {}'.format(typ_string))
 
 
 def _str_encoder(val, formatspec):
-    return f'{val:{formatspec}}'.encode('utf-8')
+    return '{:{}}'.format(val, formatspec).encode('utf-8')
 
 
 def _create_encoder(typ_string, leng):
     if typ_string == 's':
-        return functools.partial(_str_encoder, formatspec=f'{leng}s')
+        return functools.partial(_str_encoder, formatspec='{}s'.format(leng))
     if typ_string == 'd':
-        return functools.partial(_str_encoder, formatspec=f'0{leng}d')
+        return functools.partial(_str_encoder, formatspec='0{}d'.format(leng))
     if typ_string == 'b':
         return lambda x: x
     if typ_string == 'ieee754_binary32':
@@ -174,7 +184,7 @@ class TREElement(object):
         out = OrderedDict()
         for fld in self._field_ordering:
             val = getattr(self, fld)
-            if val is None or isinstance(val, (bytes, str, int, float)):
+            if val is None or isinstance(val, (bytes, string_types, int, float)):
                 out[fld] = val
             elif isinstance(val, TREElement):
                 out[fld] = val.to_dict()
@@ -292,7 +302,7 @@ class TREExtension(TRE):
     def __init__(self, value):
         if not issubclass(self._data_type, TREElement):
             raise TypeError('_data_type must be a subclass of TREElement. Got type {}'.format(self._data_type))
-        if not isinstance(self._tag_value, str):
+        if not isinstance(self._tag_value, string_types):
             raise TypeError('_tag_value must be a string')
         if len(self._tag_value) > 6:
             raise ValueError('Tag value must have 6 or fewer characters.')

@@ -1,6 +1,12 @@
 import math
-import pathlib
-import unittest
+try:
+    import pathlib
+except ImportError:
+    import pathlib2 as pathlib
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 import pytest
 

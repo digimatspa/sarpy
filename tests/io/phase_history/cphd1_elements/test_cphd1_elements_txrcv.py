@@ -39,6 +39,6 @@ def test_txrcv_txrcvtype():
     ]
     assert tx_rcv_type.NumRcvs == expected_num_rcv_params
 
-    tx_rcv_type.RcvParameters.clear()
+    del tx_rcv_type.RcvParameters[:]
     assert tx_rcv_type.NumRcvs == 0
 

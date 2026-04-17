@@ -1,7 +1,18 @@
 """
 Functionality for reading Sentinel-1 data into a SICD model.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import dict
+from builtins import range
+from builtins import round
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = ("Thomas McCullough", "Daniel Haverporth")
 
@@ -47,8 +58,8 @@ logger = logging.getLogger(__name__)
 ##########
 # helper functions
 
-def _parse_xml(file_name: str,
-               without_ns: bool = False) -> Union[ElementTree.Element, Tuple[dict, ElementTree.Element]]:
+def _parse_xml(file_name,
+               without_ns = False):
     root_node = ElementTree.parse(file_name).getroot()
     if without_ns:
         return root_node
@@ -63,7 +74,7 @@ def _parse_xml(file_name: str,
 class SentinelDetails(object):
     __slots__ = ('_file_name', '_directory_name', '_root_node', '_ns', '_satellite', '_product_type', '_base_sicd')
 
-    def __init__(self, file_name: str):
+    def __init__(self, file_name):
         """
 
         Parameters
@@ -108,7 +119,7 @@ class SentinelDetails(object):
         self._base_sicd = self._get_base_sicd()
 
     @property
-    def file_name(self) -> str:
+    def file_name(self):
         """
         str: the file name
         """
@@ -116,7 +127,7 @@ class SentinelDetails(object):
         return self._file_name
 
     @property
-    def directory_name(self) -> str:
+    def directory_name(self):
         """
         str: the package directory name
         """
@@ -124,7 +135,7 @@ class SentinelDetails(object):
         return self._directory_name
 
     @property
-    def satellite(self) -> str:
+    def satellite(self):
         """
         str: the satellite
         """
@@ -132,14 +143,14 @@ class SentinelDetails(object):
         return self._satellite
 
     @property
-    def product_type(self) -> str:
+    def product_type(self):
         """
         str: the product type
         """
 
         return self._product_type
 
-    def _find(self, tag: str) -> ElementTree.Element:
+    def _find(self, tag):
         """
         Pass through to ElementTree.Element.find(tag, ns).
 
@@ -154,7 +165,7 @@ class SentinelDetails(object):
 
         return self._root_node.find(tag, self._ns)
 
-    def _findall(self, tag: str) -> List[ElementTree.Element]:
+    def _findall(self, tag):
         """
         Pass through to ElementTree.Element.findall(tag, ns).
 
@@ -170,10 +181,10 @@ class SentinelDetails(object):
         return self._root_node.findall(tag, self._ns)
 
     @staticmethod
-    def _parse_pol(str_in: str) -> str:
+    def _parse_pol(str_in):
         return '{}:{}'.format(str_in[0], str_in[1])
 
-    def _get_file_sets(self) -> List[dict]:
+    def _get_file_sets(self):
         """
         Extracts paths for measurement and metadata files from a Sentinel manifest.safe file.
         These files will be grouped according to "measurement data unit" implicit in the
@@ -185,7 +196,7 @@ class SentinelDetails(object):
         """
 
         def get_file_location(schema_type, tids):
-            if isinstance(tids, str):
+            if isinstance(tids, string_types):
                 tids = [tids, ]
             for tid in tids:
                 do = self._find('dataObjectSection/dataObject[@repID="{}"]/[@ID="{}"]'.format(schema_type, tid))
@@ -216,7 +227,7 @@ class SentinelDetails(object):
             files.append(fnames)
         return files
 
-    def _get_base_sicd(self) -> SICDType:
+    def _get_base_sicd(self):
         """
         Gets the base SICD element.
 
@@ -272,7 +283,7 @@ class SentinelDetails(object):
             for i, pol in enumerate(polarizations)])
         return SICDType(CollectionInfo=collection_info, ImageCreation=image_creation, RadarCollection=radar_collection)
 
-    def _parse_product_sicd(self, product_file_name: str) -> Union[SICDType, List[SICDType]]:
+    def _parse_product_sicd(self, product_file_name):
         """
 
         Parameters
@@ -768,7 +779,7 @@ class SentinelDetails(object):
         else:
             return finalize_stripmap()
 
-    def _refine_using_calibration(self, cal_file_name: str, sicds: Union[SICDType, List[SICDType]]) -> None:
+    def _refine_using_calibration(self, cal_file_name, sicds):
         """
 
         Parameters
@@ -852,7 +863,7 @@ class SentinelDetails(object):
         for ind, sic in enumerate(sicds):
             update_sicd(sic, ind)
 
-    def _refine_using_noise(self, noise_file_name: str, sicds: Union[SICDType, List[SICDType]]) -> None:
+    def _refine_using_noise(self, noise_file_name, sicds):
         """
 
         Parameters
@@ -995,7 +1006,7 @@ class SentinelDetails(object):
             populate_noise(sic, ind)
 
     @staticmethod
-    def _derive(sicds: Union[SICDType, List[SICDType]]) -> None:
+    def _derive(sicds):
         if isinstance(sicds, SICDType):
             sicds.derive()
             sicds.populate_rniirs(override=False)
@@ -1004,7 +1015,7 @@ class SentinelDetails(object):
                 sicd.derive()
                 sicd.populate_rniirs(override=False)
 
-    def get_sicd_collection(self) -> List[Tuple[str, Union[SICDType, List[SICDType]]]]:
+    def get_sicd_collection(self):
         """
         Get the data file location(s) and corresponding sicd collection for each file.
 
@@ -1039,7 +1050,7 @@ class SentinelReader(SICDTypeReader):
 
     __slots__ = ('_sentinel_details', '_parent_segments')
 
-    def __init__(self, sentinel_details: Union[str, SentinelDetails]):
+    def __init__(self, sentinel_details):
         """
 
         Parameters
@@ -1047,7 +1058,7 @@ class SentinelReader(SICDTypeReader):
         sentinel_details : str|SentinelDetails
         """
 
-        if isinstance(sentinel_details, str):
+        if isinstance(sentinel_details, string_types):
             sentinel_details = SentinelDetails(sentinel_details)
         if not isinstance(sentinel_details, SentinelDetails):
             raise TypeError('Input argument for SentinelReader must be a file name or SentinelReader object.')
@@ -1090,7 +1101,7 @@ class SentinelReader(SICDTypeReader):
         self._check_sizes()
 
     @property
-    def sentinel_details(self) -> SentinelDetails:
+    def sentinel_details(self):
         """
         SentinelDetails: The sentinel details object.
         """
@@ -1098,7 +1109,7 @@ class SentinelReader(SICDTypeReader):
         return self._sentinel_details
 
     @property
-    def file_name(self) -> str:
+    def file_name(self):
         return self.sentinel_details.directory_name
 
     def close(self):
@@ -1117,7 +1128,7 @@ class SentinelReader(SICDTypeReader):
 ########
 # base expected functionality for a module with an implemented Reader
 
-def is_a(file_name: str) -> Optional[SentinelReader]:
+def is_a(file_name):
     """
     Tests whether a given file_name corresponds to a Sentinel file. Returns a reader instance, if so.
 

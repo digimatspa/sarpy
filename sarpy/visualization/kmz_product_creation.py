@@ -22,7 +22,17 @@ Create a kmz overview for the contents of a sicd type reader.
                     pixel_limit=2048,
                     inc_collection_wedge=True)
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import int
+#from builtins import str
+from builtins import zip
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -442,7 +452,7 @@ def _write_antenna(kmz_document, sicd, time_args, time_array, folder):
 
         for boresight_type in ("mechanical", "electrical"):
             visibility = which == "Rcv"  # only display Rcv by default
-            name = f"{which} {boresight_type} boresight"
+            name = "{} {} boresight".format(which, boresight_type)
 
             on_earth_ecf = numpy.asarray(
                 [
@@ -457,10 +467,10 @@ def _write_antenna(kmz_document, sicd, time_args, time_array, folder):
             placemark = kmz_document.add_container(
                 par=boresight_folder,
                 name=name,
-                description=f"{name} <br><br>Highlighted edge indicates start time",
-                styleUrl=f"#{boresight_type}_boresight",
+                description="{} <br><br>Highlighted edge indicates start time".format(name),
+                styleUrl="#{}_boresight".format(boresight_type),
                 visibility=visibility,
-                **time_args,
+                **time_args
             )
             boresight_coords = kmz_utils.ecef_to_kml_coord(on_earth_ecf)
             apc_coords = kmz_utils.ecef_to_kml_coord(aiming["raw"]["positions"])
@@ -486,14 +496,14 @@ def _write_antenna(kmz_document, sicd, time_args, time_array, folder):
         for when, this_footprint in kmz_utils.make_beam_footprints(
                 aiming, footprint_labels, array_gain_poly, elem_gain_poly, contour_level=contour_level,
         ).items():
-            name = f"{which} beam {contour_level}dB footprint @ {when}"
+            name = "{} beam {}dB footprint @ {}".format(which, contour_level, when)
             placemark = kmz_document.add_container(
                 par=footprint_folder,
                 name=name,
                 description=name,
-                styleUrl=f"#{which.lower()}_beam_footprint",
+                styleUrl="#{}_beam_footprint".format(which.lower()),
                 visibility=True,
-                **time_args,
+                **time_args
             )
             coords = kmz_utils.ecef_to_kml_coord(this_footprint["contour"])
             kmz_document.add_polygon(
@@ -870,7 +880,7 @@ def antenna_aiming(sicd, which, time_array):
             ant_dir_node = sicd.Antenna.TwoWay
             apc_poly = sicd.Position.ARPPoly
         else:
-            raise ValueError(f"Unknown antenna '{which}'")
+            raise ValueError("Unknown antenna '{}'".format(which))
 
         positions = apc_poly(time_array)
         uacx = ant_dir_node.XAxisPoly(time_array)
@@ -903,6 +913,6 @@ def antenna_aiming(sicd, which, time_array):
 
         return pointing
     except Exception as exc:
-        logger.warning(f"Exception while calculating {which} boresight")
+        logger.warning("Exception while calculating {} boresight".format(which))
         logger.warning(exc)
     return {}

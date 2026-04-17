@@ -1,11 +1,19 @@
 import logging
-import pathlib
+try:
+    import pathlib
+except ImportError:
+    import pathlib2 as pathlib
 import tempfile
 
 import pytest
 
 from tests import find_test_data_files
 import sarpy.utils.sicd_sidelobe_control
+
+try:
+    from tempfile import TemporaryDirectory
+except ImportError:
+    from backports.tempfile import TemporaryDirectory
 
 sicd_files = find_test_data_files(pathlib.Path(__file__).parent / 'utils_file_types.json').get('SICD', [])
 
@@ -24,7 +32,7 @@ def test_sicd_sidelobe_control_help(capsys):
 
 @pytest.mark.parametrize("sicd_in_file", sicd_files)
 def test_sicd_sidelobe_control_pars(sicd_in_file):
-    with tempfile.TemporaryDirectory() as tempdir:
+    with TemporaryDirectory() as tempdir:
         sicd_out_file = pathlib.Path(tempdir) / "sicd_taper.nitf"
 
         args = [str(sicd_in_file), str(sicd_out_file), "--window", "taylor", "--pars", "5", "-35"]

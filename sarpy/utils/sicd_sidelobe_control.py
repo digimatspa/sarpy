@@ -6,7 +6,14 @@ For a basic help on the command-line, check
 >>> python -m sarpy.utils.sicd_sidelobe_control --help
 
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Valkyrie Systems Corporation"
 
@@ -62,11 +69,11 @@ def main(args=None):
 
 def window_args_parser(parser):
     def pars_text(pars):
-        prefix = 'takes 1 parameter: ' if len(pars) == 1 else f'takes {len(pars)} parameters: '
-        return prefix + ', '.join([f'"{p.lower()}"' for p in pars.keys()])
+        prefix = 'takes 1 parameter: ' if len(pars) == 1 else 'takes {} parameters: '.format(len(pars))
+        return prefix + ', '.join(['"{}"'.format(p.lower()) for p in pars.keys()])
 
     window_name_choices = [w.lower() for w in Taper().default_pars.keys()]
-    window_pars_choices = [f'  "{w.lower()}": {pars_text(p)}' for w, p in Taper().default_pars.items() if p]
+    window_pars_choices = ['  "{}": {}'.format(w.lower(), pars_text(p)) for w, p in Taper().default_pars.items() if p]
     parser.add_argument(
         '-w', '--window', type=str.lower, choices=window_name_choices,
         help='The name of the window function.  Acceptable (case insensitive) names are:\n'

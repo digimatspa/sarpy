@@ -40,7 +40,7 @@ def test_iq_band_interleaved_by_block(tests_path, tmp_path):
             str(out_nitf), writing_details=writer_details
         ) as writer:
             writer.write(data)
-        assert filecmp.cmp(in_nitf, out_nitf, shallow=False)
+        assert filecmp.cmp(str(in_nitf), str(out_nitf), shallow=False)
 
 
 def test_write_filehandle(tests_path, tmp_path):
@@ -61,7 +61,7 @@ def test_write_filehandle(tests_path, tmp_path):
             writer.write(data)
 
         assert not fd.closed
-    assert filecmp.cmp(in_nitf, out_nitf, shallow=False)
+    assert filecmp.cmp(str(in_nitf), str(out_nitf), shallow=False)
 
 def test_in_memory_write(tests_path, tmp_path):
     in_nitf_mem = tests_path / "data/iq.nitf"
@@ -81,7 +81,7 @@ def test_in_memory_write(tests_path, tmp_path):
             writer_mem.write(data_mem)
 
         assert not fd_mem.closed
-    assert filecmp.cmp(in_nitf_mem, out_nitf_mem, shallow=False)
+    assert filecmp.cmp(str(in_nitf_mem), str(out_nitf_mem), shallow=False)
 
 def test_get_format_function_none():
     # No complex_order, no lut

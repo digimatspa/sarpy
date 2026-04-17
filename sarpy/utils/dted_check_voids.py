@@ -5,7 +5,17 @@ return  list/file with { <dtedfilename} :[ (lat/lon void),]
 or  a boolean on yes this file has a void
 and a note on how to see/check voids in QGIS
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import dict
+#from builtins import str
+from builtins import map
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "John O'Neill"
 
@@ -55,7 +65,7 @@ def check_for_voids(dtedFilePath, return_index=False ):
                     file_path = os.path.join(root, filename)
                     files.append( file_path )        
         
-    elif isinstance( dtedFilePath, str):
+    elif isinstance(dtedFilePath, string_types):
         files = [dtedFilePath, ]
         
 

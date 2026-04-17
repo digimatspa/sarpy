@@ -12,6 +12,7 @@ import pytest
 
 from sarpy.consistency import sicd_consistency
 from sarpy.io.complex.sicd_elements import RgAzComp, SICD
+from future.utils import string_types
 
 
 def test_sicd_smoke_tests(sicd, rma_sicd, tol):
@@ -102,7 +103,7 @@ def test_sicd_smoke_tests(sicd, rma_sicd, tol):
     assert isinstance(xml_bytes, bytes)
 
     xml_string = sicd.to_xml_string()
-    assert isinstance(xml_string, str)
+    assert isinstance(xml_string, string_types)
     sicd1 = sicd.from_xml_string(xml_string)
     assert sicd1.is_valid()
 
@@ -127,7 +128,7 @@ def test_sicd_smoke_tests(sicd, rma_sicd, tol):
 
 def test_nitf_setter_failures(sicd):
     a_list = ['test', 'TEST']
-    with pytest.raises(TypeError, match=f'data must be dictionary instance. Received {type(a_list)}'):
+    with pytest.raises(TypeError, match='data must be dictionary instance. Received {}'.format(type(a_list))):
         sicd.NITF = a_list
 
 
@@ -182,12 +183,12 @@ def test_apply_reference_frequency_errors(sicd):
 
 def test_create_subset_structure_errors(sicd):
     min_max_vals = (10, 100000)
-    with pytest.raises(ValueError, match=re.escape(f'row bounds ({min_max_vals[0]}, {min_max_vals[1]}) '
-                                                   f'are not sensible for NumRows {sicd.ImageData.NumRows}')):
+    with pytest.raises(ValueError, match=re.escape('row bounds ({}, {}) '
+                                                   'are not sensible for NumRows {}'.format(min_max_vals[0], min_max_vals[1], sicd.ImageData.NumRows))):
         sicd.create_subset_structure(row_bounds=min_max_vals)
     min_max_vals = (100000, 100)
-    with pytest.raises(ValueError, match=re.escape(f'column bounds ({min_max_vals[0]}, {min_max_vals[1]}) '
-                                                   f'are not sensible for NumCols {sicd.ImageData.NumCols}')):
+    with pytest.raises(ValueError, match=re.escape('column bounds ({}, {}) '
+                                                   'are not sensible for NumCols {}'.format(min_max_vals[0], min_max_vals[1], sicd.ImageData.NumCols))):
         sicd.create_subset_structure(column_bounds=min_max_vals)
 
 

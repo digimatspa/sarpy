@@ -1,9 +1,15 @@
 import collections
 import os
-import pathlib
+try:
+    import pathlib
+except ImportError:
+    import pathlib2 as pathlib
 import tempfile
 import shutil
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 from sarpy.io.complex.sicd import SICDReader
 from sarpy.io.general.nitf import NITFWritingDetails, NITFWriter, ImageSubheaderManager, ImageSegmentHeader
@@ -19,6 +25,11 @@ try:
     from lxml import etree
 except ImportError:
     etree = None
+
+try:
+    from tempfile import TemporaryDirectory
+except ImportError:
+    from backports.tempfile import TemporaryDirectory
 
 
 product_file_types = tests.find_test_data_files(pathlib.Path(__file__).parent / 'product_file_types.json')
@@ -119,8 +130,8 @@ class TestSIDDWriting(unittest.TestCase):
         assert sidd_meta.Display.PixelType == 'MONO8I'
 
         # Tweak SIDD size to force three image segments
-        li_max = 9_999_999_998
-        iloc_max = 99_999
+        li_max = 9999999998
+        iloc_max = 99999
         num_cols = li_max // (2 * iloc_max)  # set num_cols so that row limit is iloc_max
         last_rows = 24
         num_rows = iloc_max * 2 + last_rows
@@ -134,11 +145,11 @@ class TestSIDDWriting(unittest.TestCase):
         ImHdr = collections.namedtuple('ImHdr', ['IID1', 'IDLVL', 'IALVL', 'ILOC', 'NROWS', 'NCOLS'])
         expected_imhdrs = [
             ImHdr(IID1='SIDD001001', IDLVL=1, IALVL=0, ILOC='0'*10, NROWS=iloc_max, NCOLS=num_cols),
-            ImHdr(IID1='SIDD001002', IDLVL=2, IALVL=1, ILOC=f'{iloc_max:05d}{0:05d}', NROWS=iloc_max, NCOLS=num_cols),
-            ImHdr(IID1='SIDD001003', IDLVL=3, IALVL=2, ILOC=f'{iloc_max:05d}{0:05d}', NROWS=last_rows, NCOLS=num_cols),
+            ImHdr(IID1='SIDD001002', IDLVL=2, IALVL=1, ILOC='{:05d}{:05d}'.format(iloc_max, 0), NROWS=iloc_max, NCOLS=num_cols),
+            ImHdr(IID1='SIDD001003', IDLVL=3, IALVL=2, ILOC='{:05d}{:05d}'.format(iloc_max, 0), NROWS=last_rows, NCOLS=num_cols),
             ImHdr(IID1='SIDD002001', IDLVL=4, IALVL=0, ILOC='0'*10, NROWS=iloc_max, NCOLS=num_cols),
-            ImHdr(IID1='SIDD002002', IDLVL=5, IALVL=4, ILOC=f'{iloc_max:05d}{0:05d}', NROWS=iloc_max, NCOLS=num_cols),
-            ImHdr(IID1='SIDD002003', IDLVL=6, IALVL=5, ILOC=f'{iloc_max:05d}{0:05d}', NROWS=last_rows, NCOLS=num_cols),
+            ImHdr(IID1='SIDD002002', IDLVL=5, IALVL=4, ILOC='{:05d}{:05d}'.format(iloc_max, 0), NROWS=iloc_max, NCOLS=num_cols),
+            ImHdr(IID1='SIDD002003', IDLVL=6, IALVL=5, ILOC='{:05d}{:05d}'.format(iloc_max, 0), NROWS=last_rows, NCOLS=num_cols),
         ]
 
         actual_imhdrs = [
@@ -164,7 +175,7 @@ class TestSIDDWriting(unittest.TestCase):
         )
         # Modify fields per SIDD 2.0/3.0 Table 2-7
         legseg.subheader.ICAT = "LEG"
-        legseg.subheader.IID1 = f"{legseg.subheader.IID1[:-3]}{int(legseg.subheader.IID1[-3:])+1:03}"
+        legseg.subheader.IID1 = "{}{:03}".format(legseg.subheader.IID1[:-3], int(legseg.subheader.IID1[-3:])+1)
         legseg.subheader.IDLVL += 1
         legseg.subheader.IALVL = sidd_writing_details.image_managers[0].subheader.IDLVL
 
@@ -174,12 +185,14 @@ class TestSIDDWriting(unittest.TestCase):
             image_segment_collections=tuple((x,) for x in range(2)),
             des_managers=sidd_writing_details.des_managers,
         )
-        with tempfile.TemporaryDirectory() as tmp_path:
+        with TemporaryDirectory() as tmp_path:
             tmp_path = pathlib.Path(tmp_path)
             siddfile = tmp_path / "out.nitf"
-            with open(siddfile, "w+b") as f:
-                with NITFWriter(f, siddnitf_with_leg):
-                    pass
+            with open(str(siddfile), "w+b") as f:
+
+                writer = NITFWriter(f, siddnitf_with_leg)
+                writer.__exit__(None, None, None)
+                f.flush()
                 assert sarpy.io.product.sidd.is_a(str(siddfile))
 
 class TestSIDDOptionalFields(unittest.TestCase):

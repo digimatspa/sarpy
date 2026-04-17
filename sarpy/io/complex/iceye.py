@@ -1,7 +1,16 @@
 """
 Functionality for reading ICEYE complex data into a SICD model.
 """
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+from future.utils import string_types
 
+from builtins import int
+from builtins import round
+from future import standard_library
+standard_library.install_aliases()
 __classification__ = "UNCLASSIFIED"
 __author__ = "Thomas McCullough"
 
@@ -42,7 +51,7 @@ from sarpy.io.general.utils import get_seconds, parse_timestring, is_file_like, 
 logger = logging.getLogger(__name__)
 
 
-def _parse_time(input_str: Union[bytes, str]) -> numpy.datetime64:
+def _parse_time(input_str):
     """
     Parse the timestring.
 
@@ -64,7 +73,7 @@ class ICEYEDetails(object):
     """
     __slots__ = ('_file_name', )
 
-    def __init__(self, file_name: str):
+    def __init__(self, file_name):
         """
 
         Parameters
@@ -90,14 +99,14 @@ class ICEYEDetails(object):
         self._file_name = file_name
 
     @property
-    def file_name(self) -> str:
+    def file_name(self):
         """
         str: the file name
         """
 
         return self._file_name
 
-    def get_sicd(self) -> (SICDType, Optional[Tuple[int, ...]], Tuple[int, ...]):
+    def get_sicd(self):
         """
         Gets the SICD structure and associated details for constructing the data segment.
 
@@ -108,7 +117,7 @@ class ICEYEDetails(object):
         transpose_axes : Tuple[int, ...]
         """
 
-        def get_collection_info() -> CollectionInfoType:
+        def get_collection_info():
 
             mode_id_type_map = {
                 "SpotlightExtendedArea": "DYNAMIC STRIPMAP", }
@@ -124,7 +133,7 @@ class ICEYEDetails(object):
                     ModeType=mode_type,
                     ModeID=mode_id))
 
-        def get_image_creation() -> ImageCreationType:
+        def get_image_creation():
             from sarpy.__about__ import __version__
             return ImageCreationType(
                 Application='ICEYE_P_{}'.format(hf['processor_version'][()]),
@@ -132,7 +141,7 @@ class ICEYEDetails(object):
                 Site='Unknown',
                 Profile='sarpy {}'.format(__version__))
 
-        def get_image_data() -> ImageDataType:
+        def get_image_data():
 
             samp_prec = _stringify(hf['sample_precision'][()])
             if samp_prec.upper() == 'INT16':
@@ -162,13 +171,13 @@ class ICEYEDetails(object):
                 FullImage=(num_rows, num_cols),
                 SCPPixel=(scp_row, scp_col))
 
-        def get_geo_data() -> GeoDataType:
+        def get_geo_data():
             # NB: the remainder will be derived.
             return GeoDataType(
                 SCP=SCPType(
                     LLH=[coord_center[2], coord_center[3], avg_scene_height]))
 
-        def get_timeline() -> TimelineType:
+        def get_timeline():
             acq_prf = hf['acquisition_prf'][()]
             return TimelineType(
                 CollectStart=start_time,
@@ -177,7 +186,7 @@ class ICEYEDetails(object):
                                 IPPStart=0, IPPEnd=int(round(acq_prf*duration) - 1),
                                 IPPPoly=[0, acq_prf]), ])
 
-        def get_position() -> PositionType:
+        def get_position():
             times_str = hf['state_vector_time_utc'][:, 0]
             times = numpy.zeros((times_str.shape[0], ), dtype='float64')
             positions = numpy.zeros((times.size, 3), dtype='float64')
@@ -190,7 +199,7 @@ class ICEYEDetails(object):
             P_x, P_y, P_z = fit_position_xvalidation(times, positions, velocities, max_degree=8)
             return PositionType(ARPPoly=XYZPolyType(X=P_x, Y=P_y, Z=P_z))
 
-        def get_radar_collection() -> RadarCollectionType:
+        def get_radar_collection():
             return RadarCollectionType(
                 TxPolarization=tx_pol,
                 TxFrequency=(min_freq, max_freq),
@@ -204,7 +213,7 @@ class ICEYEDetails(object):
                 RcvChannels=[ChanParametersType(TxRcvPolarization=polarization,
                                                 index=1)])
 
-        def get_image_formation() -> ImageFormationType:
+        def get_image_formation():
             return ImageFormationType(
                 TxRcvPolarizationProc=polarization,
                 ImageFormAlgo='RMA',
@@ -217,10 +226,10 @@ class ICEYEDetails(object):
                 RgAutofocus='NO',
                 RcvChanProc=RcvChanProcType(NumChanProc=1, PRFScaleFactor=1, ChanIndices=[1, ]),)
 
-        def get_radiometric() -> RadiometricType:
+        def get_radiometric():
             return RadiometricType(BetaZeroSFPoly=[[float(hf['calibration_factor'][()]), ], ])
 
-        def calculate_drate_sf_poly() -> (numpy.ndarray, numpy.ndarray):
+        def calculate_drate_sf_poly():
             r_ca_coeffs = numpy.array([r_ca_scp, 1], dtype='float64')
             dop_rate_coeffs = hf['doppler_rate_coeffs'][:]
             # Prior to ICEYE 1.14 processor, absolute value of Doppler rate was
@@ -235,7 +244,7 @@ class ICEYEDetails(object):
             return t_drate_ca_poly, \
                 -polynomial.polymul(t_drate_ca_poly, r_ca_coeffs)*speed_of_light/(2*center_freq*vm_ca_sq)
 
-        def calculate_doppler_polys() -> (numpy.ndarray, numpy.ndarray):
+        def calculate_doppler_polys():
             # define and fit the time coa array
             if collect_info.RadarMode.ModeType == 'SPOTLIGHT':
                 coa_time = duration / 2
@@ -297,7 +306,7 @@ class ICEYEDetails(object):
 
             return t_dop_centroid_coeffs, t_time_coa_coeffs
 
-        def get_rma() -> RMAType:
+        def get_rma():
             if collect_info.RadarMode.ModeType == 'SPOTLIGHT':
                 dop_centroid_poly = None
                 dop_centroid_coa = None
@@ -316,7 +325,7 @@ class ICEYEDetails(object):
                 RMAlgoType='OMEGA_K',
                 INCA=inca)
 
-        def get_grid() -> GridType:
+        def get_grid():
             time_coa_poly = Poly2DType(Coefs=time_coa_poly_coeffs)
 
             row_win = _stringify(hf['window_function_range'][()])
@@ -346,7 +355,7 @@ class ICEYEDetails(object):
                 Row=row,
                 Col=col)
 
-        def correct_scp() -> None:
+        def correct_scp():
             scp_pixel = sicd.ImageData.SCPPixel.get_array()
             scp_ecf = sicd.project_image_to_ground(scp_pixel, projection_type='HAE')
             sicd.update_scp(scp_ecf, coord_system='ECF')
@@ -442,11 +451,11 @@ class ICEYEDetails(object):
 
 
 def get_iceye_data_segment(
-        file_name: str,
-        reverse_axes: Union[None, int, Sequence[int]],
-        transpose_axes: Union[None, Tuple[int, ...]],
-        real_group: str = 's_i',
-        imaginary_grop: str = 's_q') -> BandAggregateSegment:
+        file_name,
+        reverse_axes,
+        transpose_axes,
+        real_group = 's_i',
+        imaginary_grop = 's_q'):
     real_dataset = HDF5DatasetSegment(
         file_name, real_group, reverse_axes=reverse_axes, transpose_axes=transpose_axes, close_file=True)
     imag_dataset = HDF5DatasetSegment(
@@ -475,7 +484,7 @@ class ICEYEReader(SICDTypeReader):
             file name or ICEYEDetails object
         """
 
-        if isinstance(iceye_details, str):
+        if isinstance(iceye_details, string_types):
             iceye_details = ICEYEDetails(iceye_details)
         if not isinstance(iceye_details, ICEYEDetails):
             raise TypeError('The input argument for a ICEYEReader must be a '
@@ -488,7 +497,7 @@ class ICEYEReader(SICDTypeReader):
         self._check_sizes()
 
     @property
-    def iceye_details(self) -> ICEYEDetails:
+    def iceye_details(self):
         """
         ICEYEDetails: The ICEYE details object.
         """
@@ -503,7 +512,7 @@ class ICEYEReader(SICDTypeReader):
 ########
 # base expected functionality for a module with an implemented Reader
 
-def is_a(file_name: str) -> Union[None, ICEYEReader]:
+def is_a(file_name):
     """
     Tests whether a given file_name corresponds to a ICEYE file. Returns a reader instance, if so.
 

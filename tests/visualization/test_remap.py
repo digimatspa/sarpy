@@ -3,8 +3,12 @@
 #
 # Licensed under MIT License.  See LICENSE.
 #
+from future.utils import string_types
 import collections
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 import numpy as np
 
@@ -20,7 +24,7 @@ except ImportError:
 
 class NoOpRemap(remap.RemapFunction):
     def __init__(self):
-        super().__init__(override_name="noop")
+        super(NoOpRemap, self).__init__(override_name="noop")
 
     def raw_call(self, data, **kwargs):
         return data
@@ -72,7 +76,7 @@ class TestRemap(unittest.TestCase):
         self.assertEqual(rf.dimension, 0)
         self.assertEqual(rf.output_dtype, np.dtype(np.uint8))
         self.assertTrue(rf.are_global_parameters_set)
-        self.assertTrue(isinstance(rf.name, str))
+        self.assertTrue(isinstance(rf.name, string_types))
         self.assertGreater(len(rf.name), 0)
         with self.assertRaises(NotImplementedError):
             rf(np.arange(10))

@@ -29,7 +29,7 @@ def scpcoa(sicd, kwargs):
         SlopeAng=sicd.SCPCOA.SlopeAng,
         AzimAng=sicd.SCPCOA.AzimAng,
         LayoverAng=sicd.SCPCOA.LayoverAng,
-        **kwargs,
+        **kwargs
     )
 
 
@@ -43,7 +43,7 @@ def test_scpcoa_geometrycalculator(sicd, caplog):
 
     bad_vector = np.asarray([1e-7, 0, 0])
     assert np.allclose(geom_calc._make_unit(bad_vector), [1, 0, 0])
-    assert f"The input vector to be normalized has norm" in caplog.text
+    assert "The input vector to be normalized has norm" in caplog.text
     rov = geom_calc.ROV
     assert rov is not None
     sot = geom_calc.SideOfTrack
@@ -206,7 +206,7 @@ def test_scpcoa_derivegeometry(sicd, scpcoa, tol):
 
     scpcoa_copy._derive_geometry_parameters(GeoData=sicd.GeoData, overwrite=True)
     assert scpcoa_copy._ROV is not None
-    assert scpcoa_copy.SideOfTrack == pytest.approx(scpcoa.SideOfTrack, abs=tol)
+    assert scpcoa_copy.SideOfTrack == scpcoa.SideOfTrack
     assert scpcoa_copy.SlantRange == pytest.approx(scpcoa.SlantRange, abs=tol)
     assert scpcoa_copy.GroundRange == pytest.approx(scpcoa.GroundRange, abs=tol)
     assert scpcoa_copy.DopplerConeAng == pytest.approx(scpcoa.DopplerConeAng, abs=tol)
@@ -243,11 +243,11 @@ def test_scpcoa_checkvalues_error2(sicd, scpcoa, caplog):
     scpcoa.GroundRange = 1000000.0
     assert not scpcoa.check_values(GeoData=sicd.GeoData)
     assert (
-        f"attribute SlantRange is expected to have value {np.round(sicd.SCPCOA.SlantRange, 10)}, but is populated as 1000000.0"
+        "attribute SlantRange is expected to have value {}, but is populated as 1000000.0".format(np.round(sicd.SCPCOA.SlantRange, 10))
         in caplog.text
     )
     assert (
-        f"attribute GroundRange is expected to have value {np.round(sicd.SCPCOA.GroundRange, 10)}, but is populated as 1000000.0"
+        "attribute GroundRange is expected to have value {}, but is populated as 1000000.0".format(np.round(sicd.SCPCOA.GroundRange, 10))
         in caplog.text
     )
 

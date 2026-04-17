@@ -2,7 +2,10 @@
 import numpy
 from numpy.polynomial import polynomial
 from sarpy.io.complex.utils import two_dim_poly_fit
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 
 class TestRadarSatUtils(unittest.TestCase):
