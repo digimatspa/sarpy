@@ -519,7 +519,7 @@ class TestParseInt(unittest.TestCase):
 
     def test_parse_int_value_param_is_list_non_int_success(self):
         pattern = (
-            r"int\(\) argument must be a string, a bytes-like object or a number, not 'list'|"
+            r"int\(\) argument must be a string, a bytes-like object or a real number, not 'list'|"
             r"newint argument must be a string or a number,not '<type 'list'>'"
         )
 
@@ -581,7 +581,7 @@ class TestParseFloat(unittest.TestCase):
 
     def test_parse_float_value_param_is_list_non_int_success(self):
         with self.assertRaisesRegex(TypeError, r"float\(\) argument must be " + \
-                                    "a string or a number(, not 'list')?"):
+                                    "a string or a (real)? number(, not 'list')?"):
             base.parse_float([3.5], "Bob", "base")
 
 # ********************
